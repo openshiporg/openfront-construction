@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Goal-owned private runtime (never stage credentials, cookies, logs or PG data)
+/.runtime/batch-goal-20261019/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

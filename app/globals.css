@@ -112,9 +112,35 @@
   --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
+/* Phone hit regions for Construction-owned screens only (the platform pages
+   wrapped by PlatformLayout's .construction-touch; the public site sizes its
+   own controls in storefront.css). Layered and zero-specificity, so the family
+   dashboard components and explicit utilities keep their own sizing, and
+   element display is never changed. */
+@layer base {
+  @media (max-width: 767px) {
+    :where(.construction-touch) :where(
+      button, input:not([type="hidden"]), select, textarea,
+      [role="button"], [role="option"], [role="menuitem"], [role="tab"],
+      [role="radio"], [role="checkbox"], [role="switch"], [role="combobox"],
+      [role="menuitemcheckbox"], [role="menuitemradio"]
+    ) {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    :where(.construction-touch) :where(input:not([type="hidden"]), select, textarea) {
+      font-size: 16px;
+    }
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  html,
+  body {
+    overflow-x: clip;
   }
   body {
     @apply bg-background text-foreground;

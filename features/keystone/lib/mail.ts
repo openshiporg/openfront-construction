@@ -1,6 +1,7 @@
 'use server' 
 
-import { createTransport, getTestMessageUrl } from "nodemailer";
+import { createTransport } from "nodemailer";
+import { smtpAddress } from "./smtp-address";
 
 // Utility function to get base URL for emails
 function getBaseUrlForEmails(): string {
@@ -13,10 +14,12 @@ function getBaseUrlForEmails(): string {
   return '';
 }
 
+const parsedSmtpPort = process.env.SMTP_PORT ? Number.parseInt(process.env.SMTP_PORT, 10) : undefined;
+const smtpPort = parsedSmtpPort !== undefined && Number.isFinite(parsedSmtpPort) ? parsedSmtpPort : undefined;
+
 const transport = createTransport({
-  // @ts-ignore
   host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
+  port: smtpPort,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASSWORD,
@@ -58,20 +61,23 @@ function passwordResetEmail({ url }: { url: string }): string {
   `;
 }
 
-export async function sendPasswordResetEmail(resetToken: string, to: string, baseUrl?: string): Promise<void> {
+export async function sendPasswordResetEmail(resetToken: string, to: string, baseUrl?: string, resetPath: "/dashboard/reset" | "/account/reset" = "/dashboard/reset"): Promise<void> {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_FROM) throw new Error("Password reset email is not configured");
+  const recipient = smtpAddress(to);
+  const sender = smtpAddress(process.env.SMTP_FROM);
   // Use provided baseUrl or fall back to utility function
   const frontendUrl = baseUrl || getBaseUrlForEmails();
   
   // email the user a token
-  const info = await transport.sendMail({
-    to,
-    from: process.env.SMTP_FROM,
+  await transport.sendMail({
+    to: { name: "", address: recipient },
+    from: { name: "", address: sender },
+    disableFileAccess: true,
+    disableUrlAccess: true,
     subject: "Your password reset token!",
     html: passwordResetEmail({
-      url: `${frontendUrl}/dashboard/reset?token=${resetToken}`,
+      url: `${frontendUrl}${resetPath}?token=${encodeURIComponent(resetToken)}`,
     }),
   });
-  if (process.env.MAIL_USER?.includes("ethereal.email")) {
-    console.log(`📧 Message Sent!  Preview it at ${getTestMessageUrl(info as any)}`);
-  }
+
 }

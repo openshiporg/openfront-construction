@@ -1,5 +1,6 @@
-// @ts-nocheck
-function sortRelationships(left, right) {
+type LooseRecord = Record<string, any>
+
+function sortRelationships(left: any, right: any) {
     if (left.field.mode === "one" && right.field.mode === "one") {
       if (
         left.field.foreignKey !== undefined &&
@@ -62,15 +63,15 @@ function sortRelationships(left, right) {
   //   you only have to reason about two-sided relationships
   //   (note that this means that there are "fields" in the returned ListsWithResolvedRelations
   //   which are not actually proper Keystone fields, they are just a db field and nothing else)
-  export function resolveRelationships(lists) {
-    const alreadyResolvedTwoSidedRelationships = new Set()
-    const resolvedLists = Object.fromEntries(
+  export function resolveRelationships(lists: LooseRecord) {
+    const alreadyResolvedTwoSidedRelationships = new Set<string>()
+    const resolvedLists: Record<string, LooseRecord> = Object.fromEntries(
       Object.keys(lists).map(listKey => [listKey, {}])
     )
     for (const [listKey, fields] of Object.entries(lists)) {
       const resolvedList = resolvedLists[listKey]
       for (const [fieldPath, { dbField: field }] of Object.entries(
-        fields.fields
+        fields.fields as Record<string, any>
       )) {
         if (field.kind !== "relation") {
           resolvedList[fieldPath] = field
@@ -116,7 +117,7 @@ function sortRelationships(left, right) {
             )
           }
   
-          let [leftRel, rightRel] = sortRelationships(
+          const [leftRel, rightRel] = sortRelationships(
             { listKey, fieldPath, field },
             { listKey: field.list, fieldPath: field.field, field: foreignField }
           )

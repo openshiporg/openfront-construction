@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// @ts-nocheck
 import pluralize from "pluralize";
 import config from "../index";
 import { graphql } from "@keystone-6/core";
@@ -98,12 +97,12 @@ function graphqlForOutputField(field: any) {
 
 function outputTypeField(
   outputField: any,
-  dbField: any,
-  cacheHint: any,
-  access: any,
-  listKey: string,
-  fieldPath: string,
-  lists: any
+  _dbField: any,
+  _cacheHint: any,
+  _access: any,
+  _listKey: string,
+  _fieldPath: string,
+  _lists: any
 ) {
   return outputField;
 }
@@ -165,7 +164,7 @@ ${uniqueViews.map(view => `  "${view}"`).join(',\n')}
 }
 
 function extractUniqueViews(jsonData: any) {
-  let viewsArray: string[] = [];
+  const viewsArray: string[] = [];
   
   for (const key in jsonData) {
     if (jsonData.hasOwnProperty(key)) {
@@ -461,7 +460,7 @@ function getListGraphqlTypes(listsConfig: any, lists: any, intermediateLists: an
       },
     });
 
-    let take = graphql.arg({ type: graphql.Int });
+    let take: any = graphql.arg({ type: graphql.Int });
     if ((listConfig as any).graphql?.maxTake !== undefined) {
       take = graphql.arg({
         type: graphql.nonNull(graphql.Int) as any,
@@ -472,11 +471,11 @@ function getListGraphqlTypes(listsConfig: any, lists: any, intermediateLists: an
     const findManyArgs = {
       where: graphql.arg({
         type: graphql.nonNull(where) as any,
-        defaultValue: (listConfig as any).isSingleton
+        defaultValue: ((listConfig as any).isSingleton
           ? {
               id: { equals: "1" },
             }
-          : {},
+          : {}) as any,
       }),
       orderBy: graphql.arg({
         type: graphql.nonNull(graphql.list(graphql.nonNull(orderBy))),
@@ -588,20 +587,20 @@ function getListGraphqlTypes(listsConfig: any, lists: any, intermediateLists: an
 }
 
 function getListsWithInitialisedFields(
-  { storage: configStorage, lists: listsConfig, db: { provider } },
-  listGraphqlTypes,
-  intermediateLists
+  { storage: configStorage, lists: listsConfig, db: { provider } }: any,
+  listGraphqlTypes: any,
+  intermediateLists: any
 ) {
-  const result = {};
+  const result: Record<string, any> = {};
 
-  for (const [listKey, list] of Object.entries(listsConfig)) {
+  for (const [listKey, list] of Object.entries(listsConfig as Record<string, any>)) {
     const intermediateList = intermediateLists[listKey];
-    const resultFields = {};
-    const groups = [];
+    const resultFields: Record<string, any> = {};
+    const groups: any[] = [];
     const fieldKeys = Object.keys(list.fields);
 
     for (const [idx, [fieldKey, fieldFunc]] of Object.entries(
-      list.fields
+      list.fields as Record<string, any>
     ).entries()) {
       if (fieldKey.startsWith("__group")) {
         const group = fieldFunc;
@@ -636,7 +635,7 @@ function getListsWithInitialisedFields(
         listKey,
         lists: listGraphqlTypes,
         provider,
-        getStorage: (storage) => configStorage?.[storage],
+        getStorage: (storage: string) => configStorage?.[storage],
       });
 
       throwIfNotAFilter(f.isFilterable, listKey, "isFilterable");
@@ -773,7 +772,7 @@ function getListsWithInitialisedFields(
   return result;
 }
 
-export function parseFieldAccessControl(access) {
+export function parseFieldAccessControl(access: any) {
   if (typeof access === "function") {
     return { read: access, create: access, update: access };
   }
@@ -789,7 +788,7 @@ export function allowAll() {
   return true;
 }
 
-function parseFieldHooks(hooks) {
+function parseFieldHooks(hooks: any) {
   return {
     resolveInput: {
       create: hooks.resolveInput ?? defaultFieldHooksResolveInput,
@@ -810,13 +809,13 @@ function parseFieldHooks(hooks) {
   };
 }
 
-function defaultFieldHooksResolveInput({ resolvedData, fieldKey }) {
+function defaultFieldHooksResolveInput({ resolvedData, fieldKey }: any) {
   return resolvedData[fieldKey];
 }
 
 function defaultOperationHook() {}
 
-export function parseListAccessControl(access) {
+export function parseListAccessControl(access: any = {}) {
   if (typeof access === "function") {
     return {
       operation: {
@@ -838,7 +837,8 @@ export function parseListAccessControl(access) {
     };
   }
 
-  let { operation, filter, item } = access;
+  let { operation } = access;
+  const { filter, item } = access;
   if (typeof operation === "function") {
     operation = {
       query: operation,
@@ -868,7 +868,7 @@ export function parseListAccessControl(access) {
   };
 }
 
-function parseListHooksResolveInput(f) {
+function parseListHooksResolveInput(f: any) {
   if (typeof f === "function") {
     return {
       create: f,
@@ -883,7 +883,7 @@ function parseListHooksResolveInput(f) {
   return { create, update };
 }
 
-function parseListHooks(hooks) {
+function parseListHooks(hooks: any) {
   return {
     resolveInput: parseListHooksResolveInput(hooks.resolveInput),
     validateInput: hooks.validateInput ?? defaultOperationHook,
@@ -893,11 +893,11 @@ function parseListHooks(hooks) {
   };
 }
 
-function defaultListHooksResolveInput({ resolvedData }) {
+function defaultListHooksResolveInput({ resolvedData }: any) {
   return resolvedData;
 }
 
-function parseListHooksBeforeOperation(f) {
+function parseListHooksBeforeOperation(f: any) {
   if (typeof f === "function") {
     return {
       create: f,
@@ -914,7 +914,7 @@ function parseListHooksBeforeOperation(f) {
   return { create, update, delete: _delete };
 }
 
-function parseListHooksAfterOperation(f) {
+function parseListHooksAfterOperation(f: any) {
   if (typeof f === "function") {
     return {
       create: f,

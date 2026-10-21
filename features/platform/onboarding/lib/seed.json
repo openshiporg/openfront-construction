@@ -1,0 +1,36 @@
+{
+  "company": {
+    "name": "Northstar Builders",
+    "slug": "northstar-builders"
+  },
+  "admin": {
+    "name": "Construction Administrator",
+    "email": "construction@openship.org",
+    "roleName": "Construction Administrator"
+  },
+  "project": {
+    "projectNumber": "NS-001",
+    "name": "Civic Learning Center",
+    "description": "Occupied-campus expansion with a public library, flexible classrooms, and site improvements.",
+    "startDate": "2026-08-03T12:00:00.000Z",
+    "completionDate": "2027-09-30T12:00:00.000Z",
+    "currencyCode": "USD"
+  },
+  "client": {
+    "name": "City of Northstar",
+    "partnerType": "owner"
+  },
+  "tradePartner": {
+    "name": "Atlas Concrete Partners",
+    "partnerType": "subcontractor"
+  },
+  "costCode": {
+    "code": "03-3000",
+    "name": "Cast-in-place concrete",
+    "division": "03"
+  },
+  "budgetCode": {
+    "code": "03-3000-LS",
+    "description": "Concrete subcontract"
+  }
+}

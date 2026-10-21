@@ -2,6 +2,8 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  agentRules: false,
+  allowedDevOrigins: ['construction.local'],
   serverExternalPackages: ['graphql'],
   // Workaround since we diverged from Keystone reltionship and document views
   // typescript: {

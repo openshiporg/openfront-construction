@@ -1,26 +1,26 @@
 import { createAuth } from "@keystone-6/auth";
 import { config } from "@keystone-6/core";
 import "dotenv/config";
-import { models } from "./models";
-import { statelessSessions } from "@keystone-6/core/session";
-import { extendGraphqlSchema } from "./mutations";
-import { sendPasswordResetEmail } from "./lib/mail";
 
-const databaseURL = process.env.DATABASE_URL || "file:./keystone.db";
+import { permissions } from "./access";
+import { requirePostgresDatabaseUrl } from "./domain/database-url";
+import { requireSessionSecret } from "./domain/session-secret";
+import { databaseSessions } from "./domain/session-strategy";
+import { sendPasswordResetEmail } from "./lib/mail";
+import { models } from "./models";
+import { permissionsList } from "./models/fields";
+import { extendGraphqlSchema } from "./mutations";
+
+const databaseURL = requirePostgresDatabaseUrl(process.env.DATABASE_URL);
 
 const sessionConfig = {
-  maxAge: 60 * 60 * 24 * 360, // How long they stay signed in?
-  secret:
-    process.env.SESSION_SECRET || "this secret should only be used in testing",
+  maxAge: 60 * 60 * 8,
+  secret: requireSessionSecret(),
 };
 
-const {
-  S3_BUCKET_NAME: bucketName = "keystone-test",
-  S3_REGION: region = "ap-southeast-2",
-  S3_ACCESS_KEY_ID: accessKeyId = "keystone",
-  S3_SECRET_ACCESS_KEY: secretAccessKey = "keystone",
-  S3_ENDPOINT: endpoint = "https://sfo3.digitaloceanspaces.com",
-} = process.env;
+const initialRolePermissions = Object.fromEntries(
+  permissionsList.map(permission => [permission, true]),
+);
 
 const { withAuth } = createAuth({
   listKey: "User",
@@ -31,37 +31,44 @@ const { withAuth } = createAuth({
     itemData: {
       role: {
         create: {
-          name: "Admin",
-          canCreateTodos: true,
-          canManageAllTodos: true,
-          canSeeOtherPeople: true,
-          canEditOtherPeople: true,
-          canManagePeople: true,
-          canManageRoles: true,
-          canAccessDashboard: true,
+          name: "Platform Administrator",
+          ...initialRolePermissions,
         },
       },
     },
   },
   passwordResetLink: {
-    async sendToken(args) {
-      // send the email
-      await sendPasswordResetEmail(args.token, args.identity);
+    async sendToken({ itemId, identity, token, context }) {
+      // Employees reset on the dashboard; customers and portal participants
+      // reset on the public website, so the link never sends them to the dashboard.
+      const user = await context.sudo().query.User.findOne({ where: { id: String(itemId) }, query: "role { canAccessDashboard }" });
+      const resetPath = user?.role?.canAccessDashboard ? "/dashboard/reset" : "/account/reset";
+      await sendPasswordResetEmail(token, identity, undefined, resetPath);
     },
   },
   sessionData: `
+    id
     name
     email
+    isActive
     role {
       id
       name
-      canCreateTodos
-      canManageAllTodos
-      canSeeOtherPeople
-      canEditOtherPeople
-      canManagePeople
-      canManageRoles
-      canAccessDashboard
+      ${permissionsList.join("\n")}
+    }
+    companyMemberships {
+      status
+      canAccessAllProjects
+      company { id name brandName brandMark brandTagline brandColor }
+      role { id name ${permissionsList.join("\n")} }
+    }
+    projectMemberships {
+      status
+      accessLevel
+      portalType
+      project { id company { id } }
+      portalOrganization { id name partnerType }
+      role { id name ${permissionsList.join("\n")} }
     }
   `,
 });
@@ -73,25 +80,15 @@ export default withAuth(
       url: databaseURL,
     },
     lists: models,
-    storage: {
-      my_images: {
-        kind: "s3",
-        type: "image",
-        bucketName,
-        region,
-        accessKeyId,
-        secretAccessKey,
-        endpoint,
-        signed: { expiry: 5000 },
-        forcePathStyle: true,
-      },
-    },
+    // Construction files use the verified private-object adapter. No current
+    // List uses starter my_images; do not instantiate an unused cloud client.
     ui: {
-      isAccessAllowed: ({ session }) => session?.data.role?.canAccessDashboard ?? false,
+      isAccessAllowed: ({ session }) => permissions.canAccessDashboard({ session }),
+      basePath: "/dashboard",
     },
-    session: statelessSessions(sessionConfig),
+    session: databaseSessions(sessionConfig),
     graphql: {
       extendGraphqlSchema,
     },
-  })
+  }),
 );
