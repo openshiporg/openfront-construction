@@ -1,6 +1,8 @@
 # Railway can't access internal databases during build, so we move
 # npm run migrate from build to start command
 [build]
+# This service was created on Nixpacks; build it with Railpack like E-commerce.
+builder = "RAILPACK"
 buildCommand = "keystone build --no-ui && next build"
 
 [deploy]
