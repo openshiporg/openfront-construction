@@ -1,11 +1,8 @@
 'use client';
 
 import { useState, useSyncExternalStore } from "react";
-import { ChevronDown } from "lucide-react";
+import { ClipboardPen } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { FormSelect } from "@/features/forms/components/FormSelect";
 import { RecordLookup } from "@/features/forms/components/RecordLookup";
 import { sha256Hex, MAX_EVIDENCE_BYTES } from "@/features/forms/lib/sha256";
@@ -14,6 +11,7 @@ import { runConstructionWorkflow } from "../actions";
 import { useKeyedCommand } from "../use-keyed-command";
 import { OneTimeSecretReceipt } from "./OneTimeSecretReceipt";
 import { eligibleOptions, localDateTimeToInstant, userTimeZone, type Field, type NumberRule } from "./workflow-fields";
+import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, selectClass, textareaClass, trackClass } from "@/features/platform/components/kit";
 
 type Workflow = { operation: string; label: string; help: string; fields: Field[] };
 
@@ -117,18 +115,18 @@ function EvidenceField({ field }: { field: Field }) {
       setState({ fileName: "", checksum: "", error: "The file could not be read. Choose it again.", hashing: false });
     }
   }
-  return <div className="grid gap-1.5 text-xs font-medium md:col-span-2">
-    <label className="grid gap-1.5">{field.label}
-      <Input type="file" required={field.required && !state.checksum} onChange={event => void choose(event.target.files?.[0])} className="min-h-11" />
+  return <div className="grid gap-3 md:col-span-2">
+    <label className={fieldLabelClass}>{field.label}
+      <input type="file" required={field.required && !state.checksum} onChange={event => void choose(event.target.files?.[0])} className={`${inputClass} h-auto min-h-10 py-2 file:mr-3 file:rounded-full file:border-0 file:bg-muted file:px-3 file:py-1 file:text-xs file:font-medium`} />
     </label>
-    <label className="grid gap-1.5">Evidence reference
-      <Input key={state.fileName} name="evidenceReference" required defaultValue={state.fileName.slice(0, 160)} maxLength={160} />
+    <label className={fieldLabelClass}>Evidence reference
+      <input key={state.fileName} name="evidenceReference" required defaultValue={state.fileName.slice(0, 160)} maxLength={160} className={inputClass} />
     </label>
     {field.fileNameField && <input type="hidden" name={field.fileNameField} value={state.fileName} />}
     <input type="hidden" name="evidenceChecksumSha256" value={state.checksum} />
-    {state.hashing && <span role="status" className="font-normal text-muted-foreground">Reading file…</span>}
-    {state.checksum && <span role="status" className="font-normal text-muted-foreground">File fingerprint recorded ({state.checksum.slice(0, 12)}…).</span>}
-    {state.error && <span role="alert" className="font-normal text-destructive">{state.error}</span>}
+    {state.hashing && <span role="status" className="text-xs text-muted-foreground">Reading file…</span>}
+    {state.checksum && <span role="status" className="font-mono text-xs text-muted-foreground">SHA-256 {state.checksum.slice(0, 12)}…</span>}
+    {state.error && <span role="alert" className="text-xs text-destructive">{state.error}</span>}
   </div>;
 }
 
@@ -139,22 +137,24 @@ function DateTimeField({ field }: { field: Field }) {
   const timeZone = useSyncExternalStore(subscribeToNothing, userTimeZone, () => "");
   const instant = localDateTimeToInstant(local);
   const noteId = `${field.name}-timezone`;
-  return <label className="grid gap-1.5 text-xs font-medium"><span>{field.label}</span>
-    <Input type="datetime-local" required={field.required} value={local} onChange={event => setLocal(event.target.value)} aria-describedby={noteId} />
+  return <label className={fieldLabelClass}><span>{field.label}</span>
+    <input type="datetime-local" required={field.required} value={local} onChange={event => setLocal(event.target.value)} aria-describedby={noteId} className={inputClass} />
     <input type="hidden" name={field.name} value={instant ?? ""} />
-    <span id={noteId} className="font-normal text-muted-foreground">{timeZone ? `Time zone: ${timeZone}` : "Your local time"}</span>
+    <span id={noteId} className="font-normal">{timeZone || "Local time"}</span>
   </label>;
 }
 
 function WorkflowForm({ projectId, workflow, options }: { projectId: string; workflow: Workflow; options: ConstructionOption[] }) {
   const { state, action, pending, idempotencyKey } = useKeyedCommand(runConstructionWorkflow);
   return (
-    <form action={action} className="grid min-w-0 gap-3 border-t p-4 [&>label]:min-w-0 [&_input]:min-w-0 [&_select]:w-full [&_select]:min-w-0 [&_textarea]:min-w-0 md:grid-cols-2 xl:grid-cols-3">
+    <form action={action} className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
       <input type="hidden" name="operation" value={workflow.operation} /><input type="hidden" name="projectId" value={projectId} /><input type="hidden" name="idempotencyKey" value={idempotencyKey} />
       {/* A new key means the previous operation succeeded: start with fresh inputs. */}
       <WorkflowFields key={idempotencyKey} projectId={projectId} workflow={workflow} options={options} />
-      <div className="flex items-end xl:col-start-3"><Button type="submit" disabled={pending} className="min-h-11 w-full">{pending ? "Saving…" : workflow.label}</Button></div>
-      {state.message && <p role={state.status === "error" ? "alert" : "status"} className={`text-sm md:col-span-2 xl:col-span-3 ${state.status === "error" ? "text-destructive" : "text-emerald-700 dark:text-emerald-400"}`}>{state.message}</p>}
+      <div className="flex flex-wrap items-center gap-3 md:col-span-2 xl:col-span-3">
+        <span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : workflow.label}</button></span>
+        <FormFeedback status={state.status} message={state.message} />
+      </div>
       <div className="md:col-span-2 xl:col-span-3"><OneTimeSecretReceipt state={state} /></div>
     </form>
   );
@@ -174,16 +174,16 @@ function WorkflowFields({ projectId, workflow, options }: { projectId: string; w
   }
   return <>
       {workflow.fields.map(field => {
-        const className = `grid gap-1.5 text-xs font-medium ${field.type === "textarea" ? "md:col-span-2 xl:col-span-3" : ""}`;
+        const className = `${fieldLabelClass} ${field.type === "textarea" ? "md:col-span-2 xl:col-span-3" : ""}`;
         if (field.derivedFrom) {
           const kind = chosenKinds[field.derivedFrom.field];
           return <input key={field.name} type="hidden" name={field.name} value={kind ? field.derivedFrom.byKind[kind] ?? "" : ""} />;
         }
         if (field.type === "evidence") return <EvidenceField key={field.name} field={field} />;
         if (field.type === "datetime-local") return <DateTimeField key={field.name} field={field} />;
-        if (field.type === "textarea") return <label key={field.name} className={className}>{field.label}<Textarea name={field.name} required={field.required} className="min-h-20" /></label>;
+        if (field.type === "textarea") return <label key={field.name} className={className}>{field.label}<textarea name={field.name} required={field.required} className={`${textareaClass} min-h-20`} /></label>;
         if (field.type === "select" && field.values) {
-          return <label key={field.name} className={className}>{field.label}<FormSelect name={field.name} required={field.required} defaultValue="" onValueChange={value => choose(field.name, value)} className="h-10 rounded-md border bg-background px-3 text-sm"><option value="">{field.required ? "Select…" : "None"}</option>{field.values.map(entry => <option key={`${field.name}:${entry.value}`} value={entry.value}>{entry.label}</option>)}</FormSelect></label>;
+          return <label key={field.name} className={className}>{field.label}<FormSelect name={field.name} required={field.required} defaultValue="" onValueChange={value => choose(field.name, value)} className={selectClass}><option value="">{field.required ? "Select…" : "None"}</option>{field.values.map(entry => <option key={`${field.name}:${entry.value}`} value={entry.value}>{entry.label.charAt(0).toUpperCase() + entry.label.slice(1)}</option>)}</FormSelect></label>;
         }
         if (field.type === "select") {
           const kinds = field.kindField && chosen[field.kindField] ? [chosen[field.kindField]] : field.optionKinds ?? [];
@@ -197,18 +197,33 @@ function WorkflowFields({ projectId, workflow, options }: { projectId: string; w
           </label>;
         }
         const rule = field.number;
-        return <label key={field.name} className={className}><span>{field.label}</span><Input name={field.name} required={field.required} type={field.type || "text"} min={rule?.min} max={rule?.max} step={rule?.step} inputMode={rule?.inputMode} placeholder={field.placeholder} /></label>;
+        return <label key={field.name} className={className}><span>{field.label}</span><input name={field.name} required={field.required} type={field.type || "text"} min={rule?.min} max={rule?.max} step={rule?.step} inputMode={rule?.inputMode} placeholder={field.placeholder} className={`${inputClass} ${field.type === "number" ? "tabular-nums" : ""}`} /></label>;
       })}
   </>;
 }
 
+/** The project's record-keeping actions: pick one in the track, fill its form. */
 export function WorkflowPanel({ tool, projectId, availableCommands, options }: { tool: string; projectId: string; availableCommands: string[]; options: ConstructionOption[] }) {
   const available = (workflows[tool] ?? []).filter(workflow => availableCommands.includes(workflow.operation));
+  const [selected, setSelected] = useState(available[0]?.operation ?? "");
   if (!available.length) return null;
+  const workflow = available.find(entry => entry.operation === selected) ?? available[0];
   return (
-    <section className="border-y bg-muted/15" aria-labelledby="project-actions-title">
-      <div className="px-4 py-5 md:px-6"><h2 id="project-actions-title" className="text-base font-semibold">Project actions</h2></div>
-      <div className="divide-y border-t">{available.map(workflow => <details key={workflow.operation} className="group"><summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 md:px-6"><span><span className="font-medium">{workflow.label}</span><span className="ml-3 hidden text-sm text-muted-foreground md:inline">{workflow.help}</span></span><ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open:rotate-180" /></summary><p className="px-4 pb-3 text-sm text-muted-foreground md:hidden">{workflow.help}</p><WorkflowForm projectId={projectId} workflow={workflow} options={options} /></details>)}</div>
-    </section>
+    <Panel id="project-actions" title="Record" icon={ClipboardPen}>
+      <div className="grid gap-4">
+        {available.length > 1 && (
+          <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
+            <div role="tablist" aria-label="Record type" className={`${trackClass} max-w-none`}>
+              {available.map(entry => (
+                <button key={entry.operation} type="button" role="tab" aria-selected={entry.operation === workflow.operation} onClick={() => setSelected(entry.operation)} className={pillClass(entry.operation === workflow.operation ? "raised" : "quiet", "sm")}>{entry.label}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        <div role="tabpanel" aria-label={workflow.label}>
+          <WorkflowForm key={workflow.operation} projectId={projectId} workflow={workflow} options={options} />
+        </div>
+      </div>
+    </Panel>
   );
 }

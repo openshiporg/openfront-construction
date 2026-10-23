@@ -1,43 +1,56 @@
+import { ExternalLink, FolderOpen, Hammer, Store } from "lucide-react";
+
 import { FormSelect } from "@/features/forms/components/FormSelect";
-import { PageBreadcrumbs } from "@/features/dashboard/components/PageBreadcrumbs";
+import { DisclosurePanel, EmptyState, PageHeader, Panel, PillLink, PlatformPage, StatusDot, Track, fieldLabelClass, pillClass, selectClass, statusTone, trackClass } from "@/features/platform/components/kit";
 import { getPublicStoreSettings } from "../actions/store-settings";
 import { StoreSettingsPageClient } from "./StoreSettingsPageClient";
 import { PublicProfileForm, PublicProjectForm, PublicServiceForm } from "../components/PublicContentForms";
+
+function ItemTitle({ title, status }: { title: string; status: string }) {
+  return <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"><span className="min-w-0 break-words">{title}</span><span className="inline-flex items-center gap-1.5 text-xs font-medium capitalize text-muted-foreground"><StatusDot tone={statusTone(status)} />{status}</span></span>;
+}
 
 export async function StoreSettingsPage({ searchParams }: { searchParams: Promise<{ companyId?: string }> }) {
   const params = await searchParams;
   const result = await getPublicStoreSettings(params.companyId);
   const data = result.success ? result.data : null;
   const company = data?.company;
-  // PageBreadcrumbs prefixes the dashboard basePath, so its hrefs are relative.
-  return <div className="flex min-w-0 flex-col bg-background">
-    <PageBreadcrumbs items={[{ type: "link", label: "Portfolio", href: "/platform/portfolio" }, { type: "page", label: "Store Settings" }]} />
-    <div className="flex flex-wrap items-start justify-between gap-4 border-b px-4 py-4 md:px-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Store Settings</h1>
-        {company && <p className="mt-0.5 text-sm text-muted-foreground">{company.name}</p>}
-      </div>
-    </div>
-    <section className="grid min-w-0 gap-6 px-4 py-6 md:px-6">
-    {!result.success && <p role="alert">{result.error}</p>}
-    {data && !company && (data.companies.length ? <form className="flex flex-wrap gap-3" action="/dashboard/platform/store-settings">
-      <label className="grid min-w-0 gap-2 text-sm font-medium">Company<FormSelect name="companyId" required className="min-h-11 rounded-md border bg-background px-3" defaultValue=""><option value="">Select company</option>{data.companies.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</FormSelect></label>
-      <button className="min-h-11 self-end rounded-md border px-4">Open Store Settings</button>
-    </form> : <p>No company you can manage</p>)}
-    {company && data && <>
-      <StoreSettingsPageClient initial={company} initialError={null} />
-      <PublicProfileForm companyId={company.id} profile={data.profile} />
-      {data.profile && <>
-        <section className="grid gap-3"><h2 className="text-xl font-semibold">Services</h2>
-          {data.services.map(service => <details className="rounded-lg border" key={service.id}><summary className="min-h-12 cursor-pointer px-5 py-3">{service.title} · {service.status}</summary><PublicServiceForm companyId={company.id} service={service} /></details>)}
-          <details className="rounded-lg border"><summary className="min-h-12 cursor-pointer px-5 py-3">Add service</summary><PublicServiceForm companyId={company.id} /></details>
-        </section>
-        <section className="grid gap-3"><h2 className="text-xl font-semibold">Public projects</h2>
-          {data.projects.map(project => <details className="rounded-lg border" key={project.id}><summary className="min-h-12 cursor-pointer px-5 py-3">{project.title} · {project.status}</summary><PublicProjectForm companyId={company.id} project={project} /></details>)}
-          <details className="rounded-lg border"><summary className="min-h-12 cursor-pointer px-5 py-3">Add public project</summary><PublicProjectForm companyId={company.id} /></details>
-        </section>
+  return (
+    <PlatformPage width="narrow" breadcrumbs={[{ type: "link", label: "Portfolio", href: "/platform/portfolio" }, { type: "page", label: "Store Settings" }]}>
+      <PageHeader
+        icon={Store}
+        title="Store Settings"
+        meta={company ? <span>{company.name}</span> : undefined}
+        status={data?.profile ? <span className="inline-flex items-center gap-1.5 text-xs font-medium capitalize text-muted-foreground"><StatusDot tone={statusTone(data.profile.status)} />{data.profile.status}</span> : undefined}
+        actions={company ? <Track><PillLink href="/" size="sm"><ExternalLink />View website</PillLink></Track> : undefined}
+      />
+      {!result.success && <p role="alert" className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm"><StatusDot tone="rose" />{result.error}</p>}
+      {data && !company && (data.companies.length
+        ? <Panel id="choose-company" title="Choose a company">
+            <form className="flex flex-wrap items-end gap-3" action="/dashboard/platform/store-settings">
+              <label className={`${fieldLabelClass} min-w-56`}>Company<FormSelect name="companyId" required className={selectClass} defaultValue=""><option value="">Select company</option>{data.companies.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</FormSelect></label>
+              <span className={trackClass}><button className={pillClass("primary")}>Open</button></span>
+            </form>
+          </Panel>
+        : <EmptyState icon={Store} title="No company you can manage" />)}
+      {company && data && <>
+        <StoreSettingsPageClient initial={company} initialError={null} />
+        <PublicProfileForm companyId={company.id} profile={data.profile} />
+        {data.profile && <>
+          <section aria-labelledby="services-title" className="grid gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="services-title" className="flex items-center gap-2 text-sm font-semibold"><Hammer className="size-4 text-muted-foreground" aria-hidden="true" />Services <span className="font-normal tabular-nums text-muted-foreground">{data.services.length}</span></h2>
+            </div>
+            {data.services.map(service => <DisclosurePanel key={service.id} title={<ItemTitle title={service.title} status={service.status} />}><PublicServiceForm companyId={company.id} service={service} /></DisclosurePanel>)}
+            <DisclosurePanel title="Add service" defaultOpen={data.services.length === 0}><PublicServiceForm companyId={company.id} /></DisclosurePanel>
+          </section>
+          <section aria-labelledby="public-projects-title" className="grid gap-3">
+            <h2 id="public-projects-title" className="flex items-center gap-2 text-sm font-semibold"><FolderOpen className="size-4 text-muted-foreground" aria-hidden="true" />Public projects <span className="font-normal tabular-nums text-muted-foreground">{data.projects.length}</span></h2>
+            {data.projects.map(project => <DisclosurePanel key={project.id} title={<ItemTitle title={project.title} status={project.status} />}><PublicProjectForm companyId={company.id} project={project} /></DisclosurePanel>)}
+            <DisclosurePanel title="Add public project" defaultOpen={data.projects.length === 0}><PublicProjectForm companyId={company.id} /></DisclosurePanel>
+          </section>
+        </>}
       </>}
-    </>}
-    </section>
-  </div>;
+    </PlatformPage>
+  );
 }

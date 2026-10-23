@@ -2,8 +2,7 @@
 
 import { FormSelect } from "@/features/forms/components/FormSelect";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FormFeedback, inputClass, pillClass, readable, selectClass, trackClass } from "@/features/platform/components/kit";
 import { transitionConstructionItem } from "../actions";
 import { useKeyedCommand } from "../use-keyed-command";
 import type { WorkItem } from "../data";
@@ -11,23 +10,23 @@ import type { WorkItem } from "../data";
 export function TransitionControl({ projectId, item }: { projectId: string; item: WorkItem }) {
   const options = item.allowedTransitions;
   const { state, action, pending, idempotencyKey } = useKeyedCommand(transitionConstructionItem);
-  if (!options.length) return <span className="text-xs text-muted-foreground">No next action</span>;
+  if (!options.length) return <span className="text-xs text-muted-foreground">No next step</span>;
 
   return (
-    <form action={action} className="grid min-w-56 gap-2">
+    <form action={action} className="grid min-w-0 gap-2 sm:min-w-56">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="itemId" value={item.id} />
       <input type="hidden" name="kind" value={item.kind} />
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
-      <div className="flex gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         {/* Remount after each status change so the choice reflects the new state. */}
-        <FormSelect key={`${item.status}:${idempotencyKey}`} name="toStatus" aria-label={`Next status for ${item.title}`} className="h-8 min-w-0 flex-1 rounded-md border bg-background px-2 text-xs">
-          {options.map(status => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
+        <FormSelect key={`${item.status}:${idempotencyKey}`} name="toStatus" aria-label={`Next status for ${item.title}`} className={`${selectClass} h-8 flex-1 text-xs`}>
+          {options.map(status => <option key={status} value={status}>{readable(status)}</option>)}
         </FormSelect>
-        <Button type="submit" size="sm" variant="outline" disabled={pending}>{pending ? "Saving…" : "Advance"}</Button>
+        <span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary", "sm")}>{pending ? "Saving…" : "Move"}</button></span>
       </div>
-      <Input key={`${item.status}:${idempotencyKey}`} name="reason" aria-label={`Reason for ${item.title}`} required minLength={3} maxLength={500} placeholder="Reason for transition" className="h-8 text-xs" />
-      {state.message && <span role={state.status === "error" ? "alert" : "status"} className={`text-xs ${state.status === "error" ? "text-destructive" : "text-emerald-700 dark:text-emerald-400"}`}>{state.message}</span>}
+      <input key={`${item.status}:${idempotencyKey}`} name="reason" aria-label={`Reason for ${item.title}`} required minLength={3} maxLength={500} placeholder="Reason" className={`${inputClass} h-8 text-xs`} />
+      <FormFeedback status={state.status} message={state.message} className="text-xs" />
     </form>
   );
 }

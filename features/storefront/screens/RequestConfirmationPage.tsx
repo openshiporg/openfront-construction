@@ -1,12 +1,12 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Check } from "lucide-react";
 
 import { PublicShell } from "../components/PublicShell";
+import { Pill, Status, Track } from "../components/ui";
 import { getPublicConstructionSite, getPublicIntakeReceipt } from "../data";
 
 function readable(value: string) {
-  return value.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase());
+  const text = value.replaceAll("_", " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export async function RequestConfirmationPage({ reference }: { reference: string }) {
@@ -14,35 +14,29 @@ export async function RequestConfirmationPage({ reference }: { reference: string
   if (!receipt) notFound();
   return (
     <PublicShell site={site}>
-      <main className="sf-main">
-        <section className="sf-section sf-section--first" aria-labelledby="confirmation-title">
-          <div className="sf-wrap">
-            <div className="sf-receipt">
-              <span className="sf-receipt__mark" aria-hidden="true"><Check className="size-5" /></span>
-              <p className="sf-doc__kicker" style={{ marginTop: "var(--space-lg)" }}>We received your inquiry</p>
-              <h1 id="confirmation-title" className="sf-doc__title" style={{ fontSize: "clamp(2rem, 4vw + 1rem, 3rem)" }}>Thanks for getting in touch</h1>
-              <p className="sf-doc__lede" style={{ marginTop: "var(--space-sm)" }}>We have your {readable(receipt.kind).toLowerCase()} and will respond as soon as we can. Keep the reference below in case you want to follow up.</p>
-              <dl className="sf-facts">
-                <div className="sf-facts__row">
-                  <dt className="sf-facts__dt">Reference</dt>
-                  <dd className="sf-facts__dd" style={{ fontFamily: "var(--font-mono)", overflowWrap: "anywhere" }}>{receipt.publicReference}</dd>
-                </div>
-                <div className="sf-facts__row">
-                  <dt className="sf-facts__dt">Type</dt>
-                  <dd className="sf-facts__dd">{readable(receipt.kind)}</dd>
-                </div>
-                <div className="sf-facts__row">
-                  <dt className="sf-facts__dt">Received</dt>
-                  <dd className="sf-facts__dd">{new Date(receipt.submittedAt).toLocaleString()}</dd>
-                </div>
-              </dl>
-              <div style={{ marginTop: "var(--space-xl)", display: "flex", flexWrap: "wrap", gap: "var(--space-md)" }}>
-                <Link href="/" className="sf-btn">Return home</Link>
-                <Link href="/contact" className="sf-btn sf-btn--ghost">Contact us</Link>
-              </div>
+      <main className="sf-section">
+        <div className="sf-wrap">
+          <article className="sf-ticket" aria-labelledby="confirmation-title">
+            <div className="sf-ticket__head">
+              <p className="sf-kicker"><Status tone="ok">{readable(receipt.status)}</Status></p>
+              <h1 id="confirmation-title" className="sf-display sf-h2" style={{ marginTop: "0.75rem" }}>Inquiry received</h1>
             </div>
-          </div>
-        </section>
+            <div className="sf-ticket__body">
+              <div><p className="sf-small">Reference</p><p className="sf-ticket__ref">{receipt.publicReference}</p></div>
+            </div>
+            <div className="sf-ticket__perf" aria-hidden="true" />
+            <div className="sf-ticket__body">
+              <dl className="sf-spec">
+                <div><dt>Type</dt><dd>{readable(receipt.kind)}</dd></div>
+                <div><dt>Received</dt><dd className="sf-mono">{new Date(receipt.submittedAt).toLocaleString()}</dd></div>
+              </dl>
+              <Track wrap>
+                <Pill href="/" variant="raised">Home</Pill>
+                <Pill href="/projects" variant="quiet">Projects</Pill>
+              </Track>
+            </div>
+          </article>
+        </div>
       </main>
     </PublicShell>
   );

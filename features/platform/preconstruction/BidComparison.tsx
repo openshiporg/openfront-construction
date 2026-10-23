@@ -1,15 +1,48 @@
-import { Badge } from "@/components/ui/badge";
 import type { BidComparisonRow } from "@/features/platform/projects/data";
+import { Panel, TitleStatus, formatDate, formatMinor } from "@/features/platform/components/kit";
 
-function money(value: string, currency: string) {
-  try {
-    const minor = BigInt(value); const absolute = minor < 0 ? -minor : minor;
-    return `${minor < 0 ? "-" : ""}${currency} ${(absolute / BigInt(100)).toLocaleString()}.${(absolute % BigInt(100)).toString().padStart(2, "0")}`;
-  } catch { return `${currency} —`; }
-}
-function readable(value: string) { return value.replaceAll("_", " "); }
-
+/** Submitted bids per package, cheapest first, with the spread against the low bid. */
 export function BidComparison({ rows }: { rows: BidComparisonRow[] }) {
   if (!rows.length) return null;
-  return <section className="border-y px-4 py-6 md:px-6" aria-labelledby="bid-comparison-title"><h2 id="bid-comparison-title" className="font-semibold">Bid comparison</h2><p className="mt-1 text-sm text-muted-foreground">Submitted totals are ordered low-to-high. Award still requires a closed package, matching budget-coded lines, contract permission, and transactional budget handoff.</p><div className="mt-4 overflow-x-auto border-y"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-muted/40 text-xs text-muted-foreground"><tr><th className="px-3 py-2">Package</th><th className="px-3 py-2">Bidder</th><th className="px-3 py-2">Submission</th><th className="px-3 py-2">Total</th><th className="px-3 py-2">Scope evidence</th><th className="px-3 py-2">Status</th></tr></thead><tbody className="divide-y">{rows.map(row => <tr key={row.id} className="align-top"><td className="px-3 py-3"><p className="font-medium">{row.packageNumber}</p><p className="text-xs text-muted-foreground">{row.packageTitle}</p></td><td className="px-3 py-3">{row.partnerName}</td><td className="px-3 py-3"><p>{row.submissionNumber}</p><p className="text-xs text-muted-foreground">{row.submittedAt ? new Date(row.submittedAt).toLocaleDateString() : "No date"}</p></td><td className="px-3 py-3 font-medium tabular-nums">{money(row.totalMinor, row.currencyCode)}</td><td className="max-w-sm px-3 py-3"><p>{row.lineCount} scoped line{row.lineCount === 1 ? "" : "s"}</p><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{row.exclusions || row.clarifications || "No exclusions or clarifications recorded"}</p></td><td className="px-3 py-3"><Badge variant="outline">{readable(row.status)}</Badge></td></tr>)}</tbody></table></div></section>;
+  const packages = new Map<string, BidComparisonRow[]>();
+  for (const row of rows) packages.set(row.packageNumber, [...(packages.get(row.packageNumber) ?? []), row]);
+  return (
+    <Panel id="bid-comparison" title="Bid leveling" meta={`${rows.length} bids · ${packages.size} packages`} padded={false}>
+      <div className="divide-y">
+        {[...packages.entries()].map(([packageNumber, bids]) => {
+          const low = bids.reduce((min, bid) => { try { return BigInt(bid.totalMinor) < min ? BigInt(bid.totalMinor) : min; } catch { return min; } }, BigInt(bids[0]?.totalMinor || "0"));
+          return (
+            <section key={packageNumber} aria-label={`Package ${packageNumber}`} className="px-4 py-4 md:px-5">
+              <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Package {packageNumber}</p>
+              <h3 className="mt-0.5 text-sm font-semibold">{bids[0]?.packageTitle}</h3>
+              <ol className="mt-3 grid gap-2">
+                {bids.map((bid, index) => {
+                  let spread = "";
+                  try { const diff = BigInt(bid.totalMinor) - low; spread = diff > BigInt(0) ? `+${formatMinor(diff.toString(), bid.currencyCode, { whole: true })}` : ""; } catch { spread = ""; }
+                  return (
+                    <li key={bid.id} className="grid gap-2 rounded-lg border px-3 py-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto] sm:items-center">
+                      <span className="font-mono text-xs tabular-nums text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                          <span className="text-sm font-medium">{bid.partnerName}</span>
+                          <TitleStatus status={bid.status} />
+                          {index === 0 ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">Low bid</span> : null}
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{bid.submissionNumber} · {formatDate(bid.submittedAt)} · {bid.lineCount} line{bid.lineCount === 1 ? "" : "s"}</p>
+                        {bid.exclusions || bid.clarifications ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{bid.exclusions || bid.clarifications}</p> : null}
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-base font-semibold tabular-nums">{formatMinor(bid.totalMinor, bid.currencyCode)}</p>
+                        {spread ? <p className="text-xs tabular-nums text-muted-foreground">{spread}</p> : null}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          );
+        })}
+      </div>
+    </Panel>
+  );
 }

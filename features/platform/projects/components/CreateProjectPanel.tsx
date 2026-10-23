@@ -1,35 +1,36 @@
 'use client';
 
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { FormSelect } from "@/features/forms/components/FormSelect";
 import { projectToolHref } from "@/features/platform/lib/navigation";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { DisclosurePanel, FormFeedback, fieldLabelClass, inputClass, pillClass, selectClass, textareaClass, trackClass } from "@/features/platform/components/kit";
 import { createConstructionProjectAction } from "../actions";
 import { useKeyedCommand } from "../use-keyed-command";
 import type { CompanySummary } from "../data";
 
-export function CreateProjectPanel({ companies: allCompanies }: { companies: CompanySummary[] }) {
+export function CreateProjectPanel({ companies: allCompanies, defaultOpen = false }: { companies: CompanySummary[]; defaultOpen?: boolean }) {
   const { state, action, pending, idempotencyKey } = useKeyedCommand(createConstructionProjectAction);
   const companies = allCompanies.filter(company => company.canCreateProject);
   if (!companies.length) return null;
 
   return (
-    <section className="border-y bg-muted/20 px-4 py-5 md:px-6" aria-labelledby="new-project-title">
-      <h2 id="new-project-title" className="mb-4 text-base font-semibold">Create project</h2>
-      <form action={action} className="grid min-w-0 gap-3 [&>label]:min-w-0 [&_input]:min-w-0 [&_select]:w-full [&_select]:min-w-0 md:grid-cols-2 xl:grid-cols-5">
+    <DisclosurePanel title="New project" icon={Plus} defaultOpen={defaultOpen}>
+      <form action={action} className="grid min-w-0 gap-4 p-4 md:grid-cols-2 md:p-5 xl:grid-cols-4">
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
-        <label className="grid gap-1 text-xs font-medium">Company<FormSelect name="companyId" className="h-9 rounded-md border bg-background px-3 text-sm">{companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</FormSelect></label>
-        <label className="grid gap-1 text-xs font-medium">Project number<Input name="projectNumber" required /></label>
-        <label className="grid gap-1 text-xs font-medium xl:col-span-2">Project name<Input name="name" required /></label>
-        <label className="grid gap-1 text-xs font-medium">Start date<Input name="startDate" type="date" /></label>
-        <label className="grid gap-1 text-xs font-medium">Budget currency<Input name="currencyCode" value="USD" readOnly aria-describedby="project-currency-note" required /><span id="project-currency-note" className="text-[11px] text-muted-foreground">Projects are budgeted in USD.</span></label>
-        <label className="grid gap-1 text-xs font-medium md:col-span-2 xl:col-span-4">Scope summary<Textarea name="description" className="min-h-20" /></label>
-        <div className="flex items-end"><Button className="w-full" disabled={pending}>{pending ? "Creating…" : "Create project"}</Button></div>
-        {state.message && <p role={state.status === "error" ? "alert" : "status"} className={`text-sm md:col-span-2 xl:col-span-5 ${state.status === "error" ? "text-destructive" : "text-emerald-700 dark:text-emerald-400"}`}>{state.message}{state.status === "success" && state.itemId && <> <Link href={projectToolHref(state.itemId, "")} className="font-medium underline underline-offset-4">Open project</Link></>}</p>}
+        <label className={fieldLabelClass}>Company<FormSelect name="companyId" className={selectClass}>{companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</FormSelect></label>
+        <label className={fieldLabelClass}>Project number<input name="projectNumber" required className={`${inputClass} font-mono`} /></label>
+        <label className={`${fieldLabelClass} md:col-span-2`}>Project name<input name="name" required className={inputClass} /></label>
+        <label className={fieldLabelClass}>Start date<input name="startDate" type="date" className={inputClass} /></label>
+        <label className={fieldLabelClass}>Budget currency<input name="currencyCode" value="USD" readOnly required className={`${inputClass} bg-muted/40 font-mono`} /></label>
+        <label className={`${fieldLabelClass} md:col-span-2`}>Scope summary<textarea name="description" className={`${textareaClass} min-h-10`} rows={1} /></label>
+        <div className="flex flex-wrap items-center gap-3 md:col-span-2 xl:col-span-4">
+          <span className={trackClass}><button disabled={pending} className={pillClass("primary")}>{pending ? "Creating…" : "Create project"}</button></span>
+          <FormFeedback status={state.status} message={state.message} />
+          {state.status === "success" && state.itemId ? <Link href={projectToolHref(state.itemId, "")} className="text-sm font-medium underline underline-offset-4">Open project</Link> : null}
+        </div>
       </form>
-    </section>
+    </DisclosurePanel>
   );
 }

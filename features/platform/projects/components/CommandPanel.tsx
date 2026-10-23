@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { FormSelect } from "@/features/forms/components/FormSelect";
+import { FilePlus2 } from "lucide-react";
+
 import { RecordLookup } from "@/features/forms/components/RecordLookup";
 import { runConstructionCommand } from "../actions";
 import { useKeyedCommand } from "../use-keyed-command";
 import { commandRelatedRecords, relatedOptionsFor } from "./workflow-fields";
 import type { ConstructionOption } from "../data";
+import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, textareaClass, trackClass } from "@/features/platform/components/kit";
 
 export type CommandOption = { value: string; label: string };
 
@@ -42,30 +41,27 @@ export function CommandPanel({
   const related = needsRelated ? commandRelatedRecords[operation] : undefined;
 
   return (
-    <section className="border-y bg-muted/20 px-4 py-5 md:px-6" aria-labelledby="command-panel-title">
-      <h2 id="command-panel-title" className="mb-4 text-base font-semibold">{title}</h2>
-      <form action={action} className="grid min-w-0 gap-3 [&>label]:min-w-0 [&_input]:min-w-0 [&_select]:w-full [&_select]:min-w-0 [&_textarea]:min-w-0 md:grid-cols-2 xl:grid-cols-6">
+    <Panel id="command-panel" title={title} icon={FilePlus2}>
+      <form action={action} className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <input type="hidden" name="projectId" value={projectId} />
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
-        <label className="grid gap-1 text-xs font-medium">
-          Action
-          <FormSelect name="operation" className="h-9 rounded-md border bg-background px-3 text-sm" value={operation} onValueChange={nextValue => setOperation(nextValue)}>
-            {options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </FormSelect>
-        </label>
+        <input type="hidden" name="operation" value={operation} />
+        {options.length > 1 && (
+          <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:col-span-2 md:mx-0 md:px-0 xl:col-span-4">
+            <div role="radiogroup" aria-label="Record type" className={`${trackClass} max-w-none`}>
+              {options.map(option => <button key={option.value} type="button" role="radio" aria-checked={operation === option.value} onClick={() => setOperation(option.value)} className={pillClass(operation === option.value ? "raised" : "quiet", "sm")}>{option.label}</button>)}
+            </div>
+          </div>
+        )}
         {/* A new key (after a successful save) or a new operation starts with empty inputs. */}
         <CommandFields key={`${idempotencyKey}:${operation}`} projectId={projectId} operation={operation} related={related} recordOptions={recordOptions}
           referenceLabel={referenceLabel} titleLabel={titleLabel} referenceInputType={referenceInputType} hideDue={hideDue} needsAmount={needsAmount} />
-        <div className="flex items-end">
-          <Button type="submit" disabled={pending} className="min-h-11 w-full">{pending ? "Saving…" : "Save record"}</Button>
+        <div className="flex flex-wrap items-center gap-3 md:col-span-2 xl:col-span-4">
+          <span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : "Save"}</button></span>
+          <FormFeedback status={state.status} message={state.message} />
         </div>
-        {state.message && (
-          <p role={state.status === "error" ? "alert" : "status"} className={`text-sm md:col-span-2 xl:col-span-6 ${state.status === "error" ? "text-destructive" : "text-emerald-700 dark:text-emerald-400"}`}>
-            {state.message}
-          </p>
-        )}
       </form>
-    </section>
+    </Panel>
   );
 }
 
@@ -81,38 +77,38 @@ function CommandFields({ projectId, operation, related, recordOptions, reference
   needsAmount: boolean;
 }) {
   return <>
-    <label className="grid gap-1 text-xs font-medium">
+    <label className={fieldLabelClass}>
       {referenceLabel}
-      <Input name="reference" type={referenceInputType} required className="h-9" />
+      <input name="reference" type={referenceInputType} required className={`${inputClass} font-mono`} />
     </label>
-    <label className="grid gap-1 text-xs font-medium md:col-span-2">
+    <label className={`${fieldLabelClass} md:col-span-2`}>
       {titleLabel}
-      <Input name="title" required className="h-9" />
+      <input name="title" required className={inputClass} />
     </label>
     {!hideDue && (
-      <label className="grid gap-1 text-xs font-medium">
-        Due or record date
-        <Input name="dueAt" type="date" className="h-9" />
+      <label className={fieldLabelClass}>
+        Date
+        <input name="dueAt" type="date" className={inputClass} />
       </label>
     )}
     {needsAmount && (
-      <label className="grid gap-1 text-xs font-medium">
+      <label className={fieldLabelClass}>
         Amount
-        <Input name="amount" type="number" min="0" step="0.01" inputMode="decimal" className="h-9" />
+        <input name="amount" type="number" min="0" step="0.01" inputMode="decimal" className={`${inputClass} tabular-nums`} />
       </label>
     )}
-    {operation === "awardBidSubmission" && <label className="grid gap-1 text-xs font-medium">Retainage (basis points)<Input name="retainageBps" type="number" min="0" max="10000" step="1" inputMode="numeric" defaultValue="0" /></label>}
+    {operation === "awardBidSubmission" && <label className={fieldLabelClass}>Retainage (basis points)<input name="retainageBps" type="number" min="0" max="10000" step="1" inputMode="numeric" defaultValue="0" className={`${inputClass} tabular-nums`} /></label>}
     {related && (
-      <label className="grid gap-1 text-xs font-medium">
+      <label className={fieldLabelClass}>
         {related.label}
         <RecordLookup name="relatedId" required projectId={projectId} kinds={related.kinds}
           initial={relatedOptionsFor(operation, recordOptions)}
           eligible={option => !related.statuses || !option.status || related.statuses.includes(option.status)} />
       </label>
     )}
-    <label className="grid gap-1 text-xs font-medium md:col-span-2 xl:col-span-5">
-      Description or notes
-      <Textarea name="description" className="min-h-20 resize-y" />
+    <label className={`${fieldLabelClass} md:col-span-2 xl:col-span-4`}>
+      Notes
+      <textarea name="description" className={`${textareaClass} min-h-20 resize-y`} />
     </label>
   </>;
 }

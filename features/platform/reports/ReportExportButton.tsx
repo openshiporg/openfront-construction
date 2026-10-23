@@ -2,7 +2,7 @@
 
 import { Download, Printer } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { pillClass, trackClass } from "@/features/platform/components/kit";
 import type { WorkItem } from "../projects/data";
 import { buildProjectReportCsv } from "./csv";
 
@@ -29,5 +29,10 @@ export function ReportExportButton({
     URL.revokeObjectURL(url);
   }
 
-  return <div className="flex items-center gap-2 print:hidden"><Button type="button" variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4" /> Print / PDF</Button><Button type="button" variant="outline" size="sm" onClick={download}><Download className="h-4 w-4" /> Export CSV</Button></div>;
+  return (
+    <div className={`${trackClass} print:hidden`}>
+      <button type="button" className={pillClass("raised", "sm")} onClick={() => window.print()}><Printer />Print / PDF</button>
+      <button type="button" className={pillClass("raised", "sm")} onClick={download}><Download />Export CSV</button>
+    </div>
+  );
 }

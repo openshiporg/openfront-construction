@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import { Archivo, Geist, Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import "@/features/storefront/storefront.css";
 
@@ -13,14 +13,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+// Storefront display face: Archivo's width axis gives the condensed site-board headings.
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["500", "700"],
+  axes: ["wdth"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
 });
@@ -44,7 +51,7 @@ export default function RootLayout({
         <link href="/favicon.svg" rel="icon" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${jetbrainsMono.variable} antialiased min-h-screen bg-background font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} ${plexSans.variable} ${plexMono.variable} antialiased min-h-screen bg-background font-sans`}
       >
         {children}
       </body>

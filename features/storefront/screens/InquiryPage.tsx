@@ -1,19 +1,29 @@
 import { createHash } from "node:crypto";
-import Link from "next/link";
+import { Mail, Phone } from "lucide-react";
 
 import { PublicIntakeForm, type PublicIntakeKind } from "../components/PublicIntakeForm";
-import { PublicShell } from "../components/PublicShell";
+import { PublicShell, telHref } from "../components/PublicShell";
+import { Empty, Pill, Status, Track } from "../components/ui";
 import { getPublicConstructionSite } from "../data";
 
-const pageCopy: Record<string, { eyebrow: string; title: string; description: string }> = {
-  "/start-a-project": { eyebrow: "New project", title: "Request an estimate", description: "Tell us about the project, the site, and the timing. We will confirm whether it is a good fit and talk through scope." },
-  "/client-intake": { eyebrow: "Client intake", title: "Tell us about the work", description: "A simple first step so we can understand your project and how we can help." },
-  "/estimate": { eyebrow: "Budget planning", title: "Request an estimate", description: "Share a rough budget range, design stage, timing, and scope so we can determine the right estimating approach." },
-  "/rfp": { eyebrow: "Owner procurement", title: "Invite us to bid", description: "Record the project, delivery method, and deadline so we can consider it and respond in good time." },
-  "/contact": { eyebrow: "Contact", title: "Contact the team", description: "Use this short path for referrals, general questions, or topics that are not yet a defined project." },
-  "/bid": { eyebrow: "Trade partners", title: "Become a trade partner", description: "Tell us about your company, your specialty, and where you work so we can keep you in mind for projects." },
-  "/trade-partners": { eyebrow: "Trade partners", title: "Work with us", description: "Introduce your firm, specialty, and coverage so we can consider you for future projects." },
+const pageCopy: Record<string, { eyebrow: string; title: string }> = {
+  "/start-a-project": { eyebrow: "New project", title: "Request an estimate" },
+  "/client-intake": { eyebrow: "Client intake", title: "Tell us about the work" },
+  "/estimate": { eyebrow: "Budget", title: "Request an estimate" },
+  "/rfp": { eyebrow: "Owner procurement", title: "Invite us to bid" },
+  "/contact": { eyebrow: "Contact", title: "Contact the team" },
+  "/bid": { eyebrow: "Trade partners", title: "Become a trade partner" },
+  "/trade-partners": { eyebrow: "Trade partners", title: "Work with us" },
 };
+
+const inquiryTypes = [
+  { href: "/start-a-project", label: "Estimate", match: ["/start-a-project", "/estimate", "/client-intake"] },
+  { href: "/rfp", label: "Bid invitation", match: ["/rfp"] },
+  { href: "/trade-partners", label: "Trade partner", match: ["/trade-partners", "/bid"] },
+  { href: "/contact", label: "General", match: ["/contact"] },
+] as const;
+
+const currentNav: Record<string, string> = { "/contact": "/contact", "/trade-partners": "/trade-partners", "/bid": "/trade-partners" };
 
 export async function InquiryPage({
   kind,
@@ -29,37 +39,38 @@ export async function InquiryPage({
   // Binds the visitor's consent to the notice shown on this page.
   const privacyNoticeDigest = site?.privacyNotice?.trim() ? createHash("sha256").update(site.privacyNotice.trim()).digest("hex") : undefined;
   return (
-    <PublicShell site={site}>
-      <main className="sf-main">
-        <section className="sf-section sf-section--first" aria-labelledby="inquiry-title">
+    <PublicShell site={site} current={currentNav[sourcePath] ?? "/start-a-project"} dock={false}>
+      <main>
+        <header className="sf-pagehead">
           <div className="sf-wrap">
-            <div className="sf-doc">
-              <p className="sf-doc__kicker">{copy.eyebrow}</p>
-              <h1 id="inquiry-title" className="sf-doc__title">{copy.title}</h1>
-              <p className="sf-doc__lede">{copy.description}</p>
-            </div>
+            <p className="sf-kicker">{copy.eyebrow}</p>
+            <h1 className="sf-display sf-h1">{copy.title}</h1>
+          </div>
+        </header>
+        <section className="sf-section">
+          <div className="sf-wrap">
+            <nav aria-label="Inquiry type" className="sf-segments">
+              <Track scroll>
+                {inquiryTypes.map(entry => <Pill key={entry.href} href={entry.href} variant="quiet" size="sm" current={(entry.match as readonly string[]).includes(sourcePath)}>{entry.label}</Pill>)}
+              </Track>
+            </nav>
             <div className="sf-intake">
-              <aside className="sf-intake__aside">
-                <h2>Contact</h2>
-                {site && (
-                  <div className="sf-intake__contact">
-                    <p style={{ fontWeight: 500 }}>Prefer to reach us directly?</p>
-                    <div style={{ marginTop: "var(--space-xs)", display: "grid", gap: "var(--space-2xs)" }}>
-                      <a href={`mailto:${site.inquiryEmail}`} className="sf-line-link">{site.inquiryEmail}</a>
-                      {site.inquiryPhone && <a href={`tel:${site.inquiryPhone.replace(/[^+\d]/g, "")}`} className="sf-line-link">{site.inquiryPhone}</a>}
-                    </div>
+              <aside className="sf-panel sf-panel--slab sf-slab sf-sticky" aria-labelledby="direct-title">
+                <h2 id="direct-title" className="sf-panel__title">{site?.brandName || "Contact"}</h2>
+                {site && <p className="sf-mt-sm">{site.acceptingInquiries ? <Status tone="ok">Taking new projects</Status> : <Status tone="idle">Not taking new projects</Status>}</p>}
+                {site && (site.inquiryPhone || site.inquiryEmail) && (
+                  <div className="sf-contact sf-mt">
+                    {site.inquiryPhone && <a href={telHref(site.inquiryPhone)}><Phone />{site.inquiryPhone}</a>}
+                    {site.inquiryEmail && <a href={`mailto:${site.inquiryEmail}`}><Mail />{site.inquiryEmail}</a>}
                   </div>
                 )}
-                {mode === "trade" && <Link href="/account?from=/portal" className="sf-morelink" style={{ marginTop: "var(--space-md)" }}>Existing partners: sign in</Link>}
+                {site?.serviceArea && <p className="sf-mt sf-small" style={{ color: "var(--sf-slab-muted)" }}>{site.serviceArea}</p>}
+                {mode === "trade" && <div className="sf-mt"><Track><Pill href="/account?from=/portal" variant="raised" size="sm">Partner sign in</Pill></Track></div>}
               </aside>
-              <div className="min-w-0">
-                {site?.acceptingInquiries ? <PublicIntakeForm kind={kind} sourcePath={sourcePath} mode={mode} privacyNoticeDigest={privacyNoticeDigest} /> : (
-                  <div className="sf-receipt" style={{ marginTop: 0 }}>
-                    <h2 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-xl)", fontWeight: 700 }}>Online inquiries are not open right now</h2>
-                    <p style={{ marginTop: "var(--space-sm)", color: "var(--sf-ink-2)", lineHeight: 1.6, fontSize: "var(--text-sm)" }}>Please contact us directly and we will be glad to help.</p>
-                    {site?.inquiryEmail && <a href={`mailto:${site.inquiryEmail}`} className="sf-morelink" style={{ marginTop: "var(--space-md)" }}>Email us at {site.inquiryEmail}</a>}
-                  </div>
-                )}
+              <div className="sf-stack">
+                {site?.acceptingInquiries
+                  ? <PublicIntakeForm kind={kind} sourcePath={sourcePath} mode={mode} privacyNoticeDigest={privacyNoticeDigest} />
+                  : <Empty title="Online inquiries are closed" action={site?.inquiryEmail ? <Track><a href={`mailto:${site.inquiryEmail}`} className="sf-pill sf-pill--raised"><Mail />{site.inquiryEmail}</a></Track> : undefined} />}
               </div>
             </div>
           </div>

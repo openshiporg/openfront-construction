@@ -1,6 +1,9 @@
 import { FormSelect } from "@/features/forms/components/FormSelect";
 import Link from "next/link";
+import { Search } from "lucide-react";
+
 import type { ResourceLogRegisterPage } from "../projects/data";
+import { EmptyState, Pager, StatusDot, fieldLabelClass, inputClass, pillClass, readable, selectClass, trackClass, type Tone } from "../components/kit";
 
 type Params = Record<string, string | string[] | undefined>;
 export function resourceLogsHref(projectId: string, params: Params, page: number) {
@@ -10,20 +13,40 @@ export function resourceLogsHref(projectId: string, params: Params, page: number
   if (page > 1) query.set("resourcePage", String(page));
   return `/dashboard/platform/projects/${encodeURIComponent(projectId)}/field${query.size ? `?${query}` : ""}`;
 }
+
+const eventTone: Record<string, Tone> = {
+  equipment_use: "blue", equipment_idle: "zinc", equipment_breakdown: "rose",
+  material_received: "emerald", material_installed: "blue", material_transferred: "sky", material_wasted: "orange",
+};
+
 export function ResourceLogRegister({ projectId, register, searchParams }: { projectId: string; register: ResourceLogRegisterPage; searchParams: Params }) {
-  return <section className="border-b px-4 py-6 md:px-6" aria-labelledby="resource-register-title">
-    <h2 id="resource-register-title" className="font-semibold">Equipment and material activity</h2>
-    <p className="text-sm text-muted-foreground">{register.totalCount} entries · page {register.page} of {register.totalPages}, newest first</p>
-    <form className="mt-4 flex flex-wrap items-end gap-3" action={`/dashboard/platform/projects/${encodeURIComponent(projectId)}/field`}>
+  return <section className="min-w-0 overflow-hidden rounded-xl border bg-background" aria-labelledby="resource-register-title">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 md:px-5">
+      <div>
+        <h2 id="resource-register-title" className="text-sm font-semibold">Equipment & material activity</h2>
+        <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{register.totalCount} entries</p>
+      </div>
+      <Pager label="Resource pages" page={register.page} totalPages={register.totalPages} prevHref={resourceLogsHref(projectId, searchParams, register.page - 1)} nextHref={resourceLogsHref(projectId, searchParams, register.page + 1)} />
+    </div>
+    <form className="grid gap-3 border-b px-4 py-3 sm:grid-cols-[minmax(0,1fr)_10rem_12rem_auto] sm:items-end md:px-5" action={`/dashboard/platform/projects/${encodeURIComponent(projectId)}/field`}>
       {Object.entries(searchParams).filter(([key]) => !["resourcePage", "resourceSearch", "resourceType", "resourceEvent"].includes(key)).flatMap(([key, raw]) => raw === undefined ? [] : (Array.isArray(raw) ? raw : [raw]).map((value, index) => <input type="hidden" key={`${key}:${index}`} name={key} value={value} />))}
-      <label className="grid gap-1 text-sm">Search notes<input name="resourceSearch" defaultValue={register.search} maxLength={200} className="h-10 rounded-md border bg-background px-3" /></label>
-      <label className="grid gap-1 text-sm">Type<FormSelect name="resourceType" defaultValue={register.type} className="h-10 rounded-md border bg-background px-3">{["all", "equipment", "material"].map(value => <option key={value} value={value}>{value}</option>)}</FormSelect></label>
-      <label className="grid gap-1 text-sm">Event<FormSelect name="resourceEvent" defaultValue={register.event} className="h-10 rounded-md border bg-background px-3">{["all", "equipment_use", "equipment_idle", "equipment_breakdown", "material_received", "material_installed", "material_transferred", "material_wasted"].map(value => <option key={value} value={value}>{value.replaceAll("_", " ")}</option>)}</FormSelect></label>
-      <button className="h-10 rounded-md border px-3 text-sm" type="submit">Apply filters</button>
+      <label className={fieldLabelClass}>Search notes<input name="resourceSearch" defaultValue={register.search} maxLength={200} className={inputClass} /></label>
+      <label className={fieldLabelClass}>Type<FormSelect name="resourceType" defaultValue={register.type} className={selectClass}>{["all", "equipment", "material"].map(value => <option key={value} value={value}>{readable(value)}</option>)}</FormSelect></label>
+      <label className={fieldLabelClass}>Event<FormSelect name="resourceEvent" defaultValue={register.event} className={selectClass}>{["all", "equipment_use", "equipment_idle", "equipment_breakdown", "material_received", "material_installed", "material_transferred", "material_wasted"].map(value => <option key={value} value={value}>{readable(value)}</option>)}</FormSelect></label>
+      <span className={trackClass}><button className={pillClass("raised")} type="submit"><Search />Apply</button></span>
     </form>
-    <div className="mt-4 divide-y border-y">{register.items.length ? register.items.map(row => <article key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-      <div><Link href={`/dashboard/platform/projects/${encodeURIComponent(projectId)}/records/resource-log/${encodeURIComponent(row.id)}`} className="font-medium hover:underline">{row.eventType.replaceAll("_", " ")}</Link><p className="text-xs text-muted-foreground">{row.resourceLabel || row.resourceType}</p></div><p className="text-sm">{row.quantity} {row.unit}</p><p className="text-xs text-muted-foreground">{row.occurredAt ? new Date(row.occurredAt).toLocaleString() : "Time unavailable"}</p>
-    </article>) : <p className="py-8 text-center text-sm text-muted-foreground">No activity matches these filters.</p>}</div>
-    <nav aria-label="Resource pages" className="mt-4 flex justify-between text-sm">{register.page > 1 ? <Link href={resourceLogsHref(projectId, searchParams, register.page - 1)}>Previous</Link> : <span />}{register.page < register.totalPages && <Link href={resourceLogsHref(projectId, searchParams, register.page + 1)}>Next</Link>}</nav>
+    <div className="p-4 md:px-5">
+      {register.items.length ? <ul className="divide-y overflow-hidden rounded-lg border">{register.items.map(row => <li key={row.id} className="grid gap-2 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center md:px-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusDot tone={eventTone[row.eventType] ?? "zinc"} />
+            <Link href={`/dashboard/platform/projects/${encodeURIComponent(projectId)}/records/resource-log/${encodeURIComponent(row.id)}`} className="text-sm font-medium underline-offset-4 hover:underline">{readable(row.eventType)}</Link>
+          </div>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{row.resourceLabel || readable(row.resourceType)}</p>
+        </div>
+        <p className="text-sm font-medium tabular-nums">{row.quantity} {row.unit}</p>
+        <p className="text-xs tabular-nums text-muted-foreground">{row.occurredAt ? new Date(row.occurredAt).toLocaleString() : "Time unavailable"}</p>
+      </li>)}</ul> : <EmptyState compact title="No activity matches these filters" />}
+    </div>
   </section>;
 }

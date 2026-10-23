@@ -1,61 +1,100 @@
 import Link from "next/link";
-import { ArrowUpRight, FolderKanban } from "lucide-react";
+import { Building2, FolderKanban, Plus } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { PageContainer } from "@/features/dashboard/components/PageContainer";
-import { getConstructionPortfolio } from "@/features/platform/projects/data";
+import { getConstructionPortfolio, type ProjectSummary } from "@/features/platform/projects/data";
 import { MetricList } from "@/features/platform/projects/components/MetricList";
 import { ListPager, listHref, pageParam } from "@/features/platform/projects/components/ListPager";
+import { EmptyState, PageHeader, PillLink, PlatformPage, StatusDot, TitleStatus, Track, formatDate, formatMinor } from "@/features/platform/components/kit";
 
-function formatMinor(value: string, currencyCode = "USD") {
-  if (currencyCode !== "USD") return `Withheld (${currencyCode})`;
+function money(value: string | null, currencyCode: string) {
+  if (value === null) return "—";
+  return currencyCode === "USD" ? formatMinor(value, "USD", { whole: true }) : `Withheld (${currencyCode})`;
+}
+
+/** Spent against revised budget, as a bar that turns amber past 90% and rose past 100%. */
+function BudgetBar({ project }: { project: ProjectSummary }) {
+  if (project.revisedBudgetMinor === null || project.actualCostMinor === null || project.currencyCode !== "USD") return null;
+  let ratio = 0;
   try {
-    const minor = BigInt(value);
-    const absolute = minor < 0 ? -minor : minor;
-    return `${minor < 0 ? "-" : ""}USD ${(absolute / BigInt(100)).toLocaleString()}.${(absolute % BigInt(100)).toString().padStart(2, "0")}`;
-  } catch {
-    return "USD —";
-  }
+    const budget = Number(BigInt(project.revisedBudgetMinor));
+    ratio = budget > 0 ? Number(BigInt(project.actualCostMinor)) / budget : 0;
+  } catch { return null; }
+  const width = Math.max(0, Math.min(1, ratio)) * 100;
+  const tone = ratio > 1 ? "bg-rose-500" : ratio > 0.9 ? "bg-amber-500" : "bg-foreground/70";
+  return (
+    <div className="grid gap-1.5">
+      <div className="flex items-baseline justify-between gap-2 text-xs">
+        <span className="text-muted-foreground">Cost to date</span>
+        <span className="tabular-nums"><span className="font-semibold">{money(project.actualCostMinor, project.currencyCode)}</span><span className="text-muted-foreground"> / {money(project.revisedBudgetMinor, project.currencyCode)}</span></span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted" role="img" aria-label={`${Math.round(ratio * 100)}% of revised budget spent`}><div className={`h-full rounded-full ${tone}`} style={{ width: `${width}%` }} /></div>
+    </div>
+  );
+}
+
+function Count({ label, value, attention }: { label: string; value: number | null; attention?: boolean }) {
+  return (
+    <div className="min-w-0">
+      <dt className="flex items-center gap-1.5 text-[11px] text-muted-foreground">{attention && value ? <StatusDot tone="amber" /> : null}{label}</dt>
+      <dd className="mt-0.5 text-sm font-semibold tabular-nums">{value ?? "—"}</dd>
+    </div>
+  );
+}
+
+function ProjectCard({ project }: { project: ProjectSummary }) {
+  return (
+    <li className="min-w-0">
+      <Link href={`/dashboard/platform/projects/${encodeURIComponent(project.id)}`} className="group grid h-full min-w-0 gap-4 rounded-xl border bg-background p-4 transition-shadow hover:shadow-[0_1px_3px_rgb(0_0_0/0.08),0_0_0_1px_rgb(0_0_0/0.04)] md:p-5">
+        <div className="min-w-0">
+          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{project.projectNumber} · {project.companyName}</p>
+          <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+            <h3 className="min-w-0 break-words text-base font-semibold tracking-tight group-hover:underline group-hover:underline-offset-4">{project.name}</h3>
+            <TitleStatus status={project.status} />
+          </div>
+          {(project.startDate || project.completionDate) && <p className="mt-1 text-xs tabular-nums text-muted-foreground">{formatDate(project.startDate)} → {formatDate(project.completionDate)}</p>}
+        </div>
+        <BudgetBar project={project} />
+        <dl className="grid grid-cols-3 gap-3 border-t pt-3 sm:grid-cols-5">
+          <Count label="RFIs" value={project.openRfis} attention />
+          <Count label="Submittals" value={project.openSubmittals} attention />
+          <Count label="Changes" value={project.openChanges} attention />
+          <Count label="Punch" value={project.openPunch} />
+          <Count label="Safety" value={project.openSafety} attention />
+        </dl>
+      </Link>
+    </li>
+  );
 }
 
 export async function PortfolioPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const page = pageParam((await searchParams).page);
   const portfolio = await getConstructionPortfolio(page);
-  const showFinancials = portfolio.projects.some(project => project.revisedBudgetMinor !== null);
   const noCompany = portfolio.companies.length === 0;
 
   return (
-    <PageContainer
-      title="Portfolio"
-      breadcrumbs={[{ type: "page", label: "Portfolio" }]}
-      header={<div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between"><h1 className="text-xl font-semibold tracking-tight md:text-2xl">Portfolio</h1><Link href="/dashboard/platform/projects" className="inline-flex items-center gap-1 text-sm font-medium">All projects <ArrowUpRight className="h-4 w-4" /></Link></div>}
-    >
+    <PlatformPage breadcrumbs={[{ type: "page", label: "Portfolio" }]}>
+      <PageHeader
+        icon={Building2}
+        title="Portfolio"
+        meta={portfolio.totalCount > 0 ? <span className="tabular-nums">{portfolio.totalCount} projects</span> : undefined}
+        actions={<Track>{portfolio.canCreateProject ? <PillLink href="/dashboard/platform/projects" variant="primary"><Plus />New project</PillLink> : null}<PillLink href="/dashboard/platform/projects">All projects</PillLink></Track>}
+      />
       {portfolio.totalCount > 0 && <MetricList metrics={portfolio.metrics} label="Portfolio summary" />}
-      <section className="px-4 py-6 md:px-6" aria-labelledby="portfolio-projects-title">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 id="portfolio-projects-title" className="text-base font-semibold">Projects</h2>
-            {portfolio.totalCount > 0 && <p className="text-sm text-muted-foreground">{portfolio.totalCount} projects</p>}
+      {portfolio.projects.length === 0 ? (
+        <EmptyState
+          icon={FolderKanban}
+          title={noCompany ? "No company yet" : "No projects"}
+          action={noCompany ? <Track><PillLink href="/dashboard/platform/setup" variant="primary">Set up company</PillLink></Track> : portfolio.canCreateProject ? <Track><PillLink href="/dashboard/platform/projects" variant="primary"><Plus />New project</PillLink></Track> : undefined}
+        />
+      ) : (
+        <section aria-labelledby="portfolio-projects-title" className="grid gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="portfolio-projects-title" className="text-sm font-semibold">Projects</h2>
+            <ListPager label="Portfolio pages" page={portfolio.page} totalPages={portfolio.totalPages} hrefFor={next => listHref("/dashboard/platform/portfolio", { page: next })} />
           </div>
-          <ListPager label="Portfolio pages" page={portfolio.page} totalPages={portfolio.totalPages} hrefFor={next => listHref("/dashboard/platform/portfolio", { page: next })} />
-        </div>
-        {portfolio.projects.length === 0 ? (
-          <div className="border-y py-14 text-center">
-            <FolderKanban className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden="true" />
-            <h3 className="mt-3 font-medium">{noCompany ? "No company yet" : "No projects"}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{noCompany ? "Set up your company and first project." : portfolio.canCreateProject ? "Create a project to get started." : "Projects you are added to appear here."}</p>
-            {(noCompany || portfolio.canCreateProject) && (
-              <div className="mt-4 flex justify-center">
-                <Link href={noCompany ? "/dashboard/platform/setup" : "/dashboard/platform/projects"} className="inline-flex items-center gap-1 text-sm font-medium">{noCompany ? "Open onboarding" : "Create project"} <ArrowUpRight className="h-4 w-4" /></Link>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto border-y">
-            <table className="w-full min-w-[850px] text-left text-sm"><thead className="bg-muted/40 text-xs text-muted-foreground"><tr><th className="px-3 py-2 font-medium">Project</th><th className="px-3 py-2 font-medium">Status</th>{showFinancials && <><th className="px-3 py-2 text-right font-medium">Revised budget</th><th className="px-3 py-2 text-right font-medium">Actual cost</th></>}<th className="px-3 py-2 text-right font-medium">Execution</th><th className="px-3 py-2 text-right font-medium">Risk / closeout</th></tr></thead><tbody className="divide-y">{portfolio.projects.map(project => <tr key={project.id}><td className="px-3 py-3"><Link href={`/dashboard/platform/projects/${project.id}`} className="font-medium hover:underline">{project.name}</Link><p className="text-xs text-muted-foreground">{project.companyName} · {project.projectNumber}</p></td><td className="px-3 py-3"><Badge variant="outline">{project.status.replaceAll("_", " ")}</Badge></td>{showFinancials && <><td className="px-3 py-3 text-right tabular-nums">{project.revisedBudgetMinor === null ? "—" : formatMinor(project.revisedBudgetMinor, project.currencyCode)}</td><td className="px-3 py-3 text-right tabular-nums">{project.actualCostMinor === null ? "—" : formatMinor(project.actualCostMinor, project.currencyCode)}</td></>}<td className="px-3 py-3 text-right tabular-nums">{project.openRfis ?? "—"} RFI · {project.openSubmittals ?? "—"} submittal</td><td className="px-3 py-3 text-right tabular-nums">{project.openChanges ?? "—"} change · {project.openPunch === null || project.openSafety === null ? "—" : project.openPunch + project.openSafety} field</td></tr>)}</tbody></table>
-          </div>
-        )}
-      </section>
-    </PageContainer>
+          <ul className="grid gap-4 lg:grid-cols-2">{portfolio.projects.map(project => <ProjectCard key={project.id} project={project} />)}</ul>
+        </section>
+      )}
+    </PlatformPage>
   );
 }

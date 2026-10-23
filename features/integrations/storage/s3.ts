@@ -1,5 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 
+import { s3ForcePathStyle } from "../../keystone/lib/s3-storage";
+
 export type ConstructionObjectMetadata = {
   key: string;
   contentType: string;
@@ -56,7 +58,14 @@ function timestamp(date: Date) {
 function objectUrl(storage: StorageConfig, key: string) {
   const url = new URL(storage.endpoint);
   const prefix = url.pathname.replace(/\/$/, "");
-  url.pathname = `${prefix}/${encode(storage.bucket)}/${key.split("/").map(encode).join("/")}`;
+  const objectPath = key.split("/").map(encode).join("/");
+  // Railway buckets accept only virtual-hosted addressing (bucket as subdomain).
+  if (s3ForcePathStyle(storage.endpoint.href)) {
+    url.pathname = `${prefix}/${encode(storage.bucket)}/${objectPath}`;
+  } else {
+    url.hostname = `${storage.bucket}.${url.hostname}`;
+    url.pathname = `${prefix}/${objectPath}`;
+  }
   return url;
 }
 function signingKey(secret: string, date: string, region: string) {

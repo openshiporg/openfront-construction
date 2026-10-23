@@ -1,15 +1,14 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { BadgeCheck, Palette } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { initialCommandState } from "@/features/platform/projects/action-state";
+import { EmptyState, FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, trackClass } from "@/features/platform/components/kit";
 import { LogoPicker } from "../components/LogoPicker";
 import { BrandColorPicker } from "../components/BrandColorPicker";
 import { updateStoreSettingsAction } from "../actions/store-settings";
-
-const fieldClass = "grid gap-1.5 text-sm font-medium";
+import { brandLogoSvg } from "../lib/brand-logo";
 
 export function StoreSettingsPageClient({
   initial,
@@ -29,55 +28,37 @@ export function StoreSettingsPageClient({
 }) {
   const [state, action, pending] = useActionState(updateStoreSettingsAction, initialCommandState);
   const [id] = useState(initial?.id ?? "");
-  const [logoIcon, setLogoIcon] = useState(initial?.logoIcon ?? "");
+  const [logoIcon, setLogoIcon] = useState(brandLogoSvg(initial?.logoIcon));
   const [logoColor, setLogoColor] = useState(initial?.logoColor ?? "0");
   const [brandName, setBrandName] = useState(initial?.brandName ?? "");
   const [brandMark, setBrandMark] = useState(initial?.brandMark ?? "");
   const [brandTagline, setBrandTagline] = useState(initial?.brandTagline ?? "");
   const [brandColor, setBrandColor] = useState(initial?.brandColor && /^#[0-9a-f]{6}$/i.test(initial.brandColor) ? initial.brandColor : "#3650a8");
 
-  if (initialError) {
-    return (
-      <div className="border-y py-10">
-        <h2 className="font-semibold">Store Settings unavailable</h2>
-        <p className="mt-2 text-sm text-muted-foreground">{initialError}</p>
-      </div>
-    );
-  }
-
-  if (!initial) {
-    return (
-      <div className="border-y py-10">
-        <h2 className="font-semibold">No company yet</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Finish onboarding to set up your company.</p>
-      </div>
-    );
-  }
+  if (initialError) return <EmptyState title={initialError} />;
+  if (!initial) return <EmptyState title="No company yet" />;
 
   return (
     <form action={action} className="grid gap-6">
       <input type="hidden" name="id" value={id} />
-      <fieldset className="grid gap-4 rounded-lg border p-4 md:grid-cols-2 md:p-5">
-        <legend className="px-2 text-sm font-semibold">Public identity</legend>
-        <label className={fieldClass}>Brand name<Input name="brandName" value={brandName} onChange={e => setBrandName(e.target.value)} required maxLength={120} /></label>
-        <label className={fieldClass}>Brand mark<Input name="brandMark" value={brandMark} onChange={e => setBrandMark(e.target.value)} required minLength={1} maxLength={4} pattern="[A-Za-z0-9]{1,4}" /></label>
-        <label className={`${fieldClass} md:col-span-2`}>Tagline<Input name="brandTagline" value={brandTagline} onChange={e => setBrandTagline(e.target.value)} maxLength={240} /></label>
-      </fieldset>
-
-      <LogoPicker value={logoIcon} hue={logoColor} onChange={setLogoIcon} onHueChange={setLogoColor} />
-
-      <fieldset className="rounded-lg border p-4 md:p-5">
-        <legend className="px-2 text-sm font-semibold">Initials badge color</legend>
-        <div className="mt-3">
-          <input type="hidden" name="brandColor" value={brandColor} />
-          <BrandColorPicker value={brandColor} onChange={setBrandColor} />
+      <Panel id="identity" title="Brand" icon={BadgeCheck}>
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_8rem]">
+          <label className={fieldLabelClass}>Brand name<input name="brandName" value={brandName} onChange={e => setBrandName(e.target.value)} required maxLength={120} className={inputClass} /></label>
+          <label className={fieldLabelClass}>Initials<input name="brandMark" value={brandMark} onChange={e => setBrandMark(e.target.value)} required minLength={1} maxLength={4} pattern="[A-Za-z0-9]{1,4}" className={`${inputClass} font-mono uppercase`} /></label>
+          <label className={`${fieldLabelClass} md:col-span-2`}>Tagline<input name="brandTagline" value={brandTagline} onChange={e => setBrandTagline(e.target.value)} maxLength={240} className={inputClass} /></label>
         </div>
-      </fieldset>
+      </Panel>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Save Store Settings"}</Button>
-        {state.status === "success" && <p role="status" className="text-sm text-emerald-700">{state.message}</p>}
-        {state.status === "error" && <p className="text-sm text-destructive" role="alert">{state.message}</p>}
+      <LogoPicker value={logoIcon} hue={logoColor} onChange={setLogoIcon} onHueChange={setLogoColor} brandName={brandName} tagline={brandTagline} />
+
+      <Panel id="badge-color" title="Initials badge colour" icon={Palette}>
+        <input type="hidden" name="brandColor" value={brandColor} />
+        <BrandColorPicker value={brandColor} onChange={setBrandColor} initials={brandMark} />
+      </Panel>
+
+      <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-full border bg-background/90 p-1.5 pr-4 shadow-sm backdrop-blur w-fit">
+        <span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : "Save brand"}</button></span>
+        <FormFeedback status={state.status} message={state.message} />
       </div>
     </form>
   );

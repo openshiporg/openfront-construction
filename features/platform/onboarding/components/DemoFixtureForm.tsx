@@ -2,10 +2,10 @@
 
 import { useActionState, useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { SAMPLE_WORKSPACE_SUMMARY } from "@/features/keystone/domain/onboarding-manifest";
 import { initialCommandState, type CommandState } from "@/features/platform/projects/action-state";
 import { loadDemoFixtureAction } from "../actions/onboarding";
+import { FormFeedback, pillClass, trackClass } from "@/features/platform/components/kit";
 
 /** The fictional sample workspace. It submits a normal onboarding request
  * (onboardConstructionWorkspace), and every record stays labelled fictional. */
@@ -16,20 +16,20 @@ export function DemoFixtureForm({ onComplete }: { onComplete?(state: CommandStat
     if (state.status === "success") onComplete?.(state);
   }, [state, onComplete]);
   return (
-    <form action={action} className="grid gap-4 rounded-lg border border-dashed p-4 md:p-5" aria-labelledby="demo-fixture-title">
+    <form action={action} className="grid gap-4 rounded-xl border border-dashed p-4 md:p-5" aria-labelledby="demo-fixture-title">
       <input type="hidden" name="idempotencyKey" value={key} />
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">Mock data</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground"><span aria-hidden="true" className="size-2 rounded-full bg-amber-500" />Sample data</span>
         <h2 id="demo-fixture-title" className="font-semibold">Northstar Builders · Civic Learning Center</h2>
       </div>
-      <p className="text-sm text-muted-foreground">Fictional company, client and project. Not a real contractor, owner or job.</p>
+      <p className="text-sm text-muted-foreground">Fictional company, client and project</p>
       <ul className="grid gap-1.5 text-sm">
-        {SAMPLE_WORKSPACE_SUMMARY.map(item => <li key={item} className="flex gap-2"><span aria-hidden="true">•</span>{item}</li>)}
+        {SAMPLE_WORKSPACE_SUMMARY.map(item => <li key={item} className="flex gap-2"><span aria-hidden="true" className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground" />{item}</li>)}
       </ul>
       <div>
-        <Button type="submit" disabled={pending} className="min-h-11">{pending ? "Loading sample workspace…" : "Load sample workspace"}</Button>
+        <span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Loading sample workspace…" : "Load sample workspace"}</button></span>
       </div>
-      {state.status === "error" && <p role="alert" className="text-sm text-destructive">{state.message}</p>}
+      {state.status === "error" && <FormFeedback status="error" message={state.message} />}
     </form>
   );
 }

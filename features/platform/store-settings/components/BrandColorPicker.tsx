@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 
 import { TouchSlider as Slider } from "@/features/forms/components/TouchSlider";
+import { pillClass, trackClass } from "@/features/platform/components/kit";
 import { HUE_PRESETS, hexFromHue } from "../lib/brand-color";
 
 /**
@@ -15,9 +16,11 @@ import { HUE_PRESETS, hexFromHue } from "../lib/brand-color";
 export function BrandColorPicker({
   value,
   onChange,
+  initials = "",
 }: {
   value: string;
   onChange: (hex: string) => void;
+  initials?: string;
 }) {
   const hue = useMemo(() => {
     const m = /^#?([0-9a-f]{6})$/i.exec(value.trim());
@@ -39,39 +42,29 @@ export function BrandColorPicker({
   }, [value]);
 
   return (
-    <div className="grid gap-3">
-      <div className="flex flex-wrap gap-2">
-        {HUE_PRESETS.map(preset => (
-          <button
-            key={preset.name}
-            type="button"
-            aria-label={`Use ${preset.name}`}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-xs font-medium transition-colors ${
-              value.toLowerCase() === hexFromHue(preset.hue).toLowerCase()
-                ? "border-foreground bg-muted"
-                : "border-border hover:bg-muted/50"
-            }`}
-            style={{ ["--swatch" as string]: hexFromHue(preset.hue) }}
-            onClick={() => onChange(hexFromHue(preset.hue))}
-          >
-            <span className="inline-block size-3 rounded-full" style={{ backgroundColor: `var(--swatch)` }} />
-            {preset.name}
-          </button>
-        ))}
+    <div className="grid gap-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <span aria-hidden="true" className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold uppercase text-white" style={{ backgroundColor: value }}>{initials.slice(0, 4) || "AB"}</span>
+        <div className="-mx-1 min-w-0 flex-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+          <div role="radiogroup" aria-label="Badge colour" className={`${trackClass} max-w-none`}>
+            {HUE_PRESETS.map(preset => {
+              const hex = hexFromHue(preset.hue);
+              const active = value.toLowerCase() === hex.toLowerCase();
+              return (
+                <button key={preset.name} type="button" role="radio" aria-checked={active} aria-label={`Use ${preset.name}`} onClick={() => onChange(hex)} className={pillClass(active ? "raised" : "quiet", "sm")}>
+                  <span className="inline-block size-2.5 rounded-full" style={{ backgroundColor: hex }} />{preset.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
       <div className="grid gap-2">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Hue</span>
-          <span className="font-mono">{hue}° · {value.toLowerCase()}</span>
+          <span className="font-mono tabular-nums">{hue}° · {value.toLowerCase()}</span>
         </div>
-        <Slider
-          min={0}
-          max={360}
-          step={1}
-          value={[hue]}
-          onValueChange={([h]) => onChange(hexFromHue(h))}
-          aria-label="Initials badge hue"
-        />
+        <Slider min={0} max={360} step={1} value={[hue]} onValueChange={([h]) => onChange(hexFromHue(h))} aria-label="Initials badge hue" />
       </div>
     </div>
   );
