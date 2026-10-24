@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import { amountToMinorUnits } from "@/features/platform/projects/money";
 
 export type OperatorRequestState = { status: "idle" | "success" | "error"; message: string };
@@ -25,7 +25,7 @@ export async function operatorRequestAction(_state: OperatorRequestState, data: 
       input.expiresAt = expiry.toISOString();
     } catch { return { status: "error", message: "Enter a valid amount and quote expiry." }; }
   }
-  const result = await keystoneClient<{ commandConstructionRequest: { id: string } }>(`mutation OperatorRequestCommand($input: ServiceRequestInput!) { commandConstructionRequest(input: $input) { id } }`, { input });
+  const result = await platformClient<{ commandConstructionRequest: { id: string } }>(`mutation OperatorRequestCommand($input: ServiceRequestInput!) { commandConstructionRequest(input: $input) { id } }`, { input });
   if (!result.success) return { status: "error", message: "The request changed or could not be saved. Reload to see its current status." };
   revalidatePath("/dashboard/platform/service-requests");
   return { status: "success", message: operation === "quote" ? "Quote saved." : "Request cancelled." };

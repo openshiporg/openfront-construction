@@ -2,7 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import { sanitizeStoreLogoSvg } from "@/features/lib/sanitize-store-logo";
 import { normalizeStoreLogoColor } from "@/features/lib/store-logo";
 import { PUBLIC_PROFILE_LIMITS, PUBLIC_PROJECT_LIMITS, PUBLIC_SERVICE_LIMITS, publicContentLengthError } from "@/features/lib/public-content-limits";
@@ -16,7 +16,7 @@ export type PublicSettings = { companies: Array<{ id: string; name: string }>; c
 const value = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 
 export async function getPublicStoreSettings(companyId?: string) {
-  const result = await keystoneClient<{ constructionStoreSettings: PublicSettings }>(`query StoreSettings($companyId: ID) { constructionStoreSettings(companyId: $companyId) }`, { companyId: companyId || null });
+  const result = await platformClient<{ constructionStoreSettings: PublicSettings }>(`query StoreSettings($companyId: ID) { constructionStoreSettings(companyId: $companyId) }`, { companyId: companyId || null });
   if (!result.success) return { success: false as const, error: "Store Settings are unavailable for your role." };
   return { success: true as const, data: result.data.constructionStoreSettings };
 }
@@ -26,7 +26,7 @@ export async function getStoreSettingsData() {
 }
 
 async function save(input: Record<string, unknown>): Promise<CommandState> {
-  const response = await keystoneClient(`mutation SaveStoreSettings($input: JSON!) { updateConstructionStoreSettings(input: $input) { success operation itemId actionId replayed } }`, { input: { ...input, idempotencyKey: randomUUID() } });
+  const response = await platformClient(`mutation SaveStoreSettings($input: JSON!) { updateConstructionStoreSettings(input: $input) { success operation itemId actionId replayed } }`, { input: { ...input, idempotencyKey: randomUUID() } });
   if (!response.success) return { status: "error", message: "Settings could not be saved. Check the fields and current workspace permission." };
   revalidatePath("/", "layout");
   return { status: "success", message: "Saved" };

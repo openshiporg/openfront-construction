@@ -8,6 +8,7 @@ import { FormFeedback, Panel, fieldLabelClass, pillClass, selectClass, trackClas
 import { addProjectMemberAction } from "../actions";
 import type { ConstructionOption } from "../data";
 import { useKeyedCommand } from "../use-keyed-command";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 /** Adds an existing active company member to this project. */
 export function TeamMemberPanel({ projectId, options }: { projectId: string; options: ConstructionOption[] }) {
@@ -16,7 +17,7 @@ export function TeamMemberPanel({ projectId, options }: { projectId: string; opt
   const companyMembers = options.filter(option => option.kind === "companyMember");
   return (
     <Panel id="member-panel" title="Add a company member" icon={UserPlus}>
-      <form action={action} className="grid min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_14rem_auto] md:items-end">
+      <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_14rem_auto] md:items-end">
         <input type="hidden" name="projectId" value={projectId} />
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <label className={fieldLabelClass}>Company member<RecordLookup key={idempotencyKey} name="userId" projectId={projectId} kinds={["companyMember"]} initial={companyMembers} eligible={option => option.status === "active" && !projectUserIds.has(option.id)} required /></label>

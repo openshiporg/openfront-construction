@@ -6,6 +6,7 @@ import { FormFeedback, inputClass, pillClass, readable, selectClass, trackClass 
 import { transitionConstructionItem } from "../actions";
 import { useKeyedCommand } from "../use-keyed-command";
 import type { WorkItem } from "../data";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 export function TransitionControl({ projectId, item }: { projectId: string; item: WorkItem }) {
   const options = item.allowedTransitions;
@@ -13,7 +14,7 @@ export function TransitionControl({ projectId, item }: { projectId: string; item
   if (!options.length) return <span className="text-xs text-muted-foreground">No next step</span>;
 
   return (
-    <form action={action} className="grid min-w-0 gap-2 sm:min-w-56">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-2 sm:min-w-56">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="itemId" value={item.id} />
       <input type="hidden" name="kind" value={item.kind} />

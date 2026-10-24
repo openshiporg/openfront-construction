@@ -7,6 +7,7 @@ import { initialCommandState } from "@/features/platform/projects/action-state";
 import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on-success";
 import { transitionTradePartnerAction } from "../actions";
 import { partnerTransitions } from "../lib/states";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 const verbs: Record<string, string> = { approved: "Approve", inactive: "Mark inactive", blocked: "Block", prospective: "Unblock" };
 
@@ -19,7 +20,7 @@ export function PartnerStatusControl({ id, status }: { id: string; status: strin
     <div className="flex flex-wrap items-center gap-3">
       <Track label="Change status">
         {moves.map(to => (
-          <form key={to} action={action}>
+          <form key={to} action={action} onReset={keepUnlessSaved(state.status === "success")}>
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="from" value={status} />
             <input type="hidden" name="to" value={to} />

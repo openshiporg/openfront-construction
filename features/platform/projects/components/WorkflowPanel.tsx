@@ -12,6 +12,7 @@ import { useKeyedCommand } from "../use-keyed-command";
 import { OneTimeSecretReceipt } from "./OneTimeSecretReceipt";
 import { eligibleOptions, localDateTimeToInstant, userTimeZone, type Field, type NumberRule } from "./workflow-fields";
 import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, selectClass, textareaClass, trackClass } from "@/features/platform/components/kit";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 type Workflow = { operation: string; label: string; help: string; fields: Field[] };
 
@@ -147,7 +148,7 @@ function DateTimeField({ field }: { field: Field }) {
 function WorkflowForm({ projectId, workflow, options }: { projectId: string; workflow: Workflow; options: ConstructionOption[] }) {
   const { state, action, pending, idempotencyKey } = useKeyedCommand(runConstructionWorkflow);
   return (
-    <form action={action} className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
       <input type="hidden" name="operation" value={workflow.operation} /><input type="hidden" name="projectId" value={projectId} /><input type="hidden" name="idempotencyKey" value={idempotencyKey} />
       {/* A new key means the previous operation succeeded: start with fresh inputs. */}
       <WorkflowFields key={idempotencyKey} projectId={projectId} workflow={workflow} options={options} />

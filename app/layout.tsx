@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Geist, Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import "@/features/storefront/storefront.css";
+import { getPublicStorefrontMetadata } from "@/features/storefront/data";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,13 +33,14 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Construction Contractor",
-    template: "%s",
-  },
-  description: "A general contractor's public website.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getPublicStorefrontMetadata();
+  return {
+    ...site,
+    title: { default: String((site.title as { absolute: string }).absolute), template: "%s" },
+    icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }] },
+  };
+}
 
 export default function RootLayout({
   children,
@@ -47,9 +49,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link href="/favicon.svg" rel="icon" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} ${plexSans.variable} ${plexMono.variable} antialiased min-h-screen bg-background font-sans`}
       >

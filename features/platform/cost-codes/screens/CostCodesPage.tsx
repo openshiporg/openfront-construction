@@ -1,6 +1,6 @@
 import { Hash, Plus, Search } from "lucide-react";
 
-import { DisclosurePanel, EmptyState, PageHeader, PlatformPage, SegmentTabs, TitleStatus, inputClass, pillClass, trackClass } from "@/features/platform/components/kit";
+import { DisclosurePanel, EmptyState, PageHeader, PlatformPage, SegmentTabs, TitleStatus, inputClass, pillClass, trackClass, SetupCompanyAction } from "@/features/platform/components/kit";
 import { RegisterFrame } from "@/features/platform/components/Register";
 import { listHref, pageParam, textParam } from "@/features/platform/projects/components/ListPager";
 import { getPlatformCompanies, pickCompany } from "@/features/platform/lib/company";
@@ -17,7 +17,7 @@ export async function CostCodesPage({ searchParams }: { searchParams: Promise<Re
     return (
       <PlatformPage breadcrumbs={[{ type: "page", label: "Cost codes" }]}>
         <PageHeader icon={Hash} title="Cost codes" />
-        <EmptyState icon={Hash} title="No company yet" />
+        <EmptyState icon={Hash} title="No company yet" action={<SetupCompanyAction />} />
       </PlatformPage>
     );
   }

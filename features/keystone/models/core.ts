@@ -397,7 +397,10 @@ async function validatePortalOrganization({ resolvedData, context, item, addVali
     addValidationError("Membership role must belong to the project company");
   }
   const actor = (context as unknown as { session?: Session }).session;
-  if (actor && roleId && !hasProjectPermission(actor, project.company.id, projectId, "canManageRoles", true)) {
+  // A company role administrator (including the platform administrator before any
+  // membership exists, as in first-company onboarding) may assign project roles too.
+  if (actor && roleId && !hasProjectPermission(actor, project.company.id, projectId, "canManageRoles", true) &&
+    !hasCompanyPermission(actor, project.company.id, "canManageRoles")) {
     addValidationError("Changing a project membership role requires role administration permission in that project");
   }
 }

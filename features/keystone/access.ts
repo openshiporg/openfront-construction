@@ -266,9 +266,8 @@ export function projectEvidencePermissionFilter(session: Session | undefined) {
   return { OR: [
     ...(projectEvents ? [projectEvents] : []),
     ...(companyEvents !== false ? [{ AND: [companyEvents,
-      // IDs are nonempty CUIDs. This is the generated WhereInput's supported
-      // relation-absence predicate; do not send an invalid id.equals:null.
-      { NOT: { project: { id: { not: { equals: "" } } } } },
+      // Keystone rejects "" as an id, so test the relationship itself for absence.
+      { project: null },
     ] }] : []),
   ] };
 }

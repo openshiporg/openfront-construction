@@ -315,7 +315,7 @@ a.sf-list__item:hover { background: var(--sf-paper); }
 .sf-amount--xl { font-size: clamp(2.2rem, 5vw, 3rem); line-height: 1; }
 
 .sf-empty { border: 1px dashed var(--sf-rule-2); border-radius: 1rem; padding: clamp(2rem, 6vw, 3.5rem) 1.25rem; text-align: center; display: grid; justify-items: center; gap: 1rem; color: var(--sf-ink-2); }
-.sf-empty__title { font-family: var(--font-display); font-stretch: 85%; font-variation-settings: "wdth" 85; font-weight: 700; font-size: 1.3rem; color: var(--sf-ink); }
+.sf-empty__title { margin: 0; font-family: var(--font-display); font-stretch: 85%; font-variation-settings: "wdth" 85; font-weight: 700; font-size: 1.3rem; color: var(--sf-ink); }
 
 .sf-notice { display: flex; gap: 0.75rem; align-items: flex-start; border-radius: 0.9rem; padding: 0.9rem 1rem; border: 1px solid var(--sf-rule); background: var(--sf-card); font-size: 0.95rem; }
 .sf-notice .sf-dot { margin-top: 0.45rem; }

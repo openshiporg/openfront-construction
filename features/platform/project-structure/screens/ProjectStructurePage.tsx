@@ -1,7 +1,6 @@
-import { notFound } from "next/navigation";
 import { Hash, MapPin, Plus, Ruler } from "lucide-react";
 
-import { DisclosurePanel, EmptyState, PageHeader, Panel, PillLink, PlatformPage, TitleStatus, Track, readable } from "@/features/platform/components/kit";
+import { DisclosurePanel, EmptyState, NotFoundPage, PageHeader, Panel, PillLink, PlatformPage, TitleStatus, Track, readable } from "@/features/platform/components/kit";
 import { projectToolHref } from "@/features/platform/lib/navigation";
 import { BudgetCodeActiveToggle, BudgetCodeForm, LocationForm, RenameLocationForm } from "../components/StructureForms";
 import { getProjectStructure, type LocationRow } from "../data";
@@ -28,7 +27,7 @@ function flatten(locations: LocationRow[]) {
 
 export async function ProjectStructurePage({ projectId }: { projectId: string }) {
   const structure = await getProjectStructure(projectId);
-  if (!structure) notFound();
+  if (!structure) return <NotFoundPage title="Project not found" backHref="/dashboard/platform/projects" backLabel="Projects" />;
   const { project, budgetCodes, costCodes } = structure;
   const locations = flatten(structure.locations);
   const overview = projectToolHref(project.id, "");

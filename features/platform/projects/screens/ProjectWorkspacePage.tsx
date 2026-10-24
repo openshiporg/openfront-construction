@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { NotFoundPage } from "@/features/platform/components/kit";
 import { ProjectWorkspace } from "../components/ProjectWorkspace";
 import { getConstructionResourceLogRegister } from "../data";
 import { getConstructionBidComparison, getConstructionInspectionRegister, getConstructionMaterialReceiptRegister, getConstructionProjectOptions, getConstructionProcurementRequestRegister, getConstructionProcurementCommitmentRegister, getConstructionProcurementBidInvitationRegister, getConstructionProcurementLienWaiverRegister, getConstructionProjectWorkspace, getConstructionRfiRegister, getConstructionSafetyIncidentRegister, getConstructionSafetyObservationRegister, getConstructionSubmittalRegister } from "../data";
@@ -8,7 +9,7 @@ async function loadWorkspace(projectId: string, tool: string, queuePage: number)
   try {
     return await getConstructionProjectWorkspace(projectId, tool, queuePage);
   } catch (error) {
-    if (error instanceof Error && /not found/i.test(error.message)) notFound();
+    if (error instanceof Error && /not found/i.test(error.message)) return null;
     throw error;
   }
 }
@@ -163,6 +164,7 @@ export async function ProjectWorkspacePage({
   const rfiPage = parsePage(searchParams.rfiPage);
   const rfiStatus = rfiStatuses.has(requestedRfiStatus) ? requestedRfiStatus : "all";
   const workspace = await loadWorkspace(projectId, tool, parsePage(searchParams.queuePage));
+  if (!workspace) return <NotFoundPage title="Project not found" backHref="/dashboard/platform/projects" backLabel="Projects" />;
   let resourceRegister;
   let resourceUnavailable = false;
   if (tool === "field" && workspace.audience === "internal") {

@@ -1,9 +1,9 @@
 'use server';
 import { randomUUID } from "node:crypto";
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import type { CommandState } from "@/features/platform/projects/action-state";
 export async function revokeInvitationAction(_previous: CommandState, formData: FormData): Promise<CommandState> {
-  const response = await keystoneClient<{ revokeProjectInvitation: { replayed: boolean } }>(`
+  const response = await platformClient<{ revokeProjectInvitation: { replayed: boolean } }>(`
     mutation RevokeProjectInvitation($invitationId: ID!, $reason: String!) {
       revokeProjectInvitation(invitationId: $invitationId, reason: $reason) { success operation itemId actionId replayed }
     }
@@ -11,7 +11,7 @@ export async function revokeInvitationAction(_previous: CommandState, formData: 
   return response.success ? { status: "success", message: response.data.revokeProjectInvitation.replayed ? "Invitation was already revoked." : "Invitation and pending project grant revoked." } : { status: "error", message: response.error };
 }
 export async function reissueInvitationAction(_previous: CommandState, formData: FormData): Promise<CommandState> {
-  const response = await keystoneClient<{ reissueProjectInvitation: { replayed: boolean; activationToken?: string | null } }>(`
+  const response = await platformClient<{ reissueProjectInvitation: { replayed: boolean; activationToken?: string | null } }>(`
     mutation ReissueProjectInvitation($invitationId: ID!, $reason: String!, $idempotencyKey: String!) {
       reissueProjectInvitation(invitationId: $invitationId, reason: $reason, idempotencyKey: $idempotencyKey) { success operation itemId actionId replayed activationToken }
     }

@@ -1,11 +1,11 @@
 'use server';
 
-import { keystoneClient } from "../../dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import { decodeResourceIntent, encodeResourceIntent, unresolvedResourceReceipt, type ResourceIntentReceipt } from "../../keystone/domain/resource-intent";
 import type { ResourceIntentMode } from "./resource-intent-journal";
 
 async function retrieveOriginal(intentJson: string) {
-  const response = await keystoneClient<{ constructionResourceActivityReceipt: ResourceIntentReceipt }>(`
+  const response = await platformClient<{ constructionResourceActivityReceipt: ResourceIntentReceipt }>(`
     query ConstructionResourceActivityReceipt($intentJson: String!) {
       constructionResourceActivityReceipt(intentJson: $intentJson) {
         outcome message intentJson itemId actionId requestDigest resultDigest completedAt factJson
@@ -22,7 +22,7 @@ export async function operateResourceOriginal(mode: ResourceIntentMode, raw: str
     const intentJson = encodeResourceIntent(intent);
     if (mode === "retrieve") return retrieveOriginal(intentJson);
     if (mode === "close") {
-      const response = await keystoneClient<{ closeResourceActivityIntent: ResourceIntentReceipt }>(`
+      const response = await platformClient<{ closeResourceActivityIntent: ResourceIntentReceipt }>(`
         mutation CloseResourceActivityIntent($intentJson: String!, $reason: String!) {
           closeResourceActivityIntent(intentJson: $intentJson, reason: $reason) {
             outcome message intentJson itemId actionId requestDigest resultDigest completedAt factJson
@@ -32,7 +32,7 @@ export async function operateResourceOriginal(mode: ResourceIntentMode, raw: str
       return response.success ? response.data.closeResourceActivityIntent : unresolvedResourceReceipt("unknown", "The entry could not be discarded. Keep it and try again.");
     }
     if (mode === "reconcile") {
-      const response = await keystoneClient<{ reconcileResourceActivityIntent: ResourceIntentReceipt }>(`
+      const response = await platformClient<{ reconcileResourceActivityIntent: ResourceIntentReceipt }>(`
         mutation ReconcileResourceActivityIntent($intentJson: String!) {
           reconcileResourceActivityIntent(intentJson: $intentJson) {
             outcome message intentJson itemId actionId requestDigest resultDigest completedAt factJson
@@ -43,7 +43,7 @@ export async function operateResourceOriginal(mode: ResourceIntentMode, raw: str
     }
     // This is SAME submission/retry, never reconstruction from current form.
     // Admission uses the native command; only owned readback resolves the intent.
-    const response = await keystoneClient(`
+    const response = await platformClient(`
       mutation RetryResourceActivityOriginal($input: ConstructionWorkflowInput!) {
         recordResourceActivity(input: $input) { success operation itemId actionId replayed }
       }

@@ -3,16 +3,16 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import { buildDemoOnboardingInput } from "../lib/demo-fixture";
 import type { CommandState } from "@/features/platform/projects/action-state";
 import type { ConstructionOnboardingReadiness } from "@/features/keystone/queries/onboarding-readiness";
 
 /** Canonical onboarding dismissal, scoped to the authenticated actor. */
 export async function dismissOnboarding() {
-  const actor = await keystoneClient<{ authenticatedItem: { id: string } | null }>(`query { authenticatedItem { ... on User { id } } }`);
+  const actor = await platformClient<{ authenticatedItem: { id: string } | null }>(`query { authenticatedItem { ... on User { id } } }`);
   if (!actor.success || !actor.data.authenticatedItem?.id) return { success: false, error: "Sign in to continue" };
-  const response = await keystoneClient(`mutation($id: ID!) { updateUser(where: { id: $id }, data: { onboardingStatus: dismissed }) { id } }`, { id: actor.data.authenticatedItem.id });
+  const response = await platformClient(`mutation($id: ID!) { updateUser(where: { id: $id }, data: { onboardingStatus: dismissed }) { id } }`, { id: actor.data.authenticatedItem.id });
   if (!response.success) return { success: false, error: response.error };
   revalidatePath("/dashboard", "layout");
   return { success: true };
@@ -22,7 +22,7 @@ const checkFields = "key label complete detail href required";
 
 /** Actor-scoped setup readiness for the setup page and onboarding dialog. */
 export async function loadOnboardingReadiness(): Promise<ConstructionOnboardingReadiness | null> {
-  const response = await keystoneClient<{ constructionOnboardingReadiness: ConstructionOnboardingReadiness }>(`
+  const response = await platformClient<{ constructionOnboardingReadiness: ConstructionOnboardingReadiness }>(`
     query ConstructionOnboardingReadiness {
       constructionOnboardingReadiness {
         canStartFirstCompany sampleWorkspaceAvailable projectOnly
@@ -51,7 +51,7 @@ export async function loadDemoFixtureAction(
   const input = buildDemoOnboardingInput(
     value(formData, "idempotencyKey") || randomUUID(),
   );
-  const response = await keystoneClient<{ onboardConstructionWorkspace: { replayed: boolean; projectId: string } }>(`
+  const response = await platformClient<{ onboardConstructionWorkspace: { replayed: boolean; projectId: string } }>(`
     mutation OnboardConstructionWorkspace($input: ConstructionOnboardingInput!) {
       onboardConstructionWorkspace(input: $input) { success companyId projectId actionId replayed }
     }
@@ -103,7 +103,7 @@ export async function onboardConstructionWorkspaceAction(
     publicProjectLocation: value(formData, "publicProjectLocation") || null,
     idempotencyKey: value(formData, "idempotencyKey") || randomUUID(),
   };
-  const response = await keystoneClient<{ onboardConstructionWorkspace: { replayed: boolean; projectId: string } }>(`
+  const response = await platformClient<{ onboardConstructionWorkspace: { replayed: boolean; projectId: string } }>(`
     mutation OnboardConstructionWorkspace($input: ConstructionOnboardingInput!) {
       onboardConstructionWorkspace(input: $input) { success companyId projectId actionId replayed }
     }

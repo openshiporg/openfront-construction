@@ -2,6 +2,9 @@ import { InvitationAcceptancePage } from "@/features/portal/acceptance/Invitatio
 import { getAuthenticatedUser } from "@/features/dashboard/actions/auth";
 import { PublicShell } from "@/features/storefront/components/PublicShell";
 import { getPublicConstructionSite } from "@/features/storefront/data";
+import { getPublicStorefrontMetadata } from "@/features/storefront/data";
+
+export const generateMetadata = async () => getPublicStorefrontMetadata("Join the project");
 
 export const dynamic = "force-dynamic";
 

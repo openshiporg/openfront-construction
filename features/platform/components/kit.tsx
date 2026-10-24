@@ -240,6 +240,22 @@ export function EmptyState({ icon: Icon, title, action, compact = false }: { ico
   );
 }
 
+/** The way forward from a company-less empty state. */
+export function SetupCompanyAction() {
+  return <Track><PillLink href="/dashboard/platform/setup" variant="primary">Set up company</PillLink></Track>;
+}
+
+/** A record that does not exist or is not visible. Rendered in-page: the dashboard's
+ * error boundary would otherwise catch notFound() and show a retry screen. */
+export function NotFoundPage({ title, backHref, backLabel }: { title: string; backHref: string; backLabel: string }) {
+  return (
+    <PlatformPage breadcrumbs={[{ type: "link", label: backLabel, href: backHref.replace(/^\/dashboard/, "") }, { type: "page", label: "Not found" }]}>
+      <PageHeader title={title} />
+      <EmptyState title="This record does not exist or you do not have access" action={<Track><PillLink href={backHref}><ArrowLeft />{backLabel}</PillLink></Track>} />
+    </PlatformPage>
+  );
+}
+
 /** Success / error line under a form. */
 export function FormFeedback({ status, message, className }: { status: string; message?: string; className?: string }) {
   if (!message) return null;

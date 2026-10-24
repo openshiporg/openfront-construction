@@ -1,4 +1,4 @@
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import type { ResourceIntentScope } from "@/features/keystone/domain/resource-intent";
 
 export type CompanySummary = {
@@ -19,7 +19,7 @@ export type ResourceLogRegisterPage = {
   items: Array<{ id: string; resourceType: string; eventType: string; occurredAt: string | null; quantity: string; unit: string; resourceLabel: string }>;
 };
 export async function getConstructionResourceLogRegister(projectId: string, page: number, search: string, type: string, event: string) {
-  const response = await keystoneClient<{ constructionResourceLogRegister: ResourceLogRegisterPage }>(`
+  const response = await platformClient<{ constructionResourceLogRegister: ResourceLogRegisterPage }>(`
     query ConstructionResourceLogRegister($projectId: ID!, $page: Int!, $search: String, $type: String, $event: String) {
       constructionResourceLogRegister(projectId: $projectId, page: $page, search: $search, type: $type, event: $event) {
         page pageSize totalCount totalPages search type event
@@ -281,7 +281,7 @@ export type ConstructionPortfolio = {
 };
 
 export async function getConstructionPortfolio(page = 1, search = "") {
-  const response = await keystoneClient<{ constructionPortfolio: ConstructionPortfolio }>(`
+  const response = await platformClient<{ constructionPortfolio: ConstructionPortfolio }>(`
     query ConstructionPortfolio($page: Int, $search: String) {
       constructionPortfolio(page: $page, search: $search) {
         generatedAt canCreateProject page pageSize totalCount totalPages search
@@ -296,7 +296,7 @@ export async function getConstructionPortfolio(page = 1, search = "") {
 }
 
 export async function getConstructionRecordDetail(projectId: string, recordType: string, recordId: string) {
-  const response = await keystoneClient<{ constructionRecordDetail: ConstructionRecordDetail }>(`
+  const response = await platformClient<{ constructionRecordDetail: ConstructionRecordDetail }>(`
     query ConstructionRecordDetail($projectId: ID!, $recordType: String!, $recordId: ID!) {
       constructionRecordDetail(projectId: $projectId, recordType: $recordType, recordId: $recordId) {
         id recordType listKey reference title status allowedTransitions
@@ -311,7 +311,7 @@ export async function getConstructionRecordDetail(projectId: string, recordType:
 }
 
 export async function getConstructionBidComparison(projectId: string) {
-  const response = await keystoneClient<{ constructionBidComparison: BidComparisonRow[] }>(`
+  const response = await platformClient<{ constructionBidComparison: BidComparisonRow[] }>(`
     query ConstructionBidComparison($projectId: ID!) {
       constructionBidComparison(projectId: $projectId) {
         id packageNumber packageTitle submissionNumber partnerName status totalMinor currencyCode
@@ -324,7 +324,7 @@ export async function getConstructionBidComparison(projectId: string) {
 }
 
 export async function getConstructionProcurementRequestRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionProcurementRequestRegister: ProcurementRequestRegisterPage }>(`
+  const response = await platformClient<{ constructionProcurementRequestRegister: ProcurementRequestRegisterPage }>(`
     query ConstructionProcurementRequestRegister($projectId: ID!, $page: Int!, $status: String) {
       constructionProcurementRequestRegister(projectId: $projectId, page: $page, status: $status) {
         projectId page pageSize totalCount totalPages status
@@ -337,7 +337,7 @@ export async function getConstructionProcurementRequestRegister(projectId: strin
 }
 
 export async function getConstructionMaterialReceiptRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionMaterialReceiptRegister: MaterialReceiptRegisterPage }>(`
+  const response = await platformClient<{ constructionMaterialReceiptRegister: MaterialReceiptRegisterPage }>(`
     query ConstructionMaterialReceiptRegister($projectId: ID!, $page: Int!, $status: String) {
       constructionMaterialReceiptRegister(projectId: $projectId, page: $page, status: $status) {
         projectId page pageSize totalCount totalPages status
@@ -350,7 +350,7 @@ export async function getConstructionMaterialReceiptRegister(projectId: string, 
 }
 
 export async function getConstructionProcurementCommitmentRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionProcurementCommitmentRegister: ProcurementCommitmentRegisterPage }>(`
+  const response = await platformClient<{ constructionProcurementCommitmentRegister: ProcurementCommitmentRegisterPage }>(`
     query ConstructionProcurementCommitmentRegister($projectId: ID!, $page: Int!, $status: String) {
       constructionProcurementCommitmentRegister(projectId: $projectId, page: $page, status: $status) {
         projectId page pageSize totalCount totalPages status
@@ -363,7 +363,7 @@ export async function getConstructionProcurementCommitmentRegister(projectId: st
 }
 
 export async function getConstructionProcurementBidInvitationRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionProcurementBidInvitationRegister: ProcurementBidInvitationRegisterPage }>(`
+  const response = await platformClient<{ constructionProcurementBidInvitationRegister: ProcurementBidInvitationRegisterPage }>(`
     query ConstructionProcurementBidInvitationRegister($projectId: ID!, $page: Int!, $status: String) {
       constructionProcurementBidInvitationRegister(projectId: $projectId, page: $page, status: $status) {
         projectId page pageSize totalCount totalPages status
@@ -376,7 +376,7 @@ export async function getConstructionProcurementBidInvitationRegister(projectId:
 }
 
 export async function getConstructionProcurementLienWaiverRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionProcurementLienWaiverRegister: ProcurementLienWaiverRegisterPage }>(`
+  const response = await platformClient<{ constructionProcurementLienWaiverRegister: ProcurementLienWaiverRegisterPage }>(`
     query ConstructionProcurementLienWaiverRegister($projectId: ID!, $page: Int!, $status: String) {
       constructionProcurementLienWaiverRegister(projectId: $projectId, page: $page, status: $status) {
         projectId page pageSize totalCount totalPages status
@@ -389,7 +389,7 @@ export async function getConstructionProcurementLienWaiverRegister(projectId: st
 }
 
 export async function getConstructionInspectionRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionInspectionRegister: InspectionRegisterPage }>(`
+  const response = await platformClient<{ constructionInspectionRegister: InspectionRegisterPage }>(`
     query ConstructionInspectionRegister($projectId: ID!, $page: Int!, $status: String!) {
       constructionInspectionRegister(projectId: $projectId, page: $page, status: $status) {
         projectId page pageSize totalCount totalPages status audience
@@ -402,7 +402,7 @@ export async function getConstructionInspectionRegister(projectId: string, page:
 }
 
 export async function getConstructionSafetyIncidentRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionSafetyIncidentRegister: SafetyIncidentRegisterPage }>(`
+  const response = await platformClient<{ constructionSafetyIncidentRegister: SafetyIncidentRegisterPage }>(`
     query ConstructionSafetyIncidentRegister($projectId: ID!, $page: Int!, $status: String!) {
       constructionSafetyIncidentRegister(projectId: $projectId, page: $page, status: $status) {
         page pageSize totalCount totalPages status
@@ -415,7 +415,7 @@ export async function getConstructionSafetyIncidentRegister(projectId: string, p
 }
 
 export async function getConstructionSafetyObservationRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionSafetyObservationRegister: SafetyObservationRegisterPage }>(`
+  const response = await platformClient<{ constructionSafetyObservationRegister: SafetyObservationRegisterPage }>(`
     query ConstructionSafetyObservationRegister($projectId: ID!, $page: Int!, $status: String!) {
       constructionSafetyObservationRegister(projectId: $projectId, page: $page, status: $status) {
         page pageSize totalCount totalPages status
@@ -428,7 +428,7 @@ export async function getConstructionSafetyObservationRegister(projectId: string
 }
 
 export async function getConstructionSubmittalRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionSubmittalRegister: SubmittalRegisterPage }>(`
+  const response = await platformClient<{ constructionSubmittalRegister: SubmittalRegisterPage }>(`
     query ConstructionSubmittalRegister($projectId: ID!, $page: Int!, $status: String!) {
       constructionSubmittalRegister(projectId: $projectId, page: $page, status: $status) {
         projectId page pageSize totalCount totalPages status
@@ -441,7 +441,7 @@ export async function getConstructionSubmittalRegister(projectId: string, page: 
 }
 
 export async function getConstructionRfiRegister(projectId: string, page: number, status: string) {
-  const response = await keystoneClient<{ constructionRfiRegister: RfiRegisterPage }>(`
+  const response = await platformClient<{ constructionRfiRegister: RfiRegisterPage }>(`
     query ConstructionRfiRegister($projectId: ID!, $page: Int!, $status: String!) {
       constructionRfiRegister(projectId: $projectId, page: $page, status: $status) {
         page pageSize totalCount totalPages status audience
@@ -454,7 +454,7 @@ export async function getConstructionRfiRegister(projectId: string, page: number
 }
 
 export async function getConstructionProjectOptions(projectId: string) {
-  const response = await keystoneClient<{ constructionProjectOptions: ConstructionOption[] }>(`
+  const response = await platformClient<{ constructionProjectOptions: ConstructionOption[] }>(`
     query ConstructionProjectOptions($projectId: ID!) {
       constructionProjectOptions(projectId: $projectId) { id kind label detail parentId status }
     }
@@ -467,7 +467,7 @@ export async function searchConstructionProjectOptions(
   projectId: string,
   lookup: { kinds: string[]; search?: string; page?: number; ids?: string[] },
 ) {
-  const response = await keystoneClient<{ constructionProjectOptionSearch: ConstructionOptionPage }>(`
+  const response = await platformClient<{ constructionProjectOptionSearch: ConstructionOptionPage }>(`
     query ConstructionProjectOptionSearch($projectId: ID!, $kinds: [String!]!, $search: String, $page: Int, $ids: [ID!]) {
       constructionProjectOptionSearch(projectId: $projectId, kinds: $kinds, search: $search, page: $page, ids: $ids) {
         page totalCount hasMore
@@ -480,7 +480,7 @@ export async function searchConstructionProjectOptions(
 }
 
 export async function getConstructionProjectWorkspace(projectId: string, tool: string, page = 1) {
-  const response = await keystoneClient<{ constructionProjectWorkspace: Workspace }>(`
+  const response = await platformClient<{ constructionProjectWorkspace: Workspace }>(`
     query ConstructionProjectWorkspace($projectId: ID!, $tool: String!, $page: Int) {
       constructionProjectWorkspace(projectId: $projectId, tool: $tool, page: $page) {
         generatedAt tool audience availableCommands queuePage queueTotalPages

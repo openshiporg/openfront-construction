@@ -10,6 +10,7 @@ import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on
 import { Empty, Status, readableStatus, statusDot } from "@/features/storefront/components/ui";
 import { acknowledgePortalDocument, decidePortalApproval, loadPortalApprovalSnapshot, submitPortalAction } from "../actions";
 import type { PortalInboxItem } from "../data";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 const actionLabels: Record<string, string> = {
   submit_bid: "Submit bid", respond_rfi: "Respond to RFI", review_submittal: "Review submittal", decide_approval: "Record decision",
@@ -108,7 +109,7 @@ function PortalAction({ projectId, item }: { projectId: string; item: PortalInbo
     <div className="sf-stack">
       {item.downloadTargetId && <PortalDownload kind="document" itemId={item.downloadTargetId} />}
       {item.action === "decide_approval" && <PortalApprovalSnapshot projectId={projectId} requestId={item.targetId} onReviewed={() => setSnapshotReviewed(true)} />}
-      <form action={action} className="sf-grid2" style={{ marginTop: 0, borderTop: "1px solid var(--sf-rule)", paddingTop: "1rem" }}>
+      <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="sf-grid2" style={{ marginTop: 0, borderTop: "1px solid var(--sf-rule)", paddingTop: "1rem" }}>
         <input type="hidden" name="portalAction" value={item.action} /><input type="hidden" name="projectId" value={projectId} /><input type="hidden" name="targetId" value={item.targetId} /><input type="hidden" name="idempotencyKey" value={key} />
         {item.action === "submit_bid" && <>
           <Field label="Submission number"><input className="sf-input" name="reference" required /></Field>

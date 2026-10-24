@@ -7,6 +7,7 @@ import type { ConstructionOption } from "@/features/platform/projects/data";
 import { useKeyedCommand } from "@/features/platform/projects/use-keyed-command";
 import { loadPrivateIncidentDetails, recordPrivateIncidentDetails, type PrivateIncidentDetail } from "./actions";
 import { DisclosurePanel, FormFeedback, fieldLabelClass, inputClass, pillClass, selectClass, textareaClass, trackClass } from "@/features/platform/components/kit";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 const INCIDENT_TYPE_OPTIONS = [
   { value: "near_miss", label: "Near miss" },
@@ -21,7 +22,7 @@ const INCIDENT_TYPE_OPTIONS = [
 function IncidentDetailForm({ detail }: { detail: PrivateIncidentDetail }) {
   const { state, action, pending, idempotencyKey } = useKeyedCommand(recordPrivateIncidentDetails);
   return (
-    <form action={action} className="grid gap-4 md:grid-cols-2">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid gap-4 md:grid-cols-2">
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
       <input type="hidden" name="incidentId" value={detail.incidentId} />
       <label className={fieldLabelClass}>Incident type<FormSelect name="incidentType" aria-label="Incident type" defaultValue={detail.incidentType} className={selectClass}>{INCIDENT_TYPE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</FormSelect></label>

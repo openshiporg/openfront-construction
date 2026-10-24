@@ -1,7 +1,7 @@
 import { ExternalLink, FolderOpen, Hammer, Store } from "lucide-react";
 
 import { FormSelect } from "@/features/forms/components/FormSelect";
-import { DisclosurePanel, EmptyState, PageHeader, Panel, PillLink, PlatformPage, StatusDot, Track, fieldLabelClass, pillClass, selectClass, statusTone, trackClass } from "@/features/platform/components/kit";
+import { DisclosurePanel, EmptyState, PageHeader, Panel, PillLink, PlatformPage, StatusDot, Track, fieldLabelClass, pillClass, selectClass, statusTone, trackClass, SetupCompanyAction } from "@/features/platform/components/kit";
 import { getPublicStoreSettings } from "../actions/store-settings";
 import { StoreSettingsPageClient } from "./StoreSettingsPageClient";
 import { PublicProfileForm, PublicProjectForm, PublicServiceForm } from "../components/PublicContentForms";
@@ -32,7 +32,7 @@ export async function StoreSettingsPage({ searchParams }: { searchParams: Promis
               <span className={trackClass}><button className={pillClass("primary")}>Open</button></span>
             </form>
           </Panel>
-        : <EmptyState icon={Store} title="No company you can manage" />)}
+        : <EmptyState icon={Store} title="No company you can manage" action={<SetupCompanyAction />} />)}
       {company && data && <>
         <StoreSettingsPageClient initial={company} initialError={null} />
         <PublicProfileForm companyId={company.id} profile={data.profile} />

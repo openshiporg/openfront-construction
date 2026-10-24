@@ -1,6 +1,6 @@
 'use server';
 
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import type { CommandState } from "@/features/platform/projects/action-state";
 
 function value(formData: FormData, key: string) { return String(formData.get(key) ?? "").trim(); }
@@ -14,7 +14,7 @@ export async function configureProjectApprovalPolicy(_previous: CommandState, fo
   let minimumAmountMinor: string;
   try { minimumAmountMinor = minorUnits(value(formData, "minimumAmount")); }
   catch (error) { return { status: "error", message: error instanceof Error ? error.message : "Threshold is invalid" }; }
-  const response = await keystoneClient<{ configureConstructionApprovalPolicy: { replayed: boolean } }>(`
+  const response = await platformClient<{ configureConstructionApprovalPolicy: { replayed: boolean } }>(`
     mutation ConfigureProjectApprovalPolicy($input: ConstructionApprovalPolicyInput!) {
       configureConstructionApprovalPolicy(input: $input) { success operation itemId actionId replayed }
     }
@@ -31,7 +31,7 @@ export async function requestProjectApproval(_previous: CommandState, formData: 
   const target = value(formData, "target");
   const separator = target.indexOf(":");
   if (separator < 1) return { status: "error", message: "Select a resource for approval" };
-  const response = await keystoneClient<{ requestConstructionApproval: { replayed?: boolean } }>(`
+  const response = await platformClient<{ requestConstructionApproval: { replayed?: boolean } }>(`
     mutation RequestProjectApproval($input: ConstructionApprovalRequestInput!) {
       requestConstructionApproval(input: $input) { success requestId actionId replayed }
     }
@@ -47,7 +47,7 @@ export async function requestProjectApproval(_previous: CommandState, formData: 
 
 export async function loadProjectApprovalSnapshot(projectId: string, requestId: string): Promise<{ success: true; terms: string[] } | { success: false; message: string }> {
   try {
-    const response = await keystoneClient<{ constructionApprovalSnapshot: string[] }>(`query ApprovalReview($projectId: ID!, $requestId: ID!) { constructionApprovalSnapshot(projectId: $projectId, requestId: $requestId) }`, { projectId, requestId });
+    const response = await platformClient<{ constructionApprovalSnapshot: string[] }>(`query ApprovalReview($projectId: ID!, $requestId: ID!) { constructionApprovalSnapshot(projectId: $projectId, requestId: $requestId) }`, { projectId, requestId });
     if (!response.success) return { success: false, message: "The approval review is unavailable. Try again." };
     return { success: true, terms: response.data.constructionApprovalSnapshot };
   } catch { return { success: false, message: "The approval review could not be loaded. Try again." }; }
@@ -55,7 +55,7 @@ export async function loadProjectApprovalSnapshot(projectId: string, requestId: 
 
 export async function decideProjectApproval(_previous: CommandState, formData: FormData): Promise<CommandState> {
   if (value(formData, "reviewedRequestId") !== value(formData, "requestId") || !value(formData, "requestId")) return { status: "error", message: "Review the selected request before deciding." };
-  const response = await keystoneClient<{ decideConstructionApproval: { success: boolean } }>(`
+  const response = await platformClient<{ decideConstructionApproval: { success: boolean } }>(`
     mutation DecideProjectApproval($input: ConstructionApprovalDecisionInput!) {
       decideConstructionApproval(input: $input) { success requestId decisionId actionId replayed }
     }

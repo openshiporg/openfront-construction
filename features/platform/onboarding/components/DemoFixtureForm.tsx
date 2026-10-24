@@ -6,6 +6,7 @@ import { SAMPLE_WORKSPACE_SUMMARY } from "@/features/keystone/domain/onboarding-
 import { initialCommandState, type CommandState } from "@/features/platform/projects/action-state";
 import { loadDemoFixtureAction } from "../actions/onboarding";
 import { FormFeedback, pillClass, trackClass } from "@/features/platform/components/kit";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 /** The fictional sample workspace. It submits a normal onboarding request
  * (onboardConstructionWorkspace), and every record stays labelled fictional. */
@@ -16,7 +17,7 @@ export function DemoFixtureForm({ onComplete }: { onComplete?(state: CommandStat
     if (state.status === "success") onComplete?.(state);
   }, [state, onComplete]);
   return (
-    <form action={action} className="grid gap-4 rounded-xl border border-dashed p-4 md:p-5" aria-labelledby="demo-fixture-title">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid gap-4 rounded-xl border border-dashed p-4 md:p-5" aria-labelledby="demo-fixture-title">
       <input type="hidden" name="idempotencyKey" value={key} />
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground"><span aria-hidden="true" className="size-2 rounded-full bg-amber-500" />Sample data</span>

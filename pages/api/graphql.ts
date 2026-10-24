@@ -10,6 +10,7 @@ export const config = {
 };
 
 import { parseBoundedObjectJson } from "../../features/lib/bounded-json";
+import { maskConstructionError } from "../../features/lib/graphql-error-mask";
 
 const yoga = createYoga({
   graphiql: process.env.NODE_ENV !== "production",
@@ -29,6 +30,7 @@ const yoga = createYoga({
   context: ({ req, res }: { req: NextApiRequest; res: NextApiResponse }) =>
     keystoneContext.withRequest(req, res),
   multipart: false,
+  maskedErrors: { maskError: maskConstructionError },
 });
 
 async function readBoundedJsonBody(req: NextApiRequest): Promise<Record<string, unknown>> {

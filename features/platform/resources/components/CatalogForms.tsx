@@ -7,6 +7,7 @@ import { initialCommandState } from "@/features/platform/projects/action-state";
 import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on-success";
 import { saveEquipmentAction, saveMaterialAction, transitionCatalogItemAction } from "../actions";
 import { catalogTransitions, ownershipTypes, transitionVerbs, type CatalogKind } from "../lib/states";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 function dollars(minor: string | null | undefined) {
   if (!minor || minor === "0") return "";
@@ -21,7 +22,7 @@ export function EquipmentForm({ companyId, values = {} }: { companyId?: string; 
   useRefreshOnSuccess(state.status, state);
   const formKey = !editing && state.status === "success" ? state.itemId : "form";
   return (
-    <form key={formKey} action={action} className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 md:p-5 xl:grid-cols-4">
+    <form key={formKey} action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 md:p-5 xl:grid-cols-4">
       {editing ? <input type="hidden" name="id" value={values.id} /> : <input type="hidden" name="companyId" value={companyId} />}
       <label className={fieldLabelClass}>Unit number
         {editing ? <input value={values.equipmentNumber} readOnly className={`${inputClass} bg-muted/40 font-mono`} /> : <input name="equipmentNumber" required maxLength={100} className={`${inputClass} font-mono uppercase`} />}
@@ -52,7 +53,7 @@ export function MaterialForm({ companyId, values = {} }: { companyId?: string; v
   useRefreshOnSuccess(state.status, state);
   const formKey = !editing && state.status === "success" ? state.itemId : "form";
   return (
-    <form key={formKey} action={action} className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 md:p-5 xl:grid-cols-4">
+    <form key={formKey} action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 md:p-5 xl:grid-cols-4">
       {editing ? <input type="hidden" name="id" value={values.id} /> : <input type="hidden" name="companyId" value={companyId} />}
       <label className={fieldLabelClass}>SKU
         {editing ? <input value={values.sku} readOnly className={`${inputClass} bg-muted/40 font-mono`} /> : <input name="sku" required maxLength={100} className={`${inputClass} font-mono uppercase`} />}
@@ -80,7 +81,7 @@ export function CatalogStatusControl({ kind, id, status }: { kind: CatalogKind; 
     <div className="flex flex-wrap items-center gap-2">
       <Track label="Change status">
         {moves.map(to => (
-          <form key={to} action={action}>
+          <form key={to} action={action} onReset={keepUnlessSaved(state.status === "success")}>
             <input type="hidden" name="kind" value={kind} />
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="from" value={status} />

@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { initialCommandState } from "@/features/platform/projects/action-state";
 import { acceptProjectInvitationAction, type InvitationAcceptanceState } from "./actions";
 import { customerSignOut } from "@/features/storefront/account/actions";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 // Staff sign in on the dashboard; clients and trade partners sign in on the public website.
 function nextHref(destination: "/dashboard" | "/portal", signedIn: boolean) {
@@ -40,7 +41,7 @@ export function InvitationAcceptancePage({ token, signedInAs }: { token: string;
                 <div className="sf-track"><Link href={nextHref(state.destination ?? "/portal", Boolean(signedInAs))} className="sf-pill sf-pill--primary">{signedInAs ? "Open your projects" : "Sign in"}</Link></div>
               </div>
             ) : (
-              <form action={action} className="sf-panel sf-stack">
+              <form action={action} onReset={keepUnlessSaved(false)} className="sf-panel sf-stack">
                 <label className="sf-field">Invitation code<input className="sf-input sf-mono" name="token" required defaultValue={token} autoComplete="off" /></label>
                 {!signedInAs && <>
                   <p className="sf-kicker">New account</p>

@@ -1,6 +1,6 @@
 'use server';
 
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient, refusal } from "@/features/platform/lib/platform-client";
 import type { CommandState } from "@/features/platform/projects/action-state";
 import { amountToMinorUnits } from "@/features/platform/projects/money";
 import { catalogTransitions, ownershipTypes, type CatalogKind } from "./lib/states";
@@ -47,21 +47,21 @@ export async function saveEquipmentAction(_previous: CommandState, formData: For
   const { data, error } = equipmentFields(formData);
   if (error) return { status: "error", message: error };
   if (id) {
-    const response = await keystoneClient(`mutation UpdateEquipment($id: ID!, $data: EquipmentUpdateInput!) { updateEquipment(where: { id: $id }, data: $data) { id } }`, { id, data });
-    return response.success ? { status: "success", message: "Saved", itemId: id } : { status: "error", message: "Changes not saved" };
+    const response = await platformClient(`mutation UpdateEquipment($id: ID!, $data: EquipmentUpdateInput!) { updateEquipment(where: { id: $id }, data: $data) { id } }`, { id, data });
+    return response.success ? { status: "success", message: "Saved", itemId: id } : { status: "error", message: refusal(response, "Changes not saved") };
   }
   const companyId = value(formData, "companyId");
   const equipmentNumber = value(formData, "equipmentNumber").toUpperCase();
   if (!companyId) return { status: "error", message: "Company is required" };
   if (!equipmentNumber) return { status: "error", message: "Unit number is required" };
-  const duplicate = await keystoneClient<{ equipmentItemsCount: number }>(`
+  const duplicate = await platformClient<{ equipmentItemsCount: number }>(`
     query DuplicateEquipment($companyId: ID!, $number: String!) { equipmentItemsCount(where: { company: { id: { equals: $companyId } }, equipmentNumber: { equals: $number, mode: insensitive } }) }
   `, { companyId, number: equipmentNumber });
   if (duplicate.success && duplicate.data.equipmentItemsCount > 0) return { status: "error", message: `${equipmentNumber} already exists` };
-  const response = await keystoneClient<{ createEquipment: { id: string } }>(`mutation CreateEquipment($data: EquipmentCreateInput!) { createEquipment(data: $data) { id } }`, {
+  const response = await platformClient<{ createEquipment: { id: string } }>(`mutation CreateEquipment($data: EquipmentCreateInput!) { createEquipment(data: $data) { id } }`, {
     data: { ...data, equipmentNumber, status: "available", currencyCode: "USD", company: { connect: { id: companyId } } },
   });
-  return response.success ? { status: "success", message: `${equipmentNumber} added`, itemId: response.data.createEquipment.id } : { status: "error", message: "Equipment not saved" };
+  return response.success ? { status: "success", message: `${equipmentNumber} added`, itemId: response.data.createEquipment.id } : { status: "error", message: refusal(response, "Equipment not saved") };
 }
 
 export async function saveMaterialAction(_previous: CommandState, formData: FormData): Promise<CommandState> {
@@ -69,21 +69,21 @@ export async function saveMaterialAction(_previous: CommandState, formData: Form
   const { data, error } = materialFields(formData);
   if (error) return { status: "error", message: error };
   if (id) {
-    const response = await keystoneClient(`mutation UpdateMaterial($id: ID!, $data: MaterialUpdateInput!) { updateMaterial(where: { id: $id }, data: $data) { id } }`, { id, data });
-    return response.success ? { status: "success", message: "Saved", itemId: id } : { status: "error", message: "Changes not saved" };
+    const response = await platformClient(`mutation UpdateMaterial($id: ID!, $data: MaterialUpdateInput!) { updateMaterial(where: { id: $id }, data: $data) { id } }`, { id, data });
+    return response.success ? { status: "success", message: "Saved", itemId: id } : { status: "error", message: refusal(response, "Changes not saved") };
   }
   const companyId = value(formData, "companyId");
   const sku = value(formData, "sku").toUpperCase();
   if (!companyId) return { status: "error", message: "Company is required" };
   if (!sku) return { status: "error", message: "SKU is required" };
-  const duplicate = await keystoneClient<{ materialsCount: number }>(`
+  const duplicate = await platformClient<{ materialsCount: number }>(`
     query DuplicateMaterial($companyId: ID!, $sku: String!) { materialsCount(where: { company: { id: { equals: $companyId } }, sku: { equals: $sku, mode: insensitive } }) }
   `, { companyId, sku });
   if (duplicate.success && duplicate.data.materialsCount > 0) return { status: "error", message: `${sku} already exists` };
-  const response = await keystoneClient<{ createMaterial: { id: string } }>(`mutation CreateMaterial($data: MaterialCreateInput!) { createMaterial(data: $data) { id } }`, {
+  const response = await platformClient<{ createMaterial: { id: string } }>(`mutation CreateMaterial($data: MaterialCreateInput!) { createMaterial(data: $data) { id } }`, {
     data: { ...data, sku, isActive: "active", currencyCode: "USD", company: { connect: { id: companyId } } },
   });
-  return response.success ? { status: "success", message: `${sku} added`, itemId: response.data.createMaterial.id } : { status: "error", message: "Material not saved" };
+  return response.success ? { status: "success", message: `${sku} added`, itemId: response.data.createMaterial.id } : { status: "error", message: refusal(response, "Material not saved") };
 }
 
 export async function transitionCatalogItemAction(_previous: CommandState, formData: FormData): Promise<CommandState> {
@@ -94,7 +94,7 @@ export async function transitionCatalogItemAction(_previous: CommandState, formD
   const moves = catalogTransitions[kind]?.[from] ?? [];
   if (!id || !moves.includes(to)) return { status: "error", message: "That status change is not allowed" };
   const response = kind === "equipment"
-    ? await keystoneClient(`mutation EquipmentStatus($id: ID!, $status: EquipmentStatusType!) { updateEquipment(where: { id: $id }, data: { status: $status }) { id } }`, { id, status: to })
-    : await keystoneClient(`mutation MaterialStatus($id: ID!, $status: MaterialIsActiveType!) { updateMaterial(where: { id: $id }, data: { isActive: $status }) { id } }`, { id, status: to });
-  return response.success ? { status: "success", message: "Status updated", itemId: id } : { status: "error", message: "Status not changed" };
+    ? await platformClient(`mutation EquipmentStatus($id: ID!, $status: EquipmentStatusType!) { updateEquipment(where: { id: $id }, data: { status: $status }) { id } }`, { id, status: to })
+    : await platformClient(`mutation MaterialStatus($id: ID!, $status: MaterialIsActiveType!) { updateMaterial(where: { id: $id }, data: { isActive: $status }) { id } }`, { id, status: to });
+  return response.success ? { status: "success", message: "Status updated", itemId: id } : { status: "error", message: refusal(response, "Status not changed") };
 }

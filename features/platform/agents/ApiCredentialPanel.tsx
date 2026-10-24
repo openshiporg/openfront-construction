@@ -10,6 +10,7 @@ import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on
 import { OneTimeSecretReceipt } from "@/features/platform/projects/components/OneTimeSecretReceipt";
 import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, selectClass, trackClass } from "@/features/platform/components/kit";
 import { issueCredentialAction, revokeCredentialAction } from "./actions";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 const scopes = [
   "companies:read", "companies:write", "projects:read", "projects:write",
@@ -25,7 +26,7 @@ function Issue({ companyId, projectId }: { companyId: string; projectId: string 
   useRefreshOnSuccess(state.status);
 
   return (
-    <form action={action} className="grid gap-4 p-4 md:grid-cols-2 md:p-5">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid gap-4 p-4 md:grid-cols-2 md:p-5">
       <input type="hidden" name="companyId" value={companyId} />
       <input type="hidden" name="projectId" value={projectId} />
       <label className={fieldLabelClass}>Credential name<input name="name" required minLength={3} maxLength={160} className={inputClass} /></label>
@@ -55,7 +56,7 @@ function Revoke({ options }: { options: ConstructionOption[] }) {
   const credentials = options.filter(option => option.kind === "apiCredential" && option.detail.startsWith("active"));
 
   return (
-    <form action={action} className="grid gap-4 border-t p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] md:items-end md:p-5">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid gap-4 border-t p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] md:items-end md:p-5">
       <label className={fieldLabelClass}>Active credential<FormSelect name="credentialId" required defaultValue="" className={selectClass}><option value="">Select…</option>{credentials.map(option => <option key={option.id} value={option.id}>{option.label} — {option.detail}</option>)}</FormSelect></label>
       <label className={fieldLabelClass}>Reason<input name="reason" required minLength={3} maxLength={500} className={inputClass} /></label>
       <span className={trackClass}><button type="submit" disabled={pending || !credentials.length} className={pillClass("danger")}>{pending ? "Revoking…" : "Revoke"}</button></span>

@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 
 import { getAuthenticatedUser } from "@/features/dashboard/actions/auth";
 import { PublicShell } from "@/features/storefront/components/PublicShell";
-import { getPublicConstructionSite } from "@/features/storefront/data";
+import { getPublicConstructionSite, getPublicStorefrontMetadata } from "@/features/storefront/data";
 import { customerSignOut } from "@/features/storefront/account/actions";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Project portal" };
+export const generateMetadata = async (): Promise<Metadata> => getPublicStorefrontMetadata("Client portal");
 
 async function publicSite() {
   try {

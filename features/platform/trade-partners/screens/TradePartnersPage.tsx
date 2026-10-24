@@ -1,6 +1,6 @@
 import { Plus, Search, UsersRound } from "lucide-react";
 
-import { DisclosurePanel, EmptyState, PageHeader, PlatformPage, SegmentTabs, inputClass, pillClass, trackClass } from "@/features/platform/components/kit";
+import { DisclosurePanel, EmptyState, PageHeader, PlatformPage, SegmentTabs, inputClass, pillClass, trackClass, SetupCompanyAction } from "@/features/platform/components/kit";
 import { RegisterFrame, RegisterRow } from "@/features/platform/components/Register";
 import { listHref, pageParam, textParam } from "@/features/platform/projects/components/ListPager";
 import { getPlatformCompanies, pickCompany } from "@/features/platform/lib/company";
@@ -22,7 +22,7 @@ export async function TradePartnersPage({ searchParams }: { searchParams: Promis
     return (
       <PlatformPage breadcrumbs={[{ type: "page", label: "Trade partners" }]}>
         <PageHeader icon={UsersRound} title="Trade partners" />
-        <EmptyState icon={UsersRound} title="No company yet" />
+        <EmptyState icon={UsersRound} title="No company yet" action={<SetupCompanyAction />} />
       </PlatformPage>
     );
   }

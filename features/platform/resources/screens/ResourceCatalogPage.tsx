@@ -1,7 +1,7 @@
 import { Package, Plus, Search, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { DisclosurePanel, EmptyState, PageHeader, PlatformPage, SegmentTabs, TitleStatus, formatMinor, inputClass, pillClass, readable, trackClass } from "@/features/platform/components/kit";
+import { DisclosurePanel, EmptyState, PageHeader, PlatformPage, SegmentTabs, TitleStatus, formatMinor, inputClass, pillClass, readable, trackClass, SetupCompanyAction } from "@/features/platform/components/kit";
 import { RegisterFrame } from "@/features/platform/components/Register";
 import { listHref, pageParam, textParam } from "@/features/platform/projects/components/ListPager";
 import { getPlatformCompanies, pickCompany } from "@/features/platform/lib/company";
@@ -45,7 +45,7 @@ export async function ResourceCatalogPage({ searchParams }: { searchParams: Prom
     return (
       <PlatformPage breadcrumbs={[{ type: "page", label: "Equipment & materials" }]}>
         <PageHeader icon={Truck} title="Equipment & materials" />
-        <EmptyState icon={Truck} title="No company yet" />
+        <EmptyState icon={Truck} title="No company yet" action={<SetupCompanyAction />} />
       </PlatformPage>
     );
   }

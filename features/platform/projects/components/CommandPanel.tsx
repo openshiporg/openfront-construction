@@ -10,6 +10,7 @@ import { useKeyedCommand } from "../use-keyed-command";
 import { commandRelatedRecords, relatedOptionsFor } from "./workflow-fields";
 import type { ConstructionOption } from "../data";
 import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, textareaClass, trackClass } from "@/features/platform/components/kit";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 export type CommandOption = { value: string; label: string };
 
@@ -42,7 +43,7 @@ export function CommandPanel({
 
   return (
     <Panel id="command-panel" title={title} icon={FilePlus2}>
-      <form action={action} className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <input type="hidden" name="projectId" value={projectId} />
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <input type="hidden" name="operation" value={operation} />

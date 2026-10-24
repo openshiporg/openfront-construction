@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { getBaseUrl } from "@/features/dashboard/lib/getBaseUrl";
 import type {
   PublicConstructionSite,
   PublicIntakeReceipt,
@@ -24,16 +25,26 @@ export async function getPublicConstructionSite(): Promise<PublicConstructionSit
 
 /**
  * Metadata for the public storefront derived only from the persisted public
- * projection. Returns null when no profile is published so routes fall back to
- * the neutral root-layout title rather than inventing a brand.
+ * projection: "Page · Brand", or the brand alone. Without a published profile the
+ * title stays neutral rather than inventing a brand.
  */
-export async function getPublicStorefrontMetadata(): Promise<Metadata> {
-  const site = await getPublicConstructionSite();
-  if (!site) return {};
+export async function getPublicStorefrontMetadata(page?: string): Promise<Metadata> {
+  const site = await getPublicConstructionSite().catch(() => null);
+  const brand = site?.brandName?.trim();
+  const title = page ? (brand ? `${page} · ${brand}` : page) : brand || "Contractor website";
   return {
-    title: site.brandName?.trim() || undefined,
-    description: site.capabilitySummary?.trim() || site.brandTagline?.trim() || undefined,
+    title: { absolute: title },
+    ...(site ? { description: site.capabilitySummary?.trim() || site.brandTagline?.trim() || undefined } : {}),
   };
+}
+
+/** Absolute origin of this deployment, for robots and sitemap URLs. */
+export async function storefrontOrigin(): Promise<URL | null> {
+  try {
+    return new URL(await getBaseUrl());
+  } catch {
+    return null;
+  }
 }
 
 export async function getPublicConstructionService(slug: string): Promise<PublicServiceSummary | null> {

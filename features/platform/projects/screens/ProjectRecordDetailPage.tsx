@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { ArrowLeft, History, Link2 } from "lucide-react";
 
 import { projectToolHref } from "@/features/platform/lib/navigation";
-import { EmptyState, PageHeader, Panel, PillLink, PlatformPage, TitleStatus, Track } from "@/features/platform/components/kit";
+import { EmptyState, NotFoundPage, PageHeader, Panel, PillLink, PlatformPage, TitleStatus, Track } from "@/features/platform/components/kit";
 import { TransitionControl } from "../components/TransitionControl";
 import { getConstructionRecordDetail, type ConstructionRecordEvidence } from "../data";
 import { transitionKindByListKey } from "../transition-kinds";
@@ -13,7 +12,12 @@ function listLabel(listKey: string) { return transitionKindByListKey[listKey] ??
 export async function ProjectRecordDetailPage({ projectId, recordType, recordId }: { projectId: string; recordType: string; recordId: string }) {
   let detail;
   try { detail = await getConstructionRecordDetail(projectId, recordType, recordId); }
-  catch (error) { if (error instanceof Error && /not found|does not have/i.test(error.message)) notFound(); throw error; }
+  catch (error) {
+    if (error instanceof Error && /not found|does not have/i.test(error.message)) {
+      return <NotFoundPage title="Record not found" backHref={projectToolHref(projectId, "")} backLabel="Project" />;
+    }
+    throw error;
+  }
   const kind = transitionKindByListKey[detail.listKey];
   return (
     <PlatformPage width="narrow" breadcrumbs={[

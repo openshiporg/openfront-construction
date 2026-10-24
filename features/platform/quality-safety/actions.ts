@@ -1,12 +1,12 @@
 'use server';
 
 import { randomUUID } from "node:crypto";
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import type { CommandState } from "@/features/platform/projects/action-state";
 
 function value(data: FormData, key: string) { return String(data.get(key) ?? "").trim(); }
 export async function recordPrivateIncidentDetails(_previous: CommandState, formData: FormData): Promise<CommandState> {
-  const response = await keystoneClient<{ recordSafetyIncidentPrivateDetails: { replayed: boolean } }>(`
+  const response = await platformClient<{ recordSafetyIncidentPrivateDetails: { replayed: boolean } }>(`
     mutation RecordPrivateSafetyDetails($input: SafetyIncidentPrivateInput!) {
       recordSafetyIncidentPrivateDetails(input: $input) { success operation itemId actionId replayed }
     }
@@ -30,7 +30,7 @@ export type PrivateIncidentDetail = {
 };
 
 export async function loadPrivateIncidentDetails(incidentId: string): Promise<{ detail?: PrivateIncidentDetail; error?: string }> {
-  const response = await keystoneClient<{ safetyIncidentPrivateDetail: PrivateIncidentDetail }>(`
+  const response = await platformClient<{ safetyIncidentPrivateDetail: PrivateIncidentDetail }>(`
     query SafetyIncidentPrivateDetail($incidentId: ID!) {
       safetyIncidentPrivateDetail(incidentId: $incidentId) { incidentId incidentType injuredPartyName injuryDetails privateNotes lostTimeDays restrictedDutyDays }
     }

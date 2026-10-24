@@ -5,6 +5,7 @@ import { localDateTimeToInstant } from "@/features/platform/projects/components/
 import { operatorRequestAction, type OperatorRequestState } from "./actions";
 import type { OperatorRequest } from "./data";
 import { FormFeedback, fieldLabelClass, inputClass, pillClass, textareaClass, trackClass } from "@/features/platform/components/kit";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 const initialState: OperatorRequestState = { status: "idle", message: "" };
 const subscribeToNothing = () => () => {};
@@ -29,7 +30,7 @@ export function QuoteForm({ request }: { request: OperatorRequest }) {
   const [edited, setEdited] = useState<string | null>(null);
   const expiry = edited ?? defaultExpiry;
   const quoted = request.status === "quoted";
-  return <form action={action} className="grid min-w-0 gap-4">
+  return <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4">
     <input type="hidden" name="operation" value="quote" /><input type="hidden" name="id" value={request.id} />
     <input type="hidden" name="version" value={request.version} /><input type="hidden" name="idempotencyKey" value={key} />
     <input type="hidden" name="expiresAt" value={localDateTimeToInstant(expiry) ?? ""} />
@@ -44,7 +45,7 @@ export function QuoteForm({ request }: { request: OperatorRequest }) {
 export function CancelRequestForm({ request }: { request: OperatorRequest }) {
   const [state, action, pending] = useActionState(operatorRequestAction, initialState);
   const [key] = useState(() => crypto.randomUUID());
-  return <form action={action} className="grid gap-2">
+  return <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid gap-2">
     <input type="hidden" name="operation" value="cancel" /><input type="hidden" name="id" value={request.id} />
     <input type="hidden" name="version" value={request.version} /><input type="hidden" name="idempotencyKey" value={key} />
     <span className={`${trackClass} w-fit justify-self-start`}><button type="submit" disabled={pending} className={pillClass("danger", "sm")}>{pending ? "Saving…" : "Cancel request"}</button></span>

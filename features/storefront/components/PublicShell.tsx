@@ -100,7 +100,7 @@ export function PublicShell({
           {unpublished ? (
             <main className="sf-section">
               <div className="sf-wrap">
-                <Empty title="This website is not published yet" action={<Track><Pill href="/account" variant="raised">Client sign in</Pill></Track>} />
+                <Empty heading title="This website is not published yet" action={<Track><Pill href="/account" variant="raised">Client sign in</Pill></Track>} />
               </div>
             </main>
           ) : children}

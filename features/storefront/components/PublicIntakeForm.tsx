@@ -7,6 +7,7 @@ import { ArrowRight, Check } from "lucide-react";
 
 import { submitPublicIntakeAction } from "../actions";
 import { initialPublicIntakeState } from "../types";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 export type PublicIntakeKind = "general_contact" | "project_inquiry" | "estimate_request" | "rfp_invitation" | "trade_partner_interest";
 
@@ -53,7 +54,7 @@ export function PublicIntakeForm({
 
   let step = 0;
   return (
-    <form action={action} className="sf-form" aria-describedby="public-intake-boundary">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="sf-form" aria-describedby="public-intake-boundary">
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="sourcePath" value={sourcePath} />
       <input type="hidden" name="idempotencyKey" value={idempotencyKey} />

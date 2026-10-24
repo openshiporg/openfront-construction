@@ -9,6 +9,7 @@ import { DisclosurePanel, FormFeedback, fieldLabelClass, inputClass, pillClass, 
 import { createConstructionProjectAction } from "../actions";
 import { useKeyedCommand } from "../use-keyed-command";
 import type { CompanySummary } from "../data";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 export function CreateProjectPanel({ companies: allCompanies, defaultOpen = false }: { companies: CompanySummary[]; defaultOpen?: boolean }) {
   const { state, action, pending, idempotencyKey } = useKeyedCommand(createConstructionProjectAction);
@@ -17,7 +18,7 @@ export function CreateProjectPanel({ companies: allCompanies, defaultOpen = fals
 
   return (
     <DisclosurePanel title="New project" icon={Plus} defaultOpen={defaultOpen}>
-      <form action={action} className="grid min-w-0 gap-4 p-4 md:grid-cols-2 md:p-5 xl:grid-cols-4">
+      <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4 p-4 md:grid-cols-2 md:p-5 xl:grid-cols-4">
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <label className={fieldLabelClass}>Company<FormSelect name="companyId" className={selectClass}>{companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</FormSelect></label>
         <label className={fieldLabelClass}>Project number<input name="projectNumber" required className={`${inputClass} font-mono`} /></label>

@@ -44,8 +44,9 @@ export function SectionHead({ index, title, id, action }: { index?: string; titl
   );
 }
 
-export function Empty({ title, action }: { title: string; action?: ReactNode }) {
-  return <div className="sf-empty"><p className="sf-empty__title">{title}</p>{action}</div>;
+export function Empty({ title, action, heading = false }: { title: string; action?: ReactNode; heading?: boolean }) {
+  const Title = heading ? "h1" : "p";
+  return <div className="sf-empty"><Title className="sf-empty__title">{title}</Title>{action}</div>;
 }
 
 /** Two-to-three letter monogram for project plates. */

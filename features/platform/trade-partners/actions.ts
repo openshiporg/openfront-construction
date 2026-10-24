@@ -1,6 +1,6 @@
 'use server';
 
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient, refusal } from "@/features/platform/lib/platform-client";
 import type { CommandState } from "@/features/platform/projects/action-state";
 import { partnerTransitions, partnerTypes } from "./lib/states";
 
@@ -43,16 +43,16 @@ export async function createTradePartnerAction(_previous: CommandState, formData
   if (!companyId) return { status: "error", message: "Company is required" };
   if (!type) return { status: "error", message: "Choose a partner type" };
   if (error) return { status: "error", message: error };
-  const duplicate = await keystoneClient<{ tradePartnersCount: number }>(`
+  const duplicate = await platformClient<{ tradePartnersCount: number }>(`
     query DuplicatePartner($companyId: ID!, $name: String!) {
       tradePartnersCount(where: { company: { id: { equals: $companyId } }, name: { equals: $name, mode: insensitive } })
     }
   `, { companyId, name: data.name });
   if (duplicate.success && duplicate.data.tradePartnersCount > 0) return { status: "error", message: `${data.name} is already in the directory` };
-  const response = await keystoneClient<{ createTradePartner: { id: string } }>(`
+  const response = await platformClient<{ createTradePartner: { id: string } }>(`
     mutation CreateTradePartner($data: TradePartnerCreateInput!) { createTradePartner(data: $data) { id } }
   `, { data: { ...data, partnerType: type, status: "prospective", company: { connect: { id: companyId } } } });
-  if (!response.success) return { status: "error", message: "Trade partner not saved" };
+  if (!response.success) return { status: "error", message: refusal(response, "Trade partner not saved") };
   return { status: "success", message: "Trade partner added", itemId: response.data.createTradePartner.id };
 }
 
@@ -63,10 +63,10 @@ export async function updateTradePartnerAction(_previous: CommandState, formData
   if (!id) return { status: "error", message: "Trade partner is missing" };
   if (!type) return { status: "error", message: "Choose a partner type" };
   if (error) return { status: "error", message: error };
-  const response = await keystoneClient(`
+  const response = await platformClient(`
     mutation UpdateTradePartner($id: ID!, $data: TradePartnerUpdateInput!) { updateTradePartner(where: { id: $id }, data: $data) { id } }
   `, { id, data: { ...data, partnerType: type } });
-  if (!response.success) return { status: "error", message: "Changes not saved" };
+  if (!response.success) return { status: "error", message: refusal(response, "Changes not saved") };
   return { status: "success", message: "Saved", itemId: id };
 }
 
@@ -75,14 +75,14 @@ export async function transitionTradePartnerAction(_previous: CommandState, form
   const from = value(formData, "from");
   const to = value(formData, "to");
   if (!id || !(partnerTransitions[from] ?? []).includes(to)) return { status: "error", message: "That status change is not allowed" };
-  const current = await keystoneClient<{ tradePartner: { status: string } | null }>(`
+  const current = await platformClient<{ tradePartner: { status: string } | null }>(`
     query PartnerStatus($id: ID!) { tradePartner(where: { id: $id }) { status } }
   `, { id });
   if (!current.success || !current.data.tradePartner) return { status: "error", message: "Trade partner is unavailable" };
   if (current.data.tradePartner.status !== from) return { status: "error", message: "Status changed elsewhere; reload and try again" };
-  const response = await keystoneClient(`
+  const response = await platformClient(`
     mutation TransitionTradePartner($id: ID!, $status: TradePartnerStatusType!) { updateTradePartner(where: { id: $id }, data: { status: $status }) { id } }
   `, { id, status: to });
-  if (!response.success) return { status: "error", message: "Status not changed" };
+  if (!response.success) return { status: "error", message: refusal(response, "Status not changed") };
   return { status: "success", message: "Status updated", itemId: id };
 }

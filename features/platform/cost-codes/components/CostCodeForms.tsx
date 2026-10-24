@@ -6,6 +6,7 @@ import { FormFeedback, fieldLabelClass, inputClass, pillClass, textareaClass, tr
 import { initialCommandState } from "@/features/platform/projects/action-state";
 import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on-success";
 import { createCostCodeAction, setCostCodeActiveAction, updateCostCodeAction } from "../actions";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 type Values = { id?: string; code?: string; name?: string; division?: string | null; description?: string | null };
 
@@ -15,7 +16,7 @@ export function CostCodeForm({ companyId, values = {} }: { companyId?: string; v
   useRefreshOnSuccess(state.status, state);
   const formKey = !editing && state.status === "success" ? state.itemId : "form";
   return (
-    <form key={formKey} action={action} className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-[8rem_minmax(0,1fr)_minmax(0,14rem)]">
+    <form key={formKey} action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 md:p-5 lg:grid-cols-[8rem_minmax(0,1fr)_minmax(0,14rem)]">
       {editing ? <input type="hidden" name="id" value={values.id} /> : <input type="hidden" name="companyId" value={companyId} />}
       <label className={fieldLabelClass}>Code
         {editing
@@ -37,7 +38,7 @@ export function CostCodeActiveToggle({ id, isActive }: { id: string; isActive: b
   const [state, action, pending] = useActionState(setCostCodeActiveAction, initialCommandState);
   useRefreshOnSuccess(state.status, state);
   return (
-    <form action={action} className="flex flex-wrap items-center gap-2">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="active" value={String(!isActive)} />
       <span className={trackClass}><button disabled={pending} className={pillClass(isActive ? "raised" : "primary", "sm")}>{isActive ? "Deactivate" : "Reactivate"}</button></span>

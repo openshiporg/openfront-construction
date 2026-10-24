@@ -5,6 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import { initialCommandState, type CommandState } from "@/features/platform/projects/action-state";
 import { onboardConstructionWorkspaceAction } from "../actions/onboarding";
 import { FormFeedback, fieldLabelClass, inputClass, pillClass, textareaClass, trackClass } from "@/features/platform/components/kit";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 
 export function OnboardingForm({ onComplete }: { onComplete?(state: CommandState): void }) {
@@ -16,7 +17,7 @@ export function OnboardingForm({ onComplete }: { onComplete?(state: CommandState
   }, [state, onComplete]);
 
   return (
-    <form action={action} className="grid gap-6" aria-labelledby="workspace-details-title">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid gap-6" aria-labelledby="workspace-details-title">
       <input type="hidden" name="idempotencyKey" value={key} />
       <fieldset className="grid gap-4 rounded-xl border p-4 md:grid-cols-2 md:p-5">
         <legend id="workspace-details-title" className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-[11px] text-muted-foreground">01</span>Contractor identity</legend>

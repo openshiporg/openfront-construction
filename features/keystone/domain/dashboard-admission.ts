@@ -35,7 +35,7 @@ const admissionRoleWhere = {
   canAccessDashboard: { equals: true },
   ...Object.fromEntries(otherPermissions.map(permission => [permission, { equals: false }])),
   // Company-less: never counted or managed as a company's role.
-  NOT: { company: { id: { not: { equals: "" } } } },
+  company: null,
 };
 
 async function hasQualifyingMembership(query: Record<string, AdmissionQueryApi>, userId: string): Promise<boolean> {

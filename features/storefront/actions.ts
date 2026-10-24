@@ -1,6 +1,6 @@
 'use server';
 
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import type { PublicIntakeState } from "./types";
 
 function value(formData: FormData, key: string) {
@@ -35,7 +35,7 @@ export async function submitPublicIntakeAction(
     idempotencyKey: value(formData, "idempotencyKey"),
     website: value(formData, "website") || null,
   };
-  const response = await keystoneClient<{
+  const response = await platformClient<{
     submitPublicIntake: { success: boolean; publicReference: string; kind: string; submittedAt: string; replayed: boolean };
   }>(`
     mutation SubmitPublicIntake($input: PublicIntakeInput!) {

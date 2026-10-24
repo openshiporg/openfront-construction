@@ -1,7 +1,7 @@
 'use server';
 
 import { randomUUID } from "node:crypto";
-import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
+import { platformClient } from "@/features/platform/lib/platform-client";
 import type { CommandState } from "./action-state";
 import { amountToMinorUnits } from "./money";
 
@@ -48,7 +48,7 @@ export async function runConstructionCommand(
     relatedId: value(formData, "relatedId") || null,
     idempotencyKey: value(formData, "idempotencyKey") || randomUUID(),
   };
-  const response = await keystoneClient<Record<string, { success: boolean; replayed: boolean }>>(`
+  const response = await platformClient<Record<string, { success: boolean; replayed: boolean }>>(`
     mutation ConstructionCommand($input: ConstructionCommandInput!) {
       ${operation}(input: $input) { success operation itemId actionId replayed }
     }
@@ -100,7 +100,7 @@ export async function runConstructionWorkflow(
     incidentType: value(formData, "incidentType") || null,
     idempotencyKey: value(formData, "idempotencyKey") || randomUUID(),
   };
-  const response = await keystoneClient<Record<string, { replayed: boolean; itemId: string; activationToken?: string | null }>>(`
+  const response = await platformClient<Record<string, { replayed: boolean; itemId: string; activationToken?: string | null }>>(`
     mutation ConstructionWorkflow($input: ConstructionWorkflowInput!) {
       ${operation}(input: $input) {
         success
@@ -134,7 +134,7 @@ export async function createConstructionProjectAction(
     currencyCode: value(formData, "currencyCode").toUpperCase() || "USD",
     idempotencyKey: value(formData, "idempotencyKey") || randomUUID(),
   };
-  const response = await keystoneClient<{ createConstructionProject: { replayed: boolean; itemId: string } }>(`
+  const response = await platformClient<{ createConstructionProject: { replayed: boolean; itemId: string } }>(`
     mutation CreateConstructionProject($input: ConstructionProjectCommandInput!) {
       createConstructionProject(input: $input) { success operation itemId actionId replayed }
     }
@@ -154,7 +154,7 @@ export async function addProjectMemberAction(
     accessLevel: value(formData, "accessLevel"),
     idempotencyKey: value(formData, "idempotencyKey") || randomUUID(),
   };
-  const response = await keystoneClient<{ addProjectMember: { replayed: boolean } }>(`
+  const response = await platformClient<{ addProjectMember: { replayed: boolean } }>(`
     mutation AddProjectMember($input: ProjectMemberCommandInput!) {
       addProjectMember(input: $input) { success operation itemId actionId replayed }
     }
@@ -203,7 +203,7 @@ export async function transitionConstructionItem(
     reason: value(formData, "reason"),
     idempotencyKey: value(formData, "idempotencyKey") || randomUUID(),
   };
-  const response = await keystoneClient<Record<string, { replayed: boolean }>>(`
+  const response = await platformClient<Record<string, { replayed: boolean }>>(`
     mutation TransitionConstructionItem($input: LifecycleTransitionInput!) {
       ${operation}(input: $input) { success itemId fromStatus toStatus actionId replayed }
     }

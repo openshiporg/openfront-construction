@@ -8,6 +8,7 @@ import { initialCommandState } from "@/features/platform/projects/action-state";
 import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on-success";
 import { createTradePartnerAction, updateTradePartnerAction } from "../actions";
 import { partnerTypeLabel, partnerTypes } from "../lib/states";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 export type TradePartnerFormValues = {
   id?: string; name?: string | null; legalName?: string | null; partnerType?: string | null;
@@ -24,7 +25,7 @@ export function TradePartnerForm({ companyId, values = {} }: { companyId?: strin
   const formKey = !editing && state.status === "success" ? state.itemId : "form";
 
   return (
-    <form key={formKey} action={action} className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 md:p-5 xl:grid-cols-4">
+    <form key={formKey} action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid min-w-0 gap-4 p-4 sm:grid-cols-2 md:p-5 xl:grid-cols-4">
       {editing ? <input type="hidden" name="id" value={values.id} /> : <input type="hidden" name="companyId" value={companyId} />}
       <label className={`${fieldLabelClass} sm:col-span-2`}>Name<input name="name" required maxLength={240} defaultValue={values.name ?? ""} className={inputClass} /></label>
       <label className={fieldLabelClass}>Type

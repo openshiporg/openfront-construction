@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { customerAuthAction, customerProfileAction, customerRequestAction, customerResetAction, customerResetRequestAction } from "./actions";
 import type { CustomerRequest } from "./data";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 // Account actions return one message field; these are their success messages.
 const SUCCESS_MESSAGES = new Set(["Details saved", "Saved"]);
@@ -21,7 +22,7 @@ function Submit({ pending, label, pendingLabel, variant = "primary" }: { pending
 
 export function CustomerAuthForm({ signup, service = "", from = "" }: { signup?: boolean; service?: string; from?: string }) {
   const [state, action, pending] = useActionState(customerAuthAction, { message: "" });
-  return <form action={action} className="sf-panel sf-stack" aria-labelledby={signup ? "signup-title" : "signin-title"}>
+  return <form action={action} onReset={keepUnlessSaved(false)} className="sf-panel sf-stack" aria-labelledby={signup ? "signup-title" : "signin-title"}>
     <h2 id={signup ? "signup-title" : "signin-title"} className="sf-panel__title">{signup ? "Create account" : "Sign in"}</h2>
     <input type="hidden" name="mode" value={signup ? "signup" : "signin"} />
     <input type="hidden" name="service" value={service} />
@@ -39,7 +40,7 @@ export function CustomerAuthForm({ signup, service = "", from = "" }: { signup?:
 
 export function ResetRequestForm() {
   const [state, action, pending] = useActionState(customerResetRequestAction, { message: "", success: false });
-  return <form action={action} className="sf-panel sf-stack">
+  return <form action={action} onReset={keepUnlessSaved(false)} className="sf-panel sf-stack">
     <h2 className="sf-panel__title">Reset password</h2>
     <label className="sf-field">Email<input className="sf-input" name="email" type="email" autoComplete="email" required maxLength={320} /></label>
     <div className="sf-row">
@@ -56,7 +57,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
     <Message message={state.message} success />
     <div className="sf-track"><Link href="/account" className="sf-pill sf-pill--primary">Sign in</Link></div>
   </div>;
-  return <form action={action} className="sf-panel sf-stack">
+  return <form action={action} onReset={keepUnlessSaved(false)} className="sf-panel sf-stack">
     <h2 className="sf-panel__title">New password</h2>
     <input type="hidden" name="token" value={token} />
     <label className="sf-field">Email<input className="sf-input" name="email" type="email" autoComplete="email" required maxLength={320} /></label>
@@ -70,7 +71,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
 
 export function ProfileForm({ user }: { user: { name: string; email: string; phone: string } }) {
   const [state, action, pending] = useActionState(customerProfileAction, { message: "" });
-  return <form action={action} className="sf-panel sf-stack" aria-labelledby="profile-title">
+  return <form action={action} onReset={keepUnlessSaved(false)} className="sf-panel sf-stack" aria-labelledby="profile-title">
     <h2 id="profile-title" className="sf-panel__title">Your details</h2>
     <label className="sf-field">Name<input className="sf-input" name="name" autoComplete="name" required maxLength={200} defaultValue={user.name} /></label>
     <label className="sf-field">Email<input className="sf-input" name="email" type="email" autoComplete="email" required maxLength={320} defaultValue={user.email} /></label>
@@ -84,7 +85,7 @@ export function RequestForm({ serviceSlug }: { serviceSlug: string }) {
   const [state, action, pending] = useActionState(customerRequestAction, { message: "" });
   const [key] = useState(() => crypto.randomUUID());
   const [scope, setScope] = useState("");
-  return <form action={action} className="sf-stack">
+  return <form action={action} onReset={keepUnlessSaved(false)} className="sf-stack">
     <input type="hidden" name="operation" value="request" />
     <input type="hidden" name="serviceSlug" value={serviceSlug} />
     <input type="hidden" name="idempotencyKey" value={key} />
@@ -97,7 +98,7 @@ export function RequestForm({ serviceSlug }: { serviceSlug: string }) {
 export function RequestDecision({ request, operation, label }: { request: CustomerRequest; operation: "accept" | "cancel"; label: string }) {
   const [state, action, pending] = useActionState(customerRequestAction, { message: "" });
   const [key] = useState(() => crypto.randomUUID());
-  return <form action={action} className="sf-stack" style={{ gap: "0.5rem" }}>
+  return <form action={action} onReset={keepUnlessSaved(false)} className="sf-stack" style={{ gap: "0.5rem" }}>
     <input type="hidden" name="operation" value={operation} /><input type="hidden" name="id" value={request.id} />
     <input type="hidden" name="version" value={request.version} /><input type="hidden" name="idempotencyKey" value={key} />
     <Submit pending={pending} label={label} pendingLabel="Saving…" variant={operation === "accept" ? "primary" : "danger"} />

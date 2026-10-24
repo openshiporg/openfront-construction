@@ -9,6 +9,7 @@ import { LogoPicker } from "../components/LogoPicker";
 import { BrandColorPicker } from "../components/BrandColorPicker";
 import { updateStoreSettingsAction } from "../actions/store-settings";
 import { brandLogoSvg } from "../lib/brand-logo";
+import { keepUnlessSaved } from "@/features/lib/form-reset";
 
 export function StoreSettingsPageClient({
   initial,
@@ -39,7 +40,7 @@ export function StoreSettingsPageClient({
   if (!initial) return <EmptyState title="No company yet" />;
 
   return (
-    <form action={action} className="grid gap-6">
+    <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid gap-6">
       <input type="hidden" name="id" value={id} />
       <Panel id="identity" title="Brand" icon={BadgeCheck}>
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_8rem]">
