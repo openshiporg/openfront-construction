@@ -11,11 +11,19 @@ import { models } from "./models";
 import { permissionsList } from "./models/fields";
 import { extendGraphqlSchema } from "./mutations";
 
-const databaseURL = requirePostgresDatabaseUrl(process.env.DATABASE_URL);
+// `keystone build` and `next build` load this config but never connect or sign a
+// session, so the build step does not depend on runtime variables being present.
+const isBuildStep = process.env.NEXT_PHASE === "phase-production-build" || process.argv[2] === "build";
+
+const databaseURL = isBuildStep
+  ? process.env.DATABASE_URL?.trim() || "postgresql://build:build@localhost:5432/build"
+  : requirePostgresDatabaseUrl(process.env.DATABASE_URL);
 
 const sessionConfig = {
   maxAge: 60 * 60 * 8,
-  secret: requireSessionSecret(),
+  secret: isBuildStep && !process.env.SESSION_SECRET?.trim()
+    ? "build-step-placeholder-never-used-to-sign-sessions"
+    : requireSessionSecret(),
 };
 
 const initialRolePermissions = Object.fromEntries(
