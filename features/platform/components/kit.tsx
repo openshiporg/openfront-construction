@@ -38,6 +38,9 @@ const toneByStatus: Record<string, Tone> = {
   out_for_signature: "amber", intent_to_bid: "amber", investigating: "amber", ordered: "amber", partially_received: "amber",
   partially_paid: "amber", payment_pending: "amber", ready_for_verification: "amber", negotiating: "amber", estimating: "amber",
   go_no_go: "amber", qualifying: "sky", accepted_with_exceptions: "amber", reported: "amber",
+  // Directory and catalog states
+  prospective: "sky", available: "emerald", in_use: "blue", blocked: "rose", out_of_service: "rose",
+  inactive: "zinc", retired: "zinc", discontinued: "zinc",
   // Live work
   open: "blue", scheduled: "blue", invited: "blue", viewed: "blue", assigned: "blue", in_progress: "blue", planning: "sky",
   corrective_action: "orange", revise_resubmit: "orange", delayed: "orange", on_hold: "orange", superseded: "zinc",

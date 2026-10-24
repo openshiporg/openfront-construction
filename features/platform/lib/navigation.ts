@@ -8,8 +8,10 @@ import {
   HardHat,
   Landmark,
   ReceiptText,
+  Ruler,
   ShieldCheck,
   Store,
+  Truck,
   UsersRound,
   WalletCards,
 } from "lucide-react";
@@ -66,6 +68,32 @@ export const platformNavItems: PlatformNavItem[] = [
     group: "standalone",
   },
 
+  // Company
+  {
+    title: "Trade partners",
+    href: "/platform/trade-partners",
+    color: "violet",
+    description: "Subcontractors, vendors, owners and designers the company works with.",
+    icon: UsersRound,
+    group: "company",
+  },
+  {
+    title: "Cost codes",
+    href: "/platform/cost-codes",
+    color: "violet",
+    description: "Company cost code library used by project budget codes.",
+    icon: Ruler,
+    group: "company",
+  },
+  {
+    title: "Equipment & materials",
+    href: "/platform/resources",
+    color: "violet",
+    description: "Company equipment fleet and material catalog.",
+    icon: Truck,
+    group: "company",
+  },
+
   // Pursuits
   {
     title: "Pipeline",
@@ -88,6 +116,12 @@ export const platformNavItems: PlatformNavItem[] = [
 export const platformStandaloneItems = platformNavItems.filter(item => item.group === "standalone");
 
 export const platformNavGroups: PlatformNavGroup[] = [
+  {
+    id: "company",
+    title: "Company",
+    icon: Building2,
+    items: platformNavItems.filter(item => item.group === "company"),
+  },
   {
     id: "pursuits",
     title: "Pursuits",
@@ -114,6 +148,7 @@ export const projectToolNavigation = [
       { title: "Overview", slug: "", icon: Landmark },
       { title: "Preconstruction", slug: "preconstruction", icon: FileClock },
       { title: "Financials", slug: "financials", icon: WalletCards },
+      { title: "Cost structure", slug: "structure", icon: Ruler },
       { title: "Contracts & changes", slug: "contracts", icon: ReceiptText },
       { title: "Subcontractors & procurement", slug: "procurement", icon: UsersRound },
     ],
