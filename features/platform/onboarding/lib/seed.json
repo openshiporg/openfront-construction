@@ -1,20 +1,87 @@
 {
   "company": {
     "name": "Northstar Builders",
-    "slug": "northstar-builders"
+    "slug": "northstar-builders",
+    "brandMark": "NB",
+    "brandColor": "#1D4ED8",
+    "brandTagline": "Schools, libraries and civic buildings, built while the doors stay open."
   },
   "admin": {
     "name": "Construction Administrator",
     "email": "construction@openship.org",
     "roleName": "Construction Administrator"
   },
+  "publicSite": {
+    "contactEmail": "projects@northstarbuilders.example",
+    "contactPhone": "(614) 555-0186",
+    "serviceArea": "Central Ohio",
+    "capabilitySummary": "General contracting, preconstruction and design-build for schools, libraries and community buildings across Central Ohio, with phasing plans that keep occupied campuses running. Northstar Builders is a fictional sample company.",
+    "privacyNotice": "We use the details you send only to review your request and reply to you. This is a fictional sample workspace, so requests are not sent to a real contractor."
+  },
+  "services": [
+    {
+      "name": "General contracting",
+      "summary": "Full-scope construction management for public and institutional buildings, from mobilization to closeout.",
+      "details": "One accountable team for subcontractor coordination, schedule control, site safety, quality inspections and closeout documentation."
+    },
+    {
+      "name": "Preconstruction and estimating",
+      "summary": "Early budgets, constructability reviews and phasing plans before the design is final.",
+      "details": "Conceptual and detailed estimates, value analysis, logistics plans and bid packaging that keep scope, cost and schedule aligned."
+    },
+    {
+      "name": "Design-build",
+      "summary": "A single contract for design and construction, with the architect and builder working from the first sketch.",
+      "details": "Shared budget targets, faster decisions and one point of responsibility for owners who want fewer handoffs."
+    },
+    {
+      "name": "Occupied campus renovation",
+      "summary": "Renovations and additions phased around classes, patrons and staff who stay in the building.",
+      "details": "After-hours work windows, dust and noise controls, temporary egress and weekly coordination with facility staff."
+    }
+  ],
+  "portfolio": [
+    {
+      "title": "Maple Grove Elementary Addition",
+      "summary": "A twelve-classroom addition and new media center built on an operating elementary school campus.",
+      "description": "Two-story steel-frame addition with a secure entry vestibule, media center and outdoor learning courtyard, phased over two summers so classes never moved off site.",
+      "market": "K-12 education",
+      "locationLabel": "Westerville, Ohio",
+      "deliveryMethod": "Construction manager at risk",
+      "completionLabel": "Completed 2025",
+      "approvedOutcome": "Opened on schedule for the first day of school."
+    },
+    {
+      "title": "Riverside Branch Library Renovation",
+      "summary": "Full interior renovation of a 1970s branch library with new reading rooms, study spaces and accessible restrooms.",
+      "description": "Mechanical and electrical replacement, new daylighting and an accessible entrance plaza, delivered while a temporary branch served patrons nearby.",
+      "market": "Libraries",
+      "locationLabel": "Columbus, Ohio",
+      "deliveryMethod": "Design-bid-build",
+      "completionLabel": "Completed 2024",
+      "approvedOutcome": "Reopened two weeks ahead of the planned date."
+    },
+    {
+      "title": "Franklin Township Fire Station 4",
+      "summary": "A new three-bay fire station with living quarters, training room and decontamination area.",
+      "description": "Pre-engineered apparatus bays paired with a masonry living wing, built to keep the existing station in service until the move-in day.",
+      "market": "Public safety",
+      "locationLabel": "Grove City, Ohio",
+      "deliveryMethod": "Design-build",
+      "completionLabel": "Completed 2023",
+      "approvedOutcome": "Station crews moved in without a gap in coverage."
+    }
+  ],
   "project": {
     "projectNumber": "NS-001",
     "name": "Civic Learning Center",
     "description": "Occupied-campus expansion with a public library, flexible classrooms, and site improvements.",
     "startDate": "2026-08-03T12:00:00.000Z",
     "completionDate": "2027-09-30T12:00:00.000Z",
-    "currencyCode": "USD"
+    "currencyCode": "USD",
+    "publicSummary": "A new community learning center with a public library, flexible classrooms and meeting rooms, built beside an occupied campus.",
+    "publicMarket": "Community facilities",
+    "publicLocation": "Northstar, Ohio"
   },
   "client": {
     "name": "City of Northstar",

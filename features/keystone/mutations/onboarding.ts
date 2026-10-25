@@ -6,6 +6,7 @@ import { permissionsList } from "../models/fields";
 import { hasNativeAuthorityPort, lockInitialOnboardingAuthority } from "../domain/current-authority";
 import { APPROVAL_POLICY_DOMAINS, assertWorkspaceReady, seedSampleWorkspace, seedWorkspaceSetup, type SeedDb } from "../domain/onboarding-seed";
 import { queryCount, queryOne, type KeystoneQueryApi } from "../domain/tenancy";
+import sampleSeed from "../../platform/onboarding/lib/seed.json";
 
 export type ConstructionOnboardingInput = {
   fictionalFixture?: boolean;
@@ -374,6 +375,43 @@ export async function onboardConstructionWorkspace(
           clientId: client.id, tradePartnerId: tradePartner.id, locationId: setup.locationId,
           scheduleId: setup.scheduleId, inspectionTemplateId: setup.inspectionTemplateId, startDate,
         });
+        // The sample company's website also lists its other services and a short
+        // portfolio of past work. Both come from the server-side seed, never from
+        // the request, and are fictional like the rest of the sample workspace.
+        for (const [index, service] of sampleSeed.services.slice(1).entries()) {
+          const slug = publicSlug(service.name, `service-${index + 2}`);
+          await sudo.db.PublicService.createOne({ data: {
+            serviceKey: `${company.id}:${slug}`,
+            slug,
+            title: service.name,
+            summary: service.summary,
+            details: service.details,
+            market: normalized.publicServiceArea,
+            sortOrder: index + 1,
+            status: "published",
+            site: { connect: { id: publicSite.id } },
+            company: { connect: { id: company.id } },
+          } });
+        }
+        for (const [index, item] of sampleSeed.portfolio.entries()) {
+          const slug = publicSlug(item.title, `past-project-${index + 1}`);
+          await sudo.db.PublicProject.createOne({ data: {
+            publicationKey: `${company.id}:${slug}`,
+            slug,
+            title: item.title,
+            summary: item.summary,
+            description: item.description,
+            market: item.market,
+            locationLabel: item.locationLabel,
+            deliveryMethod: item.deliveryMethod,
+            completionLabel: item.completionLabel,
+            approvedOutcome: item.approvedOutcome,
+            sortOrder: index + 1,
+            status: "published",
+            site: { connect: { id: publicSite.id } },
+            company: { connect: { id: company.id } },
+          } });
+        }
       }
       // Completion is recorded only after the persisted setup passes readiness.
       await assertWorkspaceReady(sudo.query, { companyId: company.id, projectId: project.id, actorId: session.itemId });

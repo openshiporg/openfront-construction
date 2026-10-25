@@ -8,9 +8,12 @@ import type { ConstructionOnboardingInput } from "@/features/keystone/mutations/
  * `onboardConstructionWorkspace` mutation that the custom setup path uses.
  *
  * Everything here is clearly fictional sample data: the company, brand,
- * client, trade partner, project, public profile, and financial codes are
- * mock values with explicit demo labels. Nothing here is a real contractor,
- * owner, or job. The mutation seeds the sample drafts as fictional records.
+ * client, trade partner, project, public profile, services, portfolio and
+ * financial codes are invented. Nothing here is a real contractor, owner, or
+ * job: the company is stored with isDemo, its legal name says so, and the
+ * public capability summary and privacy notice state it in plain language.
+ * The mutation seeds the sample drafts, the remaining public services and the
+ * past-project portfolio (from seed.json, server side) as fictional records.
  */
 export const DEMO_FIXTURE_LABEL = "Fictional demo workspace";
 
@@ -21,9 +24,9 @@ export function buildDemoOnboardingInput(idempotencyKey: string): ConstructionOn
     companySlug: seedData.company.slug,
     legalName: `${seedData.company.name} LLC (fictional demo)`,
     brandName: seedData.company.name,
-    brandMark: "NB",
-    brandTagline: "Fictional sample construction workspace.",
-    brandColor: "#1D4ED8",
+    brandMark: seedData.company.brandMark,
+    brandTagline: seedData.company.brandTagline,
+    brandColor: seedData.company.brandColor,
     projectNumber: seedData.project.projectNumber,
     projectName: seedData.project.name,
     projectDescription: seedData.project.description,
@@ -36,20 +39,17 @@ export function buildDemoOnboardingInput(idempotencyKey: string): ConstructionOn
     costCodeName: seedData.costCode.name,
     budgetCode: seedData.budgetCode.code,
     budgetCodeDescription: seedData.budgetCode.description,
-    publicContactEmail: "contact@northstar.example.test",
-    publicContactPhone: null,
-    publicServiceArea: "Central Ohio",
-    publicCapabilitySummary:
-      "General contracting and preconstruction for fictional community facilities in this sample workspace.",
-    primaryServiceName: "General contracting",
-    primaryServiceSummary: "Scope review, estimating and coordination for fictional community construction projects.",
-    publicPrivacyNotice:
-      "This fictional sample workspace retains submitted details only to review and respond to the request.",
+    publicContactEmail: seedData.publicSite.contactEmail,
+    publicContactPhone: seedData.publicSite.contactPhone,
+    publicServiceArea: seedData.publicSite.serviceArea,
+    publicCapabilitySummary: seedData.publicSite.capabilitySummary,
+    primaryServiceName: seedData.services[0].name,
+    primaryServiceSummary: seedData.services[0].summary,
+    publicPrivacyNotice: seedData.publicSite.privacyNotice,
     publishFirstProject: true,
-    publicProjectSummary:
-      "A fictional community learning center with classrooms and public meeting facilities.",
-    publicProjectMarket: "Community facilities",
-    publicProjectLocation: "Central Ohio",
+    publicProjectSummary: seedData.project.publicSummary,
+    publicProjectMarket: seedData.project.publicMarket,
+    publicProjectLocation: seedData.project.publicLocation,
     idempotencyKey,
   };
 }

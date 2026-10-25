@@ -133,4 +133,5 @@ export const SAMPLE_WORKSPACE_SUMMARY = [
   "Planned schedule tasks, scheduled inspection and draft daily log",
   "Equipment and material catalog, draft procurement request",
   "Open change event, safety observation and pipeline opportunity",
+  "Public services and past-project portfolio for the website",
 ] as const;
