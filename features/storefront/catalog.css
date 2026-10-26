@@ -83,7 +83,7 @@
 
 .storefront *, .storefront *::before, .storefront *::after { box-sizing: border-box; }
 .storefront :focus-visible { outline: 2px solid var(--sf-focus); outline-offset: 2px; }
-.storefront a { color: inherit; }
+.storefront :where(a) { color: inherit; }
 .storefront ::selection { background: var(--sf-slab); color: var(--sf-slab-ink); }
 
 .sf-shell { min-height: 100svh; display: flex; flex-direction: column; }
