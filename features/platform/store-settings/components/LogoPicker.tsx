@@ -50,14 +50,14 @@ export function LogoPicker({ value, hue, onChange, onHueChange, brandName = "", 
 
         {custom ? (
           <label className={fieldLabelClass}>Custom SVG
-            <textarea className="min-h-32 w-full min-w-0 rounded-lg border bg-background p-3 font-mono text-xs text-foreground" maxLength={100000}
+            <textarea className="min-h-32 w-full min-w-0 rounded-[6px] border bg-background p-3 font-mono text-xs text-foreground" maxLength={100000}
               spellCheck={false} value={draft} aria-invalid={Boolean(draft && !safe)} aria-describedby={draft && !safe ? "custom-logo-error" : undefined} onChange={event => setDraft(event.target.value)} />
             {draft && !safe && <span id="custom-logo-error" role="alert" className="text-destructive">Invalid or unsafe SVG</span>}
           </label>
         ) : (
           <div role="radiogroup" aria-label="Logo library" className="grid max-h-80 min-w-0 grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-2 overflow-y-auto p-0.5">
             {marks.map(mark => (
-              <label key={mark.id} title={mark.name} className="relative flex aspect-square cursor-pointer items-center justify-center rounded-lg border bg-background p-2.5 transition-shadow hover:bg-muted/50 has-[:checked]:border-foreground has-[:checked]:shadow-[0_0_0_1px_currentColor] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+              <label key={mark.id} title={mark.name} className="relative flex aspect-square cursor-pointer items-center justify-center rounded-[6px] border bg-background p-2.5 transition-shadow hover:bg-muted/50 has-[:checked]:border-foreground has-[:checked]:shadow-[0_0_0_1px_currentColor] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
                 <input type="radio" name="logoChoice" value={mark.id} checked={choice === mark.id} onChange={() => choose(mark.id)} className="sr-only" aria-label={mark.name} />
                 <span aria-hidden="true" className="block size-full overflow-hidden [&>svg]:block [&>svg]:size-full" style={{ filter: rotation }} dangerouslySetInnerHTML={{ __html: mark.svg }} />
               </label>

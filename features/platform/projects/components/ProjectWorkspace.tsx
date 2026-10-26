@@ -73,17 +73,17 @@ function detailHref(projectId: string, kind: string, recordId: string) {
   return recordType ? `/dashboard/platform/projects/${encodeURIComponent(projectId)}/records/${recordType}/${encodeURIComponent(recordId)}` : null;
 }
 
-/** Tool tabs: the three project phases share one track, separated by a hairline. */
+/** Tool tabs: underline tabs on one ruled baseline; the three project phases are separated by a short rule. */
 function ProjectTools({ projectId, active }: { projectId: string; active: string }) {
   return (
-    <nav aria-label="Project tools" className="-mx-4 min-w-0 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
-      <div className={`${trackClass} max-w-none`}>
+    <nav aria-label="Project tools" className="relative min-w-0 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-max items-center gap-5">
         {projectToolNavigation.map((group, index) => (
-          <div key={group.title} role="group" aria-label={group.title} className="flex items-center gap-1">
-            {index > 0 ? <span aria-hidden="true" className="mx-1 h-4 w-px bg-border" /> : null}
+          <div key={group.title} role="group" aria-label={group.title} className="flex items-center gap-5">
+            {index > 0 ? <span aria-hidden="true" className="h-4 w-px bg-border" /> : null}
             {group.items.map(entry => {
               const current = entry.slug === active;
-              return <Link key={entry.slug} href={projectToolHref(projectId, entry.slug)} aria-current={current ? "page" : undefined} className={pillClass(current ? "raised" : "quiet", "sm")}>{entry.title}</Link>;
+              return <Link key={entry.slug} href={projectToolHref(projectId, entry.slug)} aria-current={current ? "page" : undefined} className="-mb-px inline-flex min-h-9 shrink-0 items-center whitespace-nowrap border-b-2 border-transparent pb-2 pt-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:border-foreground aria-[current=page]:text-foreground max-sm:min-h-10">{entry.title}</Link>;
             })}
           </div>
         ))}
@@ -96,7 +96,7 @@ function QueueTitle({ projectId, entry, internal }: { projectId: string; entry: 
   const href = internal ? detailHref(projectId, entry.kind, entry.id) : null;
   return (
     <div className="min-w-0">
-      <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{entry.kind} · {entry.reference}</p>
+      <p className="text-xs text-muted-foreground">{entry.kind} · {entry.reference}</p>
       <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
         {href ? <Link href={href} className="inline-flex min-w-0 items-center gap-1 break-words text-sm font-medium underline-offset-4 hover:underline">{entry.title}<ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" /></Link> : <span className="min-w-0 break-words text-sm font-medium">{entry.title}</span>}
         <TitleStatus status={entry.status} />
@@ -183,7 +183,7 @@ export function ProjectWorkspace({ resourceRegister, resourceUnavailable, worksp
         </Panel>
       )}
 
-      {tool === "field" && resourceUnavailable && <p role="status" className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm text-muted-foreground"><StatusDot tone="zinc" />Equipment and material activity is not available for your project role</p>}
+      {tool === "field" && resourceUnavailable && <p role="status" className="flex items-center gap-2 rounded-[6px] border px-4 py-3 text-sm text-muted-foreground"><StatusDot tone="zinc" />Equipment and material activity is not available for your project role</p>}
       {tool === "field" && resourceRegister && <ResourceLogRegister projectId={project.id} register={resourceRegister} searchParams={searchParams} />}
       {tool === "preconstruction" && <BidComparison rows={bidComparison} />}
       {tool === "documents" && internal && <ControlledFilesPanel projectId={project.id} options={options} canManage={workspace.availableCommands.includes("registerDocument")} />}
@@ -225,9 +225,9 @@ export function ProjectWorkspace({ resourceRegister, resourceUnavailable, worksp
                 </li>
               ))}
             </ul>
-            <div className="hidden overflow-x-auto md:block">
+            <div className="relative hidden overflow-x-auto md:block">
               <table className="w-full min-w-[880px] text-left text-sm">
-                <thead className="border-b bg-muted/40 text-[11px] uppercase tracking-[0.06em] text-muted-foreground"><tr><th className="px-4 py-2 font-medium">Record</th><th className="px-4 py-2 font-medium">Ball in court</th><th className="px-4 py-2 font-medium">Due</th><th className="px-4 py-2 text-right font-medium">Value</th><th className="px-4 py-2 font-medium">Next step</th></tr></thead>
+                <thead className="border-b bg-muted/40 text-xs text-muted-foreground"><tr><th className="px-4 py-2 font-medium">Record</th><th className="px-4 py-2 font-medium">Ball in court</th><th className="px-4 py-2 font-medium">Due</th><th className="px-4 py-2 text-right font-medium">Value</th><th className="px-4 py-2 font-medium">Next step</th></tr></thead>
                 <tbody className="divide-y">
                   {queueItems.map(entry => (
                     <tr key={`${entry.kind}:${entry.id}`} className="align-top transition-colors hover:bg-muted/30">

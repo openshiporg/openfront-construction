@@ -56,7 +56,7 @@ function EvidenceList({ projectId, items, empty, timeline = false }: { projectId
       {items.map((entry, index) => (
         <li key={`${entry.kind}:${entry.reference}:${index}`} className={timeline ? "relative grid gap-1 border-l py-3 pl-5" : "grid gap-1 px-4 py-3 md:px-5"}>
           {timeline ? <span aria-hidden="true" className="absolute -left-[5px] top-[18px] size-2.5 rounded-full border-2 border-background bg-muted-foreground/60" /> : null}
-          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{entry.kind}{entry.reference ? ` · ${entry.reference}` : ""}{entry.occurredAt ? ` · ${new Date(entry.occurredAt).toLocaleString()}` : ""}</p>
+          <p className="text-xs text-muted-foreground">{entry.kind}{entry.reference ? ` · ${entry.reference}` : ""}{entry.occurredAt ? ` · ${new Date(entry.occurredAt).toLocaleString()}` : ""}</p>
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             {entry.recordType && entry.recordId
               ? <Link href={`${projectToolHref(projectId, "")}/records/${entry.recordType}/${encodeURIComponent(entry.recordId)}`} className="min-w-0 whitespace-pre-wrap break-words text-sm font-medium underline-offset-4 hover:underline">{entry.title}</Link>

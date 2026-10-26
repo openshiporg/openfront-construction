@@ -35,7 +35,7 @@ function Issue({ companyId, projectId }: { companyId: string; projectId: string 
         <legend className="mb-2 text-xs font-medium text-muted-foreground">Scopes (1–12)</legend>
         <div className="flex flex-wrap gap-2">
           {scopes.map(scope => (
-            <label key={scope} className="inline-flex cursor-pointer items-center gap-2 rounded-full border bg-background px-3 py-1.5 font-mono text-[11px] has-[:checked]:border-foreground has-[:checked]:bg-muted has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+            <label key={scope} className="inline-flex cursor-pointer items-center gap-2 rounded-[5px] border bg-background px-3 py-1.5 font-mono text-[11px] has-[:checked]:border-foreground has-[:checked]:bg-muted has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
               <input type="checkbox" name="scopes" value={scope} className="size-3.5 accent-foreground" />{scope}
             </label>
           ))}

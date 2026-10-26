@@ -57,7 +57,7 @@ export function StoreSettingsPageClient({
         <BrandColorPicker value={brandColor} onChange={setBrandColor} initials={brandMark} />
       </Panel>
 
-      <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-full border bg-background/90 p-1.5 pr-4 shadow-sm backdrop-blur w-fit">
+      <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-[6px] border bg-background/90 p-1.5 pr-4 shadow-sm backdrop-blur w-fit">
         <span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : "Save brand"}</button></span>
         <FormFeedback status={state.status} message={state.message} />
       </div>

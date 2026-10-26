@@ -24,7 +24,7 @@ function Related({ title, count, rows }: { title: string; count: number | null; 
             const href = recordHref(row);
             return (
               <li key={row.id} className="grid min-w-0 gap-1 px-4 py-3 md:px-5">
-                <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{[row.reference, row.project?.projectNumber].filter(Boolean).join(" · ")}</p>
+                <p className="text-xs text-muted-foreground">{[row.reference, row.project?.projectNumber].filter(Boolean).join(" · ")}</p>
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                   {href ? <a href={href} className="min-w-0 break-words text-sm font-medium underline-offset-4 hover:underline">{row.title || row.project?.name || "Record"}</a> : <span className="text-sm font-medium">{row.title || "Record"}</span>}
                   <TitleStatus status={row.status} />

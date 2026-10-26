@@ -16,7 +16,7 @@ export async function HomePage() {
   return (
     <PublicShell site={site} current="/">
       <main>
-        <section className="sf-slab sf-grid-bg" aria-labelledby="home-hero">
+        <section className="sf-slab" aria-labelledby="home-hero">
           <div className="sf-wrap sf-hero">
             <div className="sf-hero__grid">
               <div>
@@ -34,11 +34,11 @@ export async function HomePage() {
                 </div>
               </div>
               <aside className="sf-board" aria-label="Contractor facts">
-                <div className="sf-board__head"><span>{site.brandName}</span><span>Site board</span></div>
+                <div className="sf-board__head"><span>{site.brandName}</span>{area ? <span>{area}</span> : null}</div>
                 <dl className="sf-board__rows">
                   {area && <div className="sf-board__row"><dt>Service area</dt><dd>{area}</dd></div>}
-                  <div className="sf-board__row"><dt>Services</dt><dd className="sf-board__big">{String(site.services.length).padStart(2, "0")}</dd></div>
-                  <div className="sf-board__row"><dt>Projects</dt><dd className="sf-board__big">{String(site.projects.length).padStart(2, "0")}</dd></div>
+                  <div className="sf-board__row"><dt>Services</dt><dd className="sf-board__big">{site.services.length}</dd></div>
+                  <div className="sf-board__row"><dt>Projects</dt><dd className="sf-board__big">{site.projects.length}</dd></div>
                   {markets.length > 0 && <div className="sf-board__row"><dt>Markets</dt><dd>{markets.slice(0, 4).join(" · ")}</dd></div>}
                   {site.inquiryPhone && <div className="sf-board__row"><dt>Phone</dt><dd><a href={telHref(site.inquiryPhone)}>{site.inquiryPhone}</a></dd></div>}
                   {site.inquiryEmail && <div className="sf-board__row"><dt>Email</dt><dd><a href={`mailto:${site.inquiryEmail}`}>{site.inquiryEmail}</a></dd></div>}
@@ -46,12 +46,11 @@ export async function HomePage() {
               </aside>
             </div>
           </div>
-          <div className="sf-tape" aria-hidden="true" />
         </section>
 
         <section className="sf-section" aria-labelledby="services-title">
           <div className="sf-wrap">
-            <SectionHead index="01" id="services-title" title="What we build" action={site.services.length > 6 ? <Track><Pill href="/services" variant="raised" size="sm">All services<ArrowRight /></Pill></Track> : undefined} />
+            <SectionHead id="services-title" title="What we build" action={site.services.length > 6 ? <Track><Pill href="/services" variant="raised" size="sm">All services<ArrowRight /></Pill></Track> : undefined} />
             {site.services.length
               ? <ul className="sf-tiles">{site.services.slice(0, 6).map((service, index) => <li key={service.slug}><ServiceTile service={service} index={index} /></li>)}</ul>
               : <Empty title="No published services" />}
@@ -60,7 +59,7 @@ export async function HomePage() {
 
         <section className="sf-section" aria-labelledby="work-title">
           <div className="sf-wrap">
-            <SectionHead index="02" id="work-title" title="Recent work" action={site.projects.length > 3 ? <Track><Pill href="/projects" variant="raised" size="sm">All projects<ArrowRight /></Pill></Track> : undefined} />
+            <SectionHead id="work-title" title="Recent work" action={site.projects.length > 3 ? <Track><Pill href="/projects" variant="raised" size="sm">All projects<ArrowRight /></Pill></Track> : undefined} />
             {site.projects.length
               ? <ul className="sf-cards">{site.projects.slice(0, 3).map(project => <li key={project.slug}><ProjectCard project={project} /></li>)}</ul>
               : <Empty title="No published projects" />}
@@ -71,7 +70,6 @@ export async function HomePage() {
           <div className="sf-wrap sf-section">
             <div className="sf-split">
               <div>
-                <span className="sf-sechead__index">03</span>
                 <h2 id="estimate-title" className="sf-display sf-h2">Start a project</h2>
                 <div className="sf-mt-lg">
                   <Track label="Start a project" wrap>

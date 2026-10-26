@@ -18,7 +18,7 @@ function Feedback({ state }: { state: CommandState }) {
   return <FormFeedback status={state.status} message={state.message} className="md:col-span-2" />;
 }
 function SectionTitle({ children }: { children: ReactNode }) {
-  return <h3 className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground md:col-span-2">{children}</h3>;
+  return <h3 className="text-xs font-semibold text-foreground md:col-span-2">{children}</h3>;
 }
 function PolicyForm({ projectId, options }: { projectId: string; options: ConstructionOption[] }) {
   const { state, action, pending, idempotencyKey } = useKeyedCommand(configureProjectApprovalPolicy);
@@ -93,7 +93,7 @@ function DecisionForm({ projectId, options }: { projectId: string; options: Cons
     <input type="hidden" name="reviewedRequestId" value={reviewed ? selected : ""} />
     <label className={fieldLabelClass}>Pending approval<FormSelect className={selectClass} name="requestId" required value={selected} onValueChange={selectRequest} disabled={pending}><option value="">Select…</option>{selected && !available && <option value={selected} disabled>{selectedLabel} — not available</option>}{requests.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</FormSelect></label>
     <span className={trackClass}><button type="button" onClick={loadReview} disabled={!available || pending || loadingReview} className={pillClass("raised")}>{loadingReview ? "Loading review…" : "Review captured terms"}</button></span>
-    {review?.requestId === selected && <section aria-live="polite" className="min-w-0 rounded-lg border bg-muted/30 p-3 md:col-span-2"><h3 className="text-sm font-medium">Terms captured for this request</h3><ul className="mt-2 grid min-w-0 gap-2 text-sm">{review.terms.map((term, index) => <li key={`${selected}:${index}`} className="min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere]">{term}</li>)}</ul></section>}
+    {review?.requestId === selected && <section aria-live="polite" className="min-w-0 rounded-[6px] border bg-muted/30 p-3 md:col-span-2"><h3 className="text-sm font-medium">Terms captured for this request</h3><ul className="mt-2 grid min-w-0 gap-2 text-sm">{review.terms.map((term, index) => <li key={`${selected}:${index}`} className="min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere]">{term}</li>)}</ul></section>}
     {reviewError && <p role="alert" className="text-sm text-destructive md:col-span-2">{reviewError}</p>}
     <label className={fieldLabelClass}>Decision<FormSelect className={selectClass} name="decision" required value={decision} onValueChange={setDecision} disabled={pending}><option value="">Select…</option><option value="approved">Approve</option><option value="rejected">Reject</option></FormSelect></label>
     <label className={`${fieldLabelClass} md:col-span-2`}>Decision comment<textarea name="comment" required maxLength={2000} value={comment} onChange={event => setComment(event.target.value)} readOnly={pending} className={`${textareaClass} min-h-20`} /></label>

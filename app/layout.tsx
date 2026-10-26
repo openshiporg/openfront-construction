@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Archivo, Geist, Geist_Mono, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Public_Sans, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
-import "@/features/storefront/storefront.css";
+import "@/features/storefront/catalog.css";
 import { getPublicStorefrontMetadata } from "@/features/storefront/data";
 
 const geistSans = Geist({
@@ -14,23 +14,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Storefront display face: Archivo's width axis gives the condensed site-board headings.
-const archivo = Archivo({
-  variable: "--font-archivo",
+// Storefront type, from the card catalog of the libraries and schools the firm builds: Public Sans
+// (a civic workhorse) for headings and everything read; Source Serif 4 for the typed card records.
+const publicSans = Public_Sans({
+  variable: "--font-public-sans",
   subsets: ["latin"],
-  axes: ["wdth"],
 });
 
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} ${plexSans.variable} ${plexMono.variable} antialiased min-h-screen bg-background font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} ${publicSans.variable} ${sourceSerif.variable} antialiased min-h-screen bg-background font-sans`}
       >
         {children}
       </body>

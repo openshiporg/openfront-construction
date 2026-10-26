@@ -91,7 +91,7 @@ export function ResourceActivityPanel({ projectId, options, currencyCode, scope 
       <span className={`${trackClass} sm:col-span-2 lg:col-span-4`}><button disabled={pending} type="submit" className={pillClass("primary")}>Review entry</button></span>
     </form>}
     {request && <div className="grid gap-4">
-      <dl className="grid gap-3 rounded-lg border bg-muted/30 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">{["type", "relatedId", "reference", "quantity", "unit", "occurredAt", "amountMinor", "description"].map(field => {
+      <dl className="grid gap-3 rounded-[6px] border bg-muted/30 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">{["type", "relatedId", "reference", "quantity", "unit", "occurredAt", "amountMinor", "description"].map(field => {
         const raw = request.input[field as keyof typeof request.input];
         const shown = field === "relatedId" ? options.find(option => option.id === raw)?.label ?? String(raw ?? "—")
           : field === "occurredAt" && raw ? new Date(String(raw)).toLocaleString()

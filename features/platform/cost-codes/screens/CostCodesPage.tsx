@@ -70,7 +70,7 @@ export async function CostCodesPage({ searchParams }: { searchParams: Promise<Re
           <li key={code.id} className="grid min-w-0 gap-3 px-3 py-3 md:px-4">
             <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{[code.code, code.division].filter(Boolean).join(" · ")}</p>
+                <p className="text-xs text-muted-foreground">{[code.code, code.division].filter(Boolean).join(" · ")}</p>
                 <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="min-w-0 break-words text-sm font-medium">{code.name}</span>
                   <TitleStatus status={code.isActive ? "active" : "inactive"} />
@@ -79,7 +79,7 @@ export async function CostCodesPage({ searchParams }: { searchParams: Promise<Re
               </div>
               <CostCodeActiveToggle id={code.id} isActive={code.isActive} />
             </div>
-            <details className="group rounded-lg border">
+            <details className="group rounded-[6px] border">
               <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium text-muted-foreground [&::-webkit-details-marker]:hidden"><span className="group-open:hidden">Edit</span><span className="hidden group-open:inline">Close</span></summary>
               <div className="border-t"><CostCodeForm values={code} /></div>
             </details>

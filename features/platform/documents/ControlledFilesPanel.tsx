@@ -156,7 +156,7 @@ export function ControlledFilesPanel({ projectId, options, canManage }: { projec
     }>
       <div className={`grid ${canManage ? "lg:grid-cols-2 lg:divide-x" : ""}`}>
         {canManage && <form onSubmit={upload} className="grid min-w-0 content-start gap-4 p-4 md:grid-cols-2 md:p-5">
-          <h3 className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground md:col-span-2">Issue {kind === "drawing" ? "a drawing revision" : "a document version"}</h3>
+          <h3 className="text-xs font-semibold text-foreground md:col-span-2">Issue {kind === "drawing" ? "a drawing revision" : "a document version"}</h3>
           <label className={`${fieldLabelClass} md:col-span-2`}>{kind === "drawing" ? "Drawing" : "Document"}<FormSelect name="parentId" required defaultValue="" className={selectClass}><option value="">Select…</option>{parents.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</FormSelect></label>
           <label className={fieldLabelClass}>{kind === "drawing" ? "Revision" : "Version number"}<input name="sequence" required type={kind === "document" ? "number" : "text"} min={kind === "document" ? 1 : undefined} className={`${inputClass} font-mono`} /></label>
           <label className={fieldLabelClass}>Issued title<input name="title" required maxLength={300} className={inputClass} /></label>
@@ -164,8 +164,8 @@ export function ControlledFilesPanel({ projectId, options, canManage }: { projec
           <span className={`${trackClass} md:col-span-2`}><button type="submit" disabled={pending || Boolean(retryableUpload) || parents.length === 0} className={pillClass("primary")}><Upload />{pending ? "Uploading…" : "Upload and issue"}</button></span>
         </form>}
         <div className="min-w-0 p-4 md:p-5">
-          <h3 className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground">Issued {kind === "drawing" ? "drawings" : "documents"}</h3>
-          {downloads.length ? <ul className="mt-3 divide-y overflow-hidden rounded-lg border">{downloads.map(option => <li key={option.id} className="flex items-center justify-between gap-3 px-3 py-2.5"><div className="min-w-0"><p className="truncate text-sm font-medium">{option.label}</p><p className="truncate text-xs text-muted-foreground">{option.detail}</p></div><span className={trackClass}><button type="button" disabled={pending} onClick={() => download(option.id)} className={pillClass("raised", "sm")}><Download />Download</button></span></li>)}</ul> : <div className="mt-3"><EmptyState compact title={`No issued ${kind === "drawing" ? "drawings" : "documents"}`} /></div>}
+          <h3 className="text-xs font-semibold text-foreground">Issued {kind === "drawing" ? "drawings" : "documents"}</h3>
+          {downloads.length ? <ul className="mt-3 divide-y overflow-hidden rounded-[6px] border">{downloads.map(option => <li key={option.id} className="flex items-center justify-between gap-3 px-3 py-2.5"><div className="min-w-0"><p className="truncate text-sm font-medium">{option.label}</p><p className="truncate text-xs text-muted-foreground">{option.detail}</p></div><span className={trackClass}><button type="button" disabled={pending} onClick={() => download(option.id)} className={pillClass("raised", "sm")}><Download />Download</button></span></li>)}</ul> : <div className="mt-3"><EmptyState compact title={`No issued ${kind === "drawing" ? "drawings" : "documents"}`} /></div>}
         </div>
       </div>
       {retryableUpload && (
@@ -176,7 +176,7 @@ export function ControlledFilesPanel({ projectId, options, canManage }: { projec
       )}
       {canManage && kind === "document" && (
         <form onSubmit={distribute} className="grid min-w-0 gap-4 border-t p-4 md:grid-cols-2 md:p-5 lg:grid-cols-4">
-          <h3 className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground md:col-span-2 lg:col-span-4">Share a version</h3>
+          <h3 className="text-xs font-semibold text-foreground md:col-span-2 lg:col-span-4">Share a version</h3>
           <label className={fieldLabelClass}>Issued version<FormSelect name="versionId" required defaultValue="" className={selectClass}><option value="">Select…</option>{options.filter(option => option.kind === "documentVersion").map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</FormSelect></label>
           <label className={fieldLabelClass}>Recipient<FormSelect name="membershipId" required defaultValue="" className={selectClass}><option value="">Select…</option>{options.filter(option => option.kind === "membership").map(option => <option key={option.id} value={option.id}>{option.label} — {option.detail}</option>)}</FormSelect></label>
           <label className={fieldLabelClass}>Purpose<input name="purpose" required maxLength={500} className={inputClass} /></label>

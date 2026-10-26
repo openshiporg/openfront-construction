@@ -24,7 +24,7 @@ export async function StoreSettingsPage({ searchParams }: { searchParams: Promis
         status={data?.profile ? <span className="inline-flex items-center gap-1.5 text-xs font-medium capitalize text-muted-foreground"><StatusDot tone={statusTone(data.profile.status)} />{data.profile.status}</span> : undefined}
         actions={company ? <Track><PillLink href="/" size="sm"><ExternalLink />View website</PillLink></Track> : undefined}
       />
-      {!result.success && <p role="alert" className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm"><StatusDot tone="rose" />{result.error}</p>}
+      {!result.success && <p role="alert" className="flex items-center gap-2 rounded-[6px] border px-4 py-3 text-sm"><StatusDot tone="rose" />{result.error}</p>}
       {data && !company && (data.companies.length
         ? <Panel id="choose-company" title="Choose a company">
             <form className="flex flex-wrap items-end gap-3" action="/dashboard/platform/store-settings">

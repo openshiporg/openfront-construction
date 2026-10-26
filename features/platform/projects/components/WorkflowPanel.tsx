@@ -213,7 +213,7 @@ export function WorkflowPanel({ tool, projectId, availableCommands, options }: {
     <Panel id="project-actions" title="Record" icon={ClipboardPen}>
       <div className="grid gap-4">
         {available.length > 1 && (
-          <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
+          <div className="relative -mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
             <div role="tablist" aria-label="Record type" className={`${trackClass} max-w-none`}>
               {available.map(entry => (
                 <button key={entry.operation} type="button" role="tab" aria-selected={entry.operation === workflow.operation} onClick={() => setSelected(entry.operation)} className={pillClass(entry.operation === workflow.operation ? "raised" : "quiet", "sm")}>{entry.label}</button>

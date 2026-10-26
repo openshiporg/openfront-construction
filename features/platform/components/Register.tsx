@@ -29,7 +29,7 @@ export function RegisterFrame({ id, title, noun, page, pageSize, totalCount, tot
   const first = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const last = first === 0 ? 0 : first + itemCount - 1;
   return (
-    <section aria-labelledby={`${id}-title`} className="min-w-0 overflow-hidden rounded-xl border bg-background">
+    <section aria-labelledby={`${id}-title`} className="min-w-0 overflow-hidden rounded-[6px] border bg-background">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 md:px-5">
         <div className="min-w-0">
           <h2 id={`${id}-title`} className="text-sm font-semibold">{title}</h2>
@@ -42,7 +42,7 @@ export function RegisterFrame({ id, title, noun, page, pageSize, totalCount, tot
         {toolbar}
       </div>
       <div className="p-4 pt-3 md:px-5">
-        {itemCount === 0 ? <EmptyState compact title={`No ${noun} in this view`} /> : <ul className="divide-y overflow-hidden rounded-lg border">{children}</ul>}
+        {itemCount === 0 ? <EmptyState compact title={`No ${noun} in this view`} /> : <ul className="divide-y overflow-hidden rounded-[6px] border">{children}</ul>}
       </div>
     </section>
   );
@@ -61,7 +61,7 @@ export function RegisterRow({ reference, title, href, status, statusLabel, meta,
   return (
     <li className={cn("grid min-w-0 gap-3 px-3 py-3 transition-colors hover:bg-muted/30 md:px-4", action && "lg:grid-cols-[minmax(0,1fr)_minmax(15rem,20rem)] lg:items-center")}>
       <div className="min-w-0">
-        {reference ? <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{reference}</p> : null}
+        {reference ? <p className="text-xs text-muted-foreground">{reference}</p> : null}
         <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
           {href ? <Link href={href} className="min-w-0 break-words text-sm font-medium underline-offset-4 hover:underline">{title}</Link> : <span className="min-w-0 break-words text-sm font-medium">{title}</span>}
           <TitleStatus status={status} label={statusLabel} />

@@ -20,7 +20,7 @@ const eventTone: Record<string, Tone> = {
 };
 
 export function ResourceLogRegister({ projectId, register, searchParams }: { projectId: string; register: ResourceLogRegisterPage; searchParams: Params }) {
-  return <section className="min-w-0 overflow-hidden rounded-xl border bg-background" aria-labelledby="resource-register-title">
+  return <section className="min-w-0 overflow-hidden rounded-[6px] border bg-background" aria-labelledby="resource-register-title">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 md:px-5">
       <div>
         <h2 id="resource-register-title" className="text-sm font-semibold">Equipment & material activity</h2>
@@ -36,7 +36,7 @@ export function ResourceLogRegister({ projectId, register, searchParams }: { pro
       <span className={trackClass}><button className={pillClass("raised")} type="submit"><Search />Apply</button></span>
     </form>
     <div className="p-4 md:px-5">
-      {register.items.length ? <ul className="divide-y overflow-hidden rounded-lg border">{register.items.map(row => <li key={row.id} className="grid gap-2 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center md:px-4">
+      {register.items.length ? <ul className="divide-y overflow-hidden rounded-[6px] border">{register.items.map(row => <li key={row.id} className="grid gap-2 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center md:px-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <StatusDot tone={eventTone[row.eventType] ?? "zinc"} />

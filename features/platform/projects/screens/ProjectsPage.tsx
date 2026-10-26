@@ -16,7 +16,7 @@ export async function ProjectsPage({ searchParams }: { searchParams: Promise<Rec
     <PlatformPage breadcrumbs={[{ type: "link", label: "Portfolio", href: "/platform/portfolio" }, { type: "page", label: "Projects" }]}>
       <PageHeader icon={FolderKanban} title="Projects" meta={portfolio.totalCount > 0 ? <span className="tabular-nums">{firstItem}–{lastItem} of {portfolio.totalCount}</span> : undefined} />
       {portfolio.canCreateProject && <CreateProjectPanel companies={portfolio.companies} defaultOpen={portfolio.totalCount === 0 && !search} />}
-      <section aria-labelledby="projects-list-title" className="min-w-0 overflow-hidden rounded-xl border bg-background">
+      <section aria-labelledby="projects-list-title" className="min-w-0 overflow-hidden rounded-[6px] border bg-background">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 md:px-5">
           <h2 id="projects-list-title" className="text-sm font-semibold">All projects</h2>
           <form role="search" action="/dashboard/platform/projects" className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
@@ -34,7 +34,7 @@ export async function ProjectsPage({ searchParams }: { searchParams: Promise<Rec
                 <li key={project.id}>
                   <Link href={`/dashboard/platform/projects/${encodeURIComponent(project.id)}`} className="grid gap-3 px-4 py-3.5 transition-colors hover:bg-muted/30 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center md:px-5">
                     <div className="min-w-0">
-                      <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{project.projectNumber} · {project.companyName}</p>
+                      <p className="text-xs text-muted-foreground">{project.projectNumber} · {project.companyName}</p>
                       <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"><span className="min-w-0 break-words text-sm font-medium">{project.name}</span><TitleStatus status={project.status} /></div>
                     </div>
                     <dl className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">

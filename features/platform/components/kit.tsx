@@ -60,14 +60,19 @@ export function readable(value: string | null | undefined) {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
 }
 
+const textTones: Record<Tone, string> = {
+  emerald: "text-emerald-700 dark:text-emerald-400", amber: "text-amber-700 dark:text-amber-400", blue: "text-blue-700 dark:text-blue-400", orange: "text-orange-700 dark:text-orange-400",
+  rose: "text-rose-700 dark:text-rose-400", zinc: "text-muted-foreground", violet: "text-violet-700 dark:text-violet-400", sky: "text-sky-700 dark:text-sky-400",
+};
+
 export function StatusDot({ tone, className }: { tone: Tone; className?: string }) {
-  return <span aria-hidden="true" className={cn("inline-block size-2 shrink-0 rounded-full outline-3 -outline-offset-1", dotTones[tone], className)} />;
+  return <span aria-hidden="true" className={cn("inline-block size-1.5 shrink-0 rounded-full", dotTones[tone], className)} />;
 }
 
 /** Dot plus label, sized to sit on a title line. */
 export function TitleStatus({ status, tone, label }: { status?: string | null; tone?: Tone; label?: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-muted-foreground">
+    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap text-[13px] font-medium", textTones[tone ?? statusTone(status)])}>
       <StatusDot tone={tone ?? statusTone(status)} />
       {label ?? readable(status)}
     </span>
@@ -82,19 +87,19 @@ export function PillLink({ href, children, variant = "raised", size }: { href: s
   return <Link href={href} className={pillClass(variant, size)}>{children}</Link>;
 }
 
-/** Filter tabs: the active tab is the raised pill; the rest sit quietly in the track. */
-export function SegmentTabs({ label, tabs, size = "sm" }: {
+/** Filter tabs: underline tabs on one ruled baseline; the current tab is underlined. */
+export function SegmentTabs({ label, tabs }: {
   label: string;
   size?: "sm" | "md";
   tabs: Array<{ key: string; label: string; href: string; active: boolean; count?: number | null }>;
 }) {
   return (
-    <nav aria-label={label} className="-mx-4 min-w-0 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
-      <div className={cn(trackClass, "max-w-none")}>
+    <nav aria-label={label} className="relative min-w-0 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-max gap-5">
         {tabs.map(tab => (
-          <Link key={tab.key} href={tab.href} aria-current={tab.active ? "page" : undefined} className={pillClass(tab.active ? "raised" : "quiet", size)}>
+          <Link key={tab.key} href={tab.href} aria-current={tab.active ? "page" : undefined} className="-mb-px inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 border-transparent pb-2 pt-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:border-foreground aria-[current=page]:text-foreground max-sm:min-h-10">
             {tab.label}
-            {tab.count !== undefined && tab.count !== null ? <span className="tabular-nums opacity-60">{tab.count}</span> : null}
+            {tab.count !== undefined && tab.count !== null ? <span className="text-xs font-normal tabular-nums text-muted-foreground">{tab.count}</span> : null}
           </Link>
         ))}
       </div>
@@ -102,7 +107,7 @@ export function SegmentTabs({ label, tabs, size = "sm" }: {
   );
 }
 
-/** Previous / next as pills in a track, with the page count between them. */
+/** Previous / next buttons with the page count between them. */
 export function Pager({ label, page, totalPages, prevHref, nextHref }: { label: string; page: number; totalPages: number; prevHref?: string | null; nextHref?: string | null }) {
   if (totalPages <= 1) return null;
   return (
@@ -125,7 +130,7 @@ export function PlatformPage({ breadcrumbs, children, width = "wide" }: { breadc
   return (
     <section className="flex min-w-0 flex-col">
       <PageBreadcrumbs items={[{ type: "link", label: "Dashboard", href: "" }, ...breadcrumbs]} />
-      <div className={cn("mx-auto flex w-full min-w-0 flex-col gap-6 px-4 py-6 md:px-6 md:py-8", width === "wide" ? "max-w-7xl" : "max-w-4xl")}>{children}</div>
+      <div className={cn("mx-auto flex w-full min-w-0 flex-col gap-5 px-4 py-5 md:px-6 md:py-6", width === "wide" ? "max-w-7xl" : "max-w-4xl")}>{children}</div>
     </section>
   );
 }
@@ -141,13 +146,11 @@ export function PageHeader({ eyebrow, title, status, meta, actions, icon: Icon }
   return (
     <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
-        {eyebrow ? <p className="mb-1.5 flex flex-wrap items-center gap-x-2 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{eyebrow}</p> : null}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          {Icon ? <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Icon className="size-[18px]" /></span> : null}
-          <h1 className="min-w-0 break-words text-2xl font-semibold tracking-tight md:text-[1.75rem]">{title}</h1>
+          <h1 className="min-w-0 break-words text-lg font-semibold tracking-tight">{title}</h1>
           {status}
         </div>
-        {meta ? <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">{meta}</div> : null}
+        {meta || eyebrow ? <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">{eyebrow ? <span className="flex flex-wrap items-center gap-x-2">{eyebrow}</span> : null}{meta}</div> : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </header>
@@ -157,15 +160,15 @@ export function PageHeader({ eyebrow, title, status, meta, actions, icon: Icon }
 export function MetricStrip({ items, label }: { label?: string; items: Array<{ key?: string; label: string; value: ReactNode; tone?: Tone; href?: string }> }) {
   if (!items.length) return null;
   return (
-    <dl aria-label={label} className="grid grid-cols-2 overflow-hidden rounded-xl border bg-border sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] [&>*]:bg-background" style={{ gap: 1 }}>
+    <dl aria-label={label} className="grid grid-cols-2 overflow-hidden rounded-[6px] border bg-border sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] [&>*]:bg-card" style={{ gap: 1 }}>
       {items.map(item => {
         const body = <>
           <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">{item.tone ? <StatusDot tone={item.tone} /> : null}{item.label}</dt>
-          <dd className="mt-1.5 truncate text-xl font-semibold tabular-nums tracking-tight">{item.value}</dd>
+          <dd className="mt-0.5 truncate text-lg font-semibold tabular-nums tracking-tight">{item.value}</dd>
         </>;
         return item.href
-          ? <Link key={item.key ?? item.label} href={item.href} className="block min-w-0 p-4 transition-colors hover:bg-muted/40">{body}</Link>
-          : <div key={item.key ?? item.label} className="min-w-0 p-4">{body}</div>;
+          ? <Link key={item.key ?? item.label} href={item.href} className="block min-w-0 px-3 py-2 transition-colors hover:bg-muted/40">{body}</Link>
+          : <div key={item.key ?? item.label} className="min-w-0 px-3 py-2">{body}</div>;
       })}
     </dl>
   );
@@ -182,17 +185,17 @@ export function Panel({ title, icon: Icon, actions, children, className, padded 
   meta?: ReactNode;
 }) {
   return (
-    <section aria-labelledby={id && title ? `${id}-title` : undefined} id={id} className={cn("min-w-0 overflow-hidden rounded-xl border bg-background", className)}>
+    <section aria-labelledby={id && title ? `${id}-title` : undefined} id={id} className={cn("min-w-0 overflow-hidden rounded-[6px] border bg-card", className)}>
       {title ? (
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b px-4 py-3 md:px-5">
+        <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b px-4 py-2">
           <div className="min-w-0">
-            <h2 id={id ? `${id}-title` : undefined} className="flex min-w-0 items-center gap-2 text-sm font-semibold">{Icon ? <Icon className="size-4 text-muted-foreground" /> : null}{title}</h2>
+            <h2 id={id ? `${id}-title` : undefined} className="flex min-w-0 items-center gap-2 text-[13px] font-semibold">{Icon ? <Icon className="size-4 text-muted-foreground" /> : null}{title}</h2>
             {meta ? <p className="mt-0.5 text-xs text-muted-foreground">{meta}</p> : null}
           </div>
           {actions}
         </div>
       ) : null}
-      <div className={padded ? "p-4 md:p-5" : undefined}>{children}</div>
+      <div className={padded ? "p-4" : undefined}>{children}</div>
     </section>
   );
 }
@@ -206,16 +209,16 @@ export function DisclosurePanel({ title, meta, children, defaultOpen = false, ic
   icon?: ComponentType<{ className?: string }>;
 }) {
   return (
-    <details open={defaultOpen} className="group min-w-0 overflow-hidden rounded-xl border bg-background">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 md:px-5 [&::-webkit-details-marker]:hidden">
+    <details open={defaultOpen} className="group min-w-0 overflow-hidden rounded-[6px] border bg-card">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 [&::-webkit-details-marker]:hidden">
         <span className="flex min-w-0 items-center gap-2">
           {Icon ? <Icon className="size-4 shrink-0 text-muted-foreground" /> : null}
           <span className="min-w-0">
-            <span className="block text-sm font-semibold">{title}</span>
+            <span className="block text-[13px] font-semibold">{title}</span>
             {meta ? <span className="mt-0.5 block text-xs text-muted-foreground">{meta}</span> : null}
           </span>
         </span>
-        <span className={trackClass}><span className={pillClass("raised", "sm")}><span className="group-open:hidden">Open</span><span className="hidden group-open:inline">Close</span></span></span>
+        <span className={pillClass("raised", "sm")}><span className="group-open:hidden">Open</span><span className="hidden group-open:inline">Close</span></span>
       </summary>
       <div className="border-t">{children}</div>
     </details>
@@ -227,14 +230,14 @@ export function Fact({ label, children }: { label: string; children: ReactNode }
 }
 
 export function Chip({ children, tone }: { children: ReactNode; tone?: Tone }) {
-  return <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">{tone ? <StatusDot tone={tone} /> : null}{children}</span>;
+  return <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[3px] border bg-background px-1.5 py-0.5 text-xs font-medium text-muted-foreground">{tone ? <StatusDot tone={tone} /> : null}{children}</span>;
 }
 
 export function EmptyState({ icon: Icon, title, action, compact = false }: { icon?: ComponentType<{ className?: string }>; title: string; action?: ReactNode; compact?: boolean }) {
   return (
-    <div className={cn("flex flex-col items-center rounded-xl border border-dashed bg-background px-6 text-center", compact ? "py-8" : "py-14")}>
-      {Icon ? <span className="flex size-11 items-center justify-center rounded-full bg-muted"><Icon className="size-5 text-muted-foreground" /></span> : null}
-      <p className={cn("text-sm font-semibold", Icon && "mt-4")}>{title}</p>
+    <div className={cn("flex flex-col items-center rounded-[6px] border border-dashed bg-card px-6 text-center", compact ? "py-6" : "py-10")}>
+      {Icon ? <Icon className="size-5 text-muted-foreground" /> : null}
+      <p className={cn("text-[13px] font-medium", Icon && "mt-3")}>{title}</p>
       {action ? <div className="mt-5">{action}</div> : null}
     </div>
   );

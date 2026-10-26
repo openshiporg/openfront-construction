@@ -44,8 +44,8 @@ export function BrandColorPicker({
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <span aria-hidden="true" className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold uppercase text-white" style={{ backgroundColor: value }}>{initials.slice(0, 4) || "AB"}</span>
-        <div className="-mx-1 min-w-0 flex-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+        <span aria-hidden="true" className="inline-flex size-10 shrink-0 items-center justify-center rounded-[6px] font-mono text-xs font-bold uppercase text-white" style={{ backgroundColor: value }}>{initials.slice(0, 4) || "AB"}</span>
+        <div className="relative -mx-1 min-w-0 flex-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
           <div role="radiogroup" aria-label="Badge colour" className={`${trackClass} max-w-none`}>
             {HUE_PRESETS.map(preset => {
               const hex = hexFromHue(preset.hue);

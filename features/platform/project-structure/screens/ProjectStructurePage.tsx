@@ -53,7 +53,7 @@ export async function ProjectStructurePage({ projectId }: { projectId: string })
             {budgetCodes.map(code => (
               <li key={code.id} className="flex min-w-0 flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:px-5">
                 <div className="min-w-0">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{[code.code, code.costCode ? `${code.costCode.code} ${code.costCode.name}` : null].filter(Boolean).join(" · ")}</p>
+                  <p className="text-xs text-muted-foreground">{[code.code, code.costCode ? `${code.costCode.code} ${code.costCode.name}` : null].filter(Boolean).join(" · ")}</p>
                   <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="min-w-0 break-words text-sm font-medium">{code.description}</span>
                     <TitleStatus status={code.isActive ? "active" : "inactive"} />
@@ -77,9 +77,9 @@ export async function ProjectStructurePage({ projectId }: { projectId: string })
             {locations.map(location => (
               <li key={location.id} className="min-w-0 px-4 py-3 md:px-5">
                 <div style={{ paddingInlineStart: `${Math.min(location.depth, 6) * 1.25}rem` }} className="min-w-0">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{location.code} · {readable(location.locationType)}</p>
+                  <p className="text-xs text-muted-foreground">{location.code} · {readable(location.locationType)}</p>
                   <p className="mt-0.5 break-words text-sm font-medium">{location.name}</p>
-                  <details className="group mt-2 rounded-lg border">
+                  <details className="group mt-2 rounded-[6px] border">
                     <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium text-muted-foreground [&::-webkit-details-marker]:hidden"><span className="group-open:hidden">Rename</span><span className="hidden group-open:inline">Close</span></summary>
                     <div className="border-t"><RenameLocationForm id={location.id} name={location.name} /></div>
                   </details>

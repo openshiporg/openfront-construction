@@ -48,7 +48,7 @@ export function CommandPanel({
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <input type="hidden" name="operation" value={operation} />
         {options.length > 1 && (
-          <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:col-span-2 md:mx-0 md:px-0 xl:col-span-4">
+          <div className="relative -mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:col-span-2 md:mx-0 md:px-0 xl:col-span-4">
             <div role="radiogroup" aria-label="Record type" className={`${trackClass} max-w-none`}>
               {options.map(option => <button key={option.value} type="button" role="radio" aria-checked={operation === option.value} onClick={() => setOperation(option.value)} className={pillClass(operation === option.value ? "raised" : "quiet", "sm")}>{option.label}</button>)}
             </div>

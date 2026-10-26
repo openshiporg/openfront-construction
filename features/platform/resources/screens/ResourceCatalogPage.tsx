@@ -16,7 +16,7 @@ function CatalogRow({ reference, title, status, meta, control, editor }: { refer
     <li className="grid min-w-0 gap-3 px-3 py-3 md:px-4">
       <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{reference}</p>
+          <p className="text-xs text-muted-foreground">{reference}</p>
           <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <span className="min-w-0 break-words text-sm font-medium">{title}</span>
             <TitleStatus status={status} />
@@ -25,7 +25,7 @@ function CatalogRow({ reference, title, status, meta, control, editor }: { refer
         </div>
         {control}
       </div>
-      <details className="group rounded-lg border">
+      <details className="group rounded-[6px] border">
         <summary className="cursor-pointer list-none px-3 py-2 text-xs font-medium text-muted-foreground [&::-webkit-details-marker]:hidden"><span className="group-open:hidden">Edit</span><span className="hidden group-open:inline">Close</span></summary>
         <div className="border-t">{editor}</div>
       </details>

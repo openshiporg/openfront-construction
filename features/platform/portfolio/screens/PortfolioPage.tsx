@@ -44,9 +44,9 @@ function Count({ label, value, attention }: { label: string; value: number | nul
 function ProjectCard({ project }: { project: ProjectSummary }) {
   return (
     <li className="min-w-0">
-      <Link href={`/dashboard/platform/projects/${encodeURIComponent(project.id)}`} className="group grid h-full min-w-0 gap-4 rounded-xl border bg-background p-4 transition-shadow hover:shadow-[0_1px_3px_rgb(0_0_0/0.08),0_0_0_1px_rgb(0_0_0/0.04)] md:p-5">
+      <Link href={`/dashboard/platform/projects/${encodeURIComponent(project.id)}`} className="group grid h-full min-w-0 gap-4 rounded-[6px] border bg-background p-4 transition-shadow hover:shadow-[0_1px_3px_rgb(0_0_0/0.08),0_0_0_1px_rgb(0_0_0/0.04)] md:p-5">
         <div className="min-w-0">
-          <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{project.projectNumber} · {project.companyName}</p>
+          <p className="text-xs text-muted-foreground">{project.projectNumber} · {project.companyName}</p>
           <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <h3 className="min-w-0 break-words text-base font-semibold tracking-tight group-hover:underline group-hover:underline-offset-4">{project.name}</h3>
             <TitleStatus status={project.status} />
