@@ -55,7 +55,7 @@ import {
 import { lifecycleResolvers } from "./lifecycle";
 import { constructionStoreSettings, updateConstructionStoreSettings } from "./store-settings";
 import { commandConstructionRequest, constructionCustomerRequest, constructionCustomerRequestCount, constructionCustomerRequests, constructionOperatorRequests, registerConstructionCustomer } from "./customer-requests";
-import { constructionPayableClaims, checkPaymentStatus, createClaimPayment, createClaimPaymentLink, createCustomerPayment, reconcileCustomerPayment } from "./payments";
+import { installStripePaymentProvider, setPaymentProviderInstalled, constructionPayableClaims, checkPaymentStatus, createClaimPayment, createClaimPaymentLink, createCustomerPayment, reconcileCustomerPayment } from "./payments";
 import { onboardConstructionWorkspace } from "./onboarding";
 import { issueApiCredential, revokeApiCredential } from "./api-credentials";
 import { decideConstructionApproval, requestConstructionApproval } from "./approvals";
@@ -925,6 +925,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
       type CustomerRegistrationResult { success: Boolean! }
       type CustomerPaymentResult { url: String!, paymentId: ID! }
       type PaymentStatusResult { status: String! }
+      type PaymentProviderState { id: ID!, isInstalled: Boolean!, configured: Boolean! }
       type PayableClaim { id: ID!, claimNumber: String!, status: String!, currencyCode: String!, retainageMinor: String!, netMinor: String!, remainingMinor: String!, paymentId: ID, paymentStatus: String }
       type ConstructionCustomerRequest {
         id: ID!
@@ -1155,6 +1156,8 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         createClaimPayment(projectId: ID!, claimId: ID!): CustomerPaymentResult!
         createClaimPaymentLink(projectId: ID!, claimId: ID!): CustomerPaymentResult!
         checkPaymentStatus(projectId: ID!, paymentId: ID!): PaymentStatusResult!
+        installStripePaymentProvider(companyId: ID!): PaymentProviderState!
+        setPaymentProviderInstalled(providerId: ID!, isInstalled: Boolean!): PaymentProviderState!
       }
     `,
     resolvers: {
@@ -1206,6 +1209,8 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         createClaimPayment,
         createClaimPaymentLink,
         checkPaymentStatus,
+        installStripePaymentProvider,
+        setPaymentProviderInstalled,
         createConstructionProject,
         startBidPackage,
         awardBidSubmission,

@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   Building2,
+  CreditCard,
   ClipboardCheck,
   FileClock,
   FolderKanban,
@@ -69,6 +70,14 @@ export const platformNavItems: PlatformNavItem[] = [
   },
 
   // Company
+  {
+    title: "Payment providers",
+    href: "/platform/payment-providers",
+    color: "emerald",
+    description: "Turn on card and bank (ACH) payments for deposits and progress claims.",
+    icon: CreditCard,
+    group: "company",
+  },
   {
     title: "Trade partners",
     href: "/platform/trade-partners",

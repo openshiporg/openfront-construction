@@ -25,6 +25,7 @@ import { EmptyState, PageHeader, Panel, PillLink, PlatformPage, StatusDot, Title
 import type { ResourceLogRegisterPage } from "../data";
 import { CommandPanel } from "./CommandPanel";
 import { WorkflowPanel } from "./WorkflowPanel";
+import { ClaimPaymentLinksPanel } from "@/features/platform/payment-providers/ClaimPaymentLinksPanel";
 import { TransitionControl } from "./TransitionControl";
 import { MetricList } from "./MetricList";
 import { ListPager } from "./ListPager";
@@ -245,6 +246,7 @@ export function ProjectWorkspace({ resourceRegister, resourceUnavailable, worksp
         )}
       </Panel>
 
+      {tool === "billing" && internal && workspace.availableCommands.includes("allocateSettledPayment") && <ClaimPaymentLinksPanel projectId={project.id} currencyCode={project.currencyCode} />}
       <WorkflowPanel tool={tool} projectId={project.id} availableCommands={workspace.availableCommands} options={options} />
       {authorizedCapture && authorizedCapture.options.length > 0 && <CommandPanel projectId={project.id} recordOptions={options} {...authorizedCapture} />}
       {tool === "field" && resourceRegister && workspace.availableCommands.includes("recordResourceActivity") && <ResourceActivityPanel projectId={project.id} options={options} currencyCode={project.currencyCode} scope={resourceRegister.intentScope} />}

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type { KeystoneContext } from "@keystone-6/core/types";
-import { hasProjectPermission, type Session } from "../access";
+import { hasCompanyPermission, hasProjectPermission, type Session } from "../access";
 import { createPayment, getPaymentStatus, handleWebhook } from "../utils/paymentProviderAdapter";
 import { isPaymentProviderConfigured } from "../utils/paymentProviderConfig";
 import {
@@ -214,4 +214,32 @@ export async function constructionPayableClaims(_root: unknown, { projectId }: {
     out.push({ id: claim.id, claimNumber: claim.claimNumber, status: claim.status, currencyCode: claim.currencyCode, retainageMinor: String(claim.retainageMinor ?? 0), netMinor: String(claim.currentPaymentDueMinor ?? 0), remainingMinor: remaining.toString(), paymentId: pending?.id ?? null, paymentStatus: pending?.status ?? null });
   }
   return out;
+}
+
+const STRIPE_FUNCTIONS = { createPaymentFunction: "stripe", capturePaymentFunction: "stripe", refundPaymentFunction: "stripe", getPaymentStatusFunction: "stripe", generatePaymentLinkFunction: "stripe", handleWebhookFunction: "stripe" };
+
+function companyBillingAdmin(context: KeystoneContext, companyId: string) {
+  const session = humanSession(context);
+  if (!hasCompanyPermission(session, companyId, "canManageBilling")) throw new Error("Not authorized to manage payment providers");
+  return session;
+}
+
+/** Install the company's Stripe provider record (credentials stay in server env). */
+export async function installStripePaymentProvider(_root: unknown, { companyId }: { companyId: string }, context: KeystoneContext) {
+  companyBillingAdmin(context, companyId);
+  const sudo = context.sudo();
+  const existing = await sudo.prisma.paymentProvider.findFirst({ where: { companyId, code: { startsWith: "pp_stripe" } } });
+  if (existing) return { id: existing.id, isInstalled: existing.isInstalled, configured: isPaymentProviderConfigured(existing.code) };
+  const code = `pp_stripe_${companyId.slice(-12).replace(/[^a-zA-Z0-9]/g, "")}`;
+  const created = await sudo.prisma.paymentProvider.create({ data: { name: "Stripe (card and US bank account)", code, isInstalled: true, companyId, ...STRIPE_FUNCTIONS } });
+  return { id: created.id, isInstalled: true, configured: isPaymentProviderConfigured(code) };
+}
+
+export async function setPaymentProviderInstalled(_root: unknown, { providerId, isInstalled }: { providerId: string; isInstalled: boolean }, context: KeystoneContext) {
+  const sudo = context.sudo();
+  const provider = await sudo.prisma.paymentProvider.findUnique({ where: { id: providerId } });
+  if (!provider?.companyId) throw new Error("Provider not found");
+  companyBillingAdmin(context, provider.companyId);
+  const updated = await sudo.prisma.paymentProvider.update({ where: { id: providerId }, data: { isInstalled } });
+  return { id: updated.id, isInstalled: updated.isInstalled, configured: isPaymentProviderConfigured(updated.code) };
 }
