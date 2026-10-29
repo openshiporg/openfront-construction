@@ -82,3 +82,16 @@ export function readableStatus(value: string) {
   const text = value.replaceAll("_", " ");
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+/* An email address that wraps after the @ and before dots, never mid-word. */
+export function EmailText({ email }: { email: string }) {
+  const at = email.indexOf("@");
+  if (at < 0) return <span className="sf-email">{email}</span>;
+  const domain = email.slice(at + 1).split(".");
+  return (
+    <span className="sf-email">
+      {email.slice(0, at + 1)}<wbr />
+      {domain.map((part, index) => <span key={index}>{index > 0 && <><wbr />.</>}{part}</span>)}
+    </span>
+  );
+}

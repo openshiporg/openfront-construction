@@ -3,7 +3,7 @@ import { Mail, Phone } from "lucide-react";
 
 import { PublicIntakeForm, type PublicIntakeKind } from "../components/PublicIntakeForm";
 import { PublicShell, telHref } from "../components/PublicShell";
-import { Empty, Pill, Status, Track } from "../components/ui";
+import { EmailText, Empty, Pill, Status, Track } from "../components/ui";
 import { getPublicConstructionSite } from "../data";
 
 const pageCopy: Record<string, { eyebrow: string; title: string }> = {
@@ -61,7 +61,7 @@ export async function InquiryPage({
                 {site && (site.inquiryPhone || site.inquiryEmail) && (
                   <div className="sf-contact sf-mt">
                     {site.inquiryPhone && <a href={telHref(site.inquiryPhone)}><Phone />{site.inquiryPhone}</a>}
-                    {site.inquiryEmail && <a href={`mailto:${site.inquiryEmail}`}><Mail />{site.inquiryEmail}</a>}
+                    {site.inquiryEmail && <a href={`mailto:${site.inquiryEmail}`}><Mail /><EmailText email={site.inquiryEmail} /></a>}
                   </div>
                 )}
                 {site?.serviceArea && <p className="sf-mt sf-small" style={{ color: "var(--sf-slab-muted)" }}>{site.serviceArea}</p>}

@@ -1,10 +1,11 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowRight, Mail, Phone } from "lucide-react";
 
 import { PublicShell, telHref } from "../components/PublicShell";
 import { ProjectCard } from "../components/ProjectCard";
 import { ServiceTile } from "../components/ServiceTile";
-import { Empty, Pill, SectionHead, Status, Track } from "../components/ui";
+import { EmailText, Empty, Pill, SectionHead, Status, Track } from "../components/ui";
 import { getPublicConstructionSite } from "../data";
 
 export async function HomePage() {
@@ -39,9 +40,9 @@ export async function HomePage() {
                   {area && <div className="sf-board__row"><dt>Service area</dt><dd>{area}</dd></div>}
                   <div className="sf-board__row"><dt>Services</dt><dd className="sf-board__big">{site.services.length}</dd></div>
                   <div className="sf-board__row"><dt>Projects</dt><dd className="sf-board__big">{site.projects.length}</dd></div>
-                  {markets.length > 0 && <div className="sf-board__row"><dt>Markets</dt><dd>{markets.slice(0, 4).join(" · ")}</dd></div>}
+                  {markets.length > 0 && <div className="sf-board__row"><dt>Markets</dt><dd>{markets.slice(0, 4).map((market, index) => <Fragment key={market}>{index > 0 && " · "}<span className="sf-nowrap">{market}</span></Fragment>)}</dd></div>}
                   {site.inquiryPhone && <div className="sf-board__row"><dt>Phone</dt><dd><a href={telHref(site.inquiryPhone)}>{site.inquiryPhone}</a></dd></div>}
-                  {site.inquiryEmail && <div className="sf-board__row"><dt>Email</dt><dd><a href={`mailto:${site.inquiryEmail}`}>{site.inquiryEmail}</a></dd></div>}
+                  {site.inquiryEmail && <div className="sf-board__row"><dt>Email</dt><dd><a href={`mailto:${site.inquiryEmail}`}><EmailText email={site.inquiryEmail} /></a></dd></div>}
                 </dl>
               </aside>
             </div>
@@ -82,7 +83,7 @@ export async function HomePage() {
               {(site.inquiryPhone || site.inquiryEmail) && (
                 <div className="sf-contact">
                   {site.inquiryPhone && <a href={telHref(site.inquiryPhone)}><Phone />{site.inquiryPhone}</a>}
-                  {site.inquiryEmail && <a href={`mailto:${site.inquiryEmail}`}><Mail />{site.inquiryEmail}</a>}
+                  {site.inquiryEmail && <a href={`mailto:${site.inquiryEmail}`}><Mail /><EmailText email={site.inquiryEmail} /></a>}
                   <Link href="/contact" className="sf-small sf-link">Contact form</Link>
                 </div>
               )}
