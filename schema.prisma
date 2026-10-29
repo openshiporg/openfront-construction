@@ -225,6 +225,8 @@ model User {
   from_ProgressClaim_updatedByUser            ProgressClaim[]           @relation("ProgressClaim_updatedByUser")
   from_ProgressClaimLineItem_createdByUser    ProgressClaimLineItem[]   @relation("ProgressClaimLineItem_createdByUser")
   from_ProgressClaimLineItem_updatedByUser    ProgressClaimLineItem[]   @relation("ProgressClaimLineItem_updatedByUser")
+  from_PaymentProvider_createdByUser          PaymentProvider[]         @relation("PaymentProvider_createdByUser")
+  from_PaymentProvider_updatedByUser          PaymentProvider[]         @relation("PaymentProvider_updatedByUser")
   from_Payment_recordedBy                     Payment[]                 @relation("Payment_recordedBy")
   from_Payment_createdByUser                  Payment[]                 @relation("Payment_createdByUser")
   from_Payment_updatedByUser                  Payment[]                 @relation("Payment_updatedByUser")
@@ -509,6 +511,7 @@ model Company {
   publicSiteProfile                    PublicSiteProfile?        @relation("Company_publicSiteProfile", fields: [publicSiteProfileId], references: [id])
   publicSiteProfileId                  String?                   @unique @map("publicSiteProfile")
   serviceRequests                      ServiceRequest[]          @relation("ServiceRequest_company")
+  paymentProviders                     PaymentProvider[]         @relation("PaymentProvider_company")
   publicServices                       PublicService[]           @relation("PublicService_company")
   publicProjects                       PublicProject[]           @relation("PublicProject_company")
   intakeSubmissions                    IntakeSubmission[]        @relation("IntakeSubmission_company")
@@ -2942,6 +2945,34 @@ model ProgressClaimLineItem {
   @@index([updatedByUserId])
 }
 
+model PaymentProvider {
+  id                          String    @id @default(cuid())
+  name                        String    @default("")
+  code                        String    @unique @default("")
+  isInstalled                 Boolean   @default(true)
+  credentials                 Json?     @default("{}")
+  metadata                    Json?     @default("{}")
+  createPaymentFunction       String    @default("")
+  capturePaymentFunction      String    @default("")
+  refundPaymentFunction       String    @default("")
+  getPaymentStatusFunction    String    @default("")
+  generatePaymentLinkFunction String    @default("")
+  handleWebhookFunction       String    @default("")
+  company                     Company?  @relation("PaymentProvider_company", fields: [companyId], references: [id])
+  companyId                   String?   @map("company")
+  payments                    Payment[] @relation("Payment_paymentProvider")
+  createdByUser               User?     @relation("PaymentProvider_createdByUser", fields: [createdByUserId], references: [id])
+  createdByUserId             String?   @map("createdByUser")
+  updatedByUser               User?     @relation("PaymentProvider_updatedByUser", fields: [updatedByUserId], references: [id])
+  updatedByUserId             String?   @map("updatedByUser")
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @default(now()) @updatedAt
+
+  @@index([companyId])
+  @@index([createdByUserId])
+  @@index([updatedByUserId])
+}
+
 model Payment {
   id                String                   @id @default(cuid())
   paymentNumber     String                   @default("")
@@ -2951,6 +2982,10 @@ model Payment {
   currencyCode      String                   @default("USD")
   paymentMethod     PaymentPaymentMethodType @default(ach)
   reference         String                   @default("")
+  providerPaymentId String?                  @unique
+  idempotencyKey    String?                  @unique
+  paymentProvider   PaymentProvider?         @relation("Payment_paymentProvider", fields: [paymentProviderId], references: [id])
+  paymentProviderId String?                  @map("paymentProvider")
   paidAt            DateTime?
   settledAt         DateTime?
   tradePartner      TradePartner?            @relation("Payment_tradePartner", fields: [tradePartnerId], references: [id])
@@ -2972,6 +3007,7 @@ model Payment {
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @default(now()) @updatedAt
 
+  @@index([paymentProviderId])
   @@index([tradePartnerId])
   @@index([recordedById])
   @@index([companyId])

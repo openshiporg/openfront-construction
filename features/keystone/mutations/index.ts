@@ -55,6 +55,7 @@ import {
 import { lifecycleResolvers } from "./lifecycle";
 import { constructionStoreSettings, updateConstructionStoreSettings } from "./store-settings";
 import { commandConstructionRequest, constructionCustomerRequest, constructionCustomerRequestCount, constructionCustomerRequests, constructionOperatorRequests, registerConstructionCustomer } from "./customer-requests";
+import { createCustomerPayment } from "./payments";
 import { onboardConstructionWorkspace } from "./onboarding";
 import { issueApiCredential, revokeApiCredential } from "./api-credentials";
 import { decideConstructionApproval, requestConstructionApproval } from "./approvals";
@@ -922,6 +923,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
       }
 
       type CustomerRegistrationResult { success: Boolean! }
+      type CustomerPaymentResult { url: String!, paymentId: ID! }
       type ConstructionCustomerRequest {
         id: ID!
         reference: String!
@@ -1145,6 +1147,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         updateConstructionStoreSettings(input: JSON!): ConstructionCommandResult!
         registerConstructionCustomer(name: String!, email: String!, password: String!): CustomerRegistrationResult!
         commandConstructionRequest(input: ServiceRequestInput!): ConstructionCustomerRequest!
+        createCustomerPayment(requestId: ID!, providerId: ID!): CustomerPaymentResult!
       }
     `,
     resolvers: {
@@ -1190,6 +1193,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         updateConstructionStoreSettings,
         commandConstructionRequest,
         registerConstructionCustomer,
+        createCustomerPayment,
         createConstructionProject,
         startBidPackage,
         awardBidSubmission,

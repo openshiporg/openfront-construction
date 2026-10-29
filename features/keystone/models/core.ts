@@ -132,6 +132,7 @@ export const Company = list({
     constructionOpportunities: readOnlyRelationshipMany("ConstructionOpportunity.company"),
     publicSiteProfile: relationship({ ref: "PublicSiteProfile.company", access: { create: denyAll, update: denyAll } }),
     serviceRequests: readOnlyRelationshipMany("ServiceRequest.company"),
+    paymentProviders: readOnlyRelationshipMany("PaymentProvider.company"),
     publicServices: readOnlyRelationshipMany("PublicService.company"),
     publicProjects: readOnlyRelationshipMany("PublicProject.company"),
     intakeSubmissions: readOnlyRelationshipMany("IntakeSubmission.company"),

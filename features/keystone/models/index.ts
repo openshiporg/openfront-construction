@@ -65,6 +65,7 @@ import {
   SafetyIncident,
   SafetyObservation,
 } from "./safety";
+import { PaymentProvider } from "./payment-provider";
 import {
   LienWaiver,
   Payment,
@@ -160,6 +161,7 @@ export const models = {
   CorrectiveAction,
   ProgressClaim,
   ProgressClaimLineItem,
+  PaymentProvider,
   Payment,
   PaymentReversal,
   PaymentAllocation,

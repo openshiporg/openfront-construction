@@ -1248,6 +1248,8 @@ type Company {
   publicSiteProfile: PublicSiteProfile
   serviceRequests(where: ServiceRequestWhereInput! = {}, orderBy: [ServiceRequestOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ServiceRequestWhereUniqueInput): [ServiceRequest!]
   serviceRequestsCount(where: ServiceRequestWhereInput! = {}): Int
+  paymentProviders(where: PaymentProviderWhereInput! = {}, orderBy: [PaymentProviderOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PaymentProviderWhereUniqueInput): [PaymentProvider!]
+  paymentProvidersCount(where: PaymentProviderWhereInput! = {}): Int
   publicServices(where: PublicServiceWhereInput! = {}, orderBy: [PublicServiceOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PublicServiceWhereUniqueInput): [PublicService!]
   publicServicesCount(where: PublicServiceWhereInput! = {}): Int
   publicProjects(where: PublicProjectWhereInput! = {}, orderBy: [PublicProjectOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PublicProjectWhereUniqueInput): [PublicProject!]
@@ -1326,6 +1328,7 @@ input CompanyWhereInput {
   constructionOpportunities: ConstructionOpportunityManyRelationFilter
   publicSiteProfile: PublicSiteProfileWhereInput
   serviceRequests: ServiceRequestManyRelationFilter
+  paymentProviders: PaymentProviderManyRelationFilter
   publicServices: PublicServiceManyRelationFilter
   publicProjects: PublicProjectManyRelationFilter
   intakeSubmissions: IntakeSubmissionManyRelationFilter
@@ -1375,6 +1378,12 @@ input ConstructionOpportunityManyRelationFilter {
   every: ConstructionOpportunityWhereInput
   some: ConstructionOpportunityWhereInput
   none: ConstructionOpportunityWhereInput
+}
+
+input PaymentProviderManyRelationFilter {
+  every: PaymentProviderWhereInput
+  some: PaymentProviderWhereInput
+  none: PaymentProviderWhereInput
 }
 
 input PublicServiceManyRelationFilter {
@@ -1503,6 +1512,7 @@ input CompanyUpdateInput {
   constructionOpportunities: ConstructionOpportunityRelateToManyForUpdateInput
   publicSiteProfile: PublicSiteProfileRelateToOneForUpdateInput
   serviceRequests: ServiceRequestRelateToManyForUpdateInput
+  paymentProviders: PaymentProviderRelateToManyForUpdateInput
   publicServices: PublicServiceRelateToManyForUpdateInput
   publicProjects: PublicProjectRelateToManyForUpdateInput
   intakeSubmissions: IntakeSubmissionRelateToManyForUpdateInput
@@ -1554,6 +1564,13 @@ input ConstructionOpportunityRelateToManyForUpdateInput {
 input PublicSiteProfileRelateToOneForUpdateInput {
   connect: PublicSiteProfileWhereUniqueInput
   disconnect: Boolean
+}
+
+input PaymentProviderRelateToManyForUpdateInput {
+  disconnect: [PaymentProviderWhereUniqueInput!]
+  set: [PaymentProviderWhereUniqueInput!]
+  create: [PaymentProviderCreateInput!]
+  connect: [PaymentProviderWhereUniqueInput!]
 }
 
 input PublicServiceRelateToManyForUpdateInput {
@@ -1668,6 +1685,7 @@ input CompanyCreateInput {
   constructionOpportunities: ConstructionOpportunityRelateToManyForCreateInput
   publicSiteProfile: PublicSiteProfileRelateToOneForCreateInput
   serviceRequests: ServiceRequestRelateToManyForCreateInput
+  paymentProviders: PaymentProviderRelateToManyForCreateInput
   publicServices: PublicServiceRelateToManyForCreateInput
   publicProjects: PublicProjectRelateToManyForCreateInput
   intakeSubmissions: IntakeSubmissionRelateToManyForCreateInput
@@ -1710,6 +1728,11 @@ input ConstructionOpportunityRelateToManyForCreateInput {
 
 input PublicSiteProfileRelateToOneForCreateInput {
   connect: PublicSiteProfileWhereUniqueInput
+}
+
+input PaymentProviderRelateToManyForCreateInput {
+  create: [PaymentProviderCreateInput!]
+  connect: [PaymentProviderWhereUniqueInput!]
 }
 
 input PublicServiceRelateToManyForCreateInput {
@@ -11754,6 +11777,115 @@ input ProgressClaimRelateToOneForCreateInput {
   connect: ProgressClaimWhereUniqueInput
 }
 
+type PaymentProvider {
+  id: ID!
+  name: String
+  code: String
+  isInstalled: Boolean
+  credentials: JSON
+  metadata: JSON
+  createPaymentFunction: String
+  capturePaymentFunction: String
+  refundPaymentFunction: String
+  getPaymentStatusFunction: String
+  generatePaymentLinkFunction: String
+  handleWebhookFunction: String
+  company: Company
+  payments(where: PaymentWhereInput! = {}, orderBy: [PaymentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PaymentWhereUniqueInput): [Payment!]
+  paymentsCount(where: PaymentWhereInput! = {}): Int
+  createdByUser: User
+  updatedByUser: User
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input PaymentProviderWhereUniqueInput {
+  id: ID
+  code: String
+}
+
+input PaymentProviderWhereInput {
+  AND: [PaymentProviderWhereInput!]
+  OR: [PaymentProviderWhereInput!]
+  NOT: [PaymentProviderWhereInput!]
+  id: IDFilter
+  name: StringFilter
+  code: StringFilter
+  isInstalled: BooleanFilter
+  createPaymentFunction: StringFilter
+  capturePaymentFunction: StringFilter
+  refundPaymentFunction: StringFilter
+  getPaymentStatusFunction: StringFilter
+  generatePaymentLinkFunction: StringFilter
+  handleWebhookFunction: StringFilter
+  company: CompanyWhereInput
+  payments: PaymentManyRelationFilter
+  createdByUser: UserWhereInput
+  updatedByUser: UserWhereInput
+  createdAt: DateTimeFilter
+  updatedAt: DateTimeFilter
+}
+
+input PaymentProviderOrderByInput {
+  id: OrderDirection
+  name: OrderDirection
+  code: OrderDirection
+  isInstalled: OrderDirection
+  createPaymentFunction: OrderDirection
+  capturePaymentFunction: OrderDirection
+  refundPaymentFunction: OrderDirection
+  getPaymentStatusFunction: OrderDirection
+  generatePaymentLinkFunction: OrderDirection
+  handleWebhookFunction: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input PaymentProviderUpdateInput {
+  name: String
+  code: String
+  isInstalled: Boolean
+  credentials: JSON
+  metadata: JSON
+  createPaymentFunction: String
+  capturePaymentFunction: String
+  refundPaymentFunction: String
+  getPaymentStatusFunction: String
+  generatePaymentLinkFunction: String
+  handleWebhookFunction: String
+  company: CompanyRelateToOneForUpdateInput
+  payments: PaymentRelateToManyForUpdateInput
+  createdByUser: UserRelateToOneForUpdateInput
+  updatedByUser: UserRelateToOneForUpdateInput
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input PaymentProviderUpdateArgs {
+  where: PaymentProviderWhereUniqueInput!
+  data: PaymentProviderUpdateInput!
+}
+
+input PaymentProviderCreateInput {
+  name: String
+  code: String
+  isInstalled: Boolean
+  credentials: JSON
+  metadata: JSON
+  createPaymentFunction: String
+  capturePaymentFunction: String
+  refundPaymentFunction: String
+  getPaymentStatusFunction: String
+  generatePaymentLinkFunction: String
+  handleWebhookFunction: String
+  company: CompanyRelateToOneForCreateInput
+  payments: PaymentRelateToManyForCreateInput
+  createdByUser: UserRelateToOneForCreateInput
+  updatedByUser: UserRelateToOneForCreateInput
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
 type Payment {
   id: ID!
   paymentNumber: String
@@ -11763,6 +11895,9 @@ type Payment {
   currencyCode: String
   paymentMethod: PaymentPaymentMethodType
   reference: String
+  providerPaymentId: String
+  idempotencyKey: String
+  paymentProvider: PaymentProvider
   paidAt: DateTime
   settledAt: DateTime
   tradePartner: TradePartner
@@ -11808,6 +11943,8 @@ enum PaymentPaymentMethodType {
 
 input PaymentWhereUniqueInput {
   id: ID
+  providerPaymentId: String
+  idempotencyKey: String
 }
 
 input PaymentWhereInput {
@@ -11822,6 +11959,9 @@ input PaymentWhereInput {
   currencyCode: StringFilter
   paymentMethod: PaymentPaymentMethodTypeNullableFilter
   reference: StringFilter
+  providerPaymentId: StringNullableFilter
+  idempotencyKey: StringNullableFilter
+  paymentProvider: PaymentProviderWhereInput
   paidAt: DateTimeNullableFilter
   settledAt: DateTimeNullableFilter
   tradePartner: TradePartnerWhereInput
@@ -11859,6 +11999,21 @@ input PaymentPaymentMethodTypeNullableFilter {
   not: PaymentPaymentMethodTypeNullableFilter
 }
 
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  mode: QueryMode
+  not: StringNullableFilter
+}
+
 input PaymentOrderByInput {
   id: OrderDirection
   paymentNumber: OrderDirection
@@ -11868,6 +12023,8 @@ input PaymentOrderByInput {
   currencyCode: OrderDirection
   paymentMethod: OrderDirection
   reference: OrderDirection
+  providerPaymentId: OrderDirection
+  idempotencyKey: OrderDirection
   paidAt: OrderDirection
   settledAt: OrderDirection
   createdAt: OrderDirection
@@ -11882,6 +12039,9 @@ input PaymentUpdateInput {
   currencyCode: String
   paymentMethod: PaymentPaymentMethodType
   reference: String
+  providerPaymentId: String
+  idempotencyKey: String
+  paymentProvider: PaymentProviderRelateToOneForUpdateInput
   paidAt: DateTime
   settledAt: DateTime
   tradePartner: TradePartnerRelateToOneForUpdateInput
@@ -11898,6 +12058,12 @@ input PaymentUpdateInput {
   updatedAt: DateTime
 }
 
+input PaymentProviderRelateToOneForUpdateInput {
+  create: PaymentProviderCreateInput
+  connect: PaymentProviderWhereUniqueInput
+  disconnect: Boolean
+}
+
 input PaymentUpdateArgs {
   where: PaymentWhereUniqueInput!
   data: PaymentUpdateInput!
@@ -11911,6 +12077,9 @@ input PaymentCreateInput {
   currencyCode: String
   paymentMethod: PaymentPaymentMethodType
   reference: String
+  providerPaymentId: String
+  idempotencyKey: String
+  paymentProvider: PaymentProviderRelateToOneForCreateInput
   paidAt: DateTime
   settledAt: DateTime
   tradePartner: TradePartnerRelateToOneForCreateInput
@@ -11925,6 +12094,11 @@ input PaymentCreateInput {
   updatedByUser: UserRelateToOneForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
+}
+
+input PaymentProviderRelateToOneForCreateInput {
+  create: PaymentProviderCreateInput
+  connect: PaymentProviderWhereUniqueInput
 }
 
 type PaymentReversal {
@@ -13854,21 +14028,6 @@ input AgentActionActorTypeTypeNullableFilter {
   not: AgentActionActorTypeTypeNullableFilter
 }
 
-input StringNullableFilter {
-  equals: String
-  in: [String!]
-  notIn: [String!]
-  lt: String
-  lte: String
-  gt: String
-  gte: String
-  contains: String
-  startsWith: String
-  endsWith: String
-  mode: QueryMode
-  not: StringNullableFilter
-}
-
 input AgentActionStatusTypeNullableFilter {
   equals: AgentActionStatusType
   in: [AgentActionStatusType!]
@@ -14468,6 +14627,12 @@ type Mutation {
   updateProgressClaimLineItems(data: [ProgressClaimLineItemUpdateArgs!]!): [ProgressClaimLineItem]
   deleteProgressClaimLineItem(where: ProgressClaimLineItemWhereUniqueInput!): ProgressClaimLineItem
   deleteProgressClaimLineItems(where: [ProgressClaimLineItemWhereUniqueInput!]!): [ProgressClaimLineItem]
+  createPaymentProvider(data: PaymentProviderCreateInput!): PaymentProvider
+  createPaymentProviders(data: [PaymentProviderCreateInput!]!): [PaymentProvider]
+  updatePaymentProvider(where: PaymentProviderWhereUniqueInput!, data: PaymentProviderUpdateInput!): PaymentProvider
+  updatePaymentProviders(data: [PaymentProviderUpdateArgs!]!): [PaymentProvider]
+  deletePaymentProvider(where: PaymentProviderWhereUniqueInput!): PaymentProvider
+  deletePaymentProviders(where: [PaymentProviderWhereUniqueInput!]!): [PaymentProvider]
   createPayment(data: PaymentCreateInput!): Payment
   createPayments(data: [PaymentCreateInput!]!): [Payment]
   updatePayment(where: PaymentWhereUniqueInput!, data: PaymentUpdateInput!): Payment
@@ -14679,6 +14844,7 @@ type Mutation {
   updateConstructionStoreSettings(input: JSON!): ConstructionCommandResult!
   registerConstructionCustomer(name: String!, email: String!, password: String!): CustomerRegistrationResult!
   commandConstructionRequest(input: ServiceRequestInput!): ConstructionCustomerRequest!
+  createCustomerPayment(requestId: ID!, providerId: ID!): CustomerPaymentResult!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -14911,6 +15077,9 @@ type Query {
   progressClaimLineItem(where: ProgressClaimLineItemWhereUniqueInput!): ProgressClaimLineItem
   progressClaimLineItems(where: ProgressClaimLineItemWhereInput! = {}, orderBy: [ProgressClaimLineItemOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ProgressClaimLineItemWhereUniqueInput): [ProgressClaimLineItem!]
   progressClaimLineItemsCount(where: ProgressClaimLineItemWhereInput! = {}): Int
+  paymentProvider(where: PaymentProviderWhereUniqueInput!): PaymentProvider
+  paymentProviders(where: PaymentProviderWhereInput! = {}, orderBy: [PaymentProviderOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PaymentProviderWhereUniqueInput): [PaymentProvider!]
+  paymentProvidersCount(where: PaymentProviderWhereInput! = {}): Int
   payment(where: PaymentWhereUniqueInput!): Payment
   payments(where: PaymentWhereInput! = {}, orderBy: [PaymentOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PaymentWhereUniqueInput): [Payment!]
   paymentsCount(where: PaymentWhereInput! = {}): Int
@@ -15948,6 +16117,11 @@ type PublicConstructionSite {
 
 type CustomerRegistrationResult {
   success: Boolean!
+}
+
+type CustomerPaymentResult {
+  url: String!
+  paymentId: ID!
 }
 
 type ConstructionCustomerRequest {

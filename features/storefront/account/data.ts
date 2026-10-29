@@ -9,6 +9,11 @@ export const REQUEST_SELECTION = "id reference serviceTitle serviceSlug scope st
 
 export const CUSTOMER_REQUEST_PAGE_SIZE = 25;
 
+export async function getCustomerPaymentProviderId(): Promise<string | null> {
+  const response = await keystoneClient<{ paymentProviders: Array<{ id: string }> }>(`query CustomerPaymentProvider { paymentProviders(take: 1) { id } }`);
+  return response.success ? response.data.paymentProviders[0]?.id ?? null : null;
+}
+
 export async function getCustomerUser() {
   const result = await keystoneClient<{ authenticatedItem: { id: string; name: string; email: string; phone: string | null } | null }>(`query CustomerSession { authenticatedItem { ... on User { id name email phone } } }`);
   return result.success ? result.data.authenticatedItem : null;
