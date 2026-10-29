@@ -4,6 +4,9 @@ import { getConstructionProjectWorkspace } from "@/features/platform/projects/da
 import { PortalInbox } from "@/features/portal/components/PortalInbox";
 import { MerchantMark } from "@/features/portal/components/MerchantMark";
 import { getPortalInbox } from "@/features/portal/data";
+import { getPayableClaims } from "@/features/portal/payments/actions";
+import { PayClaims } from "@/features/portal/payments/PayClaims";
+import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 import { Empty, Pill, Status, Track, readableStatus, statusDot } from "@/features/storefront/components/ui";
 
 const portalTools = [
@@ -17,9 +20,16 @@ const portalTools = [
   { slug: "quality-safety", label: "Quality & safety" },
 ] as const;
 
-export async function PortalProjectPage({ projectId, tool = "overview" }: { projectId: string; tool?: string }) {
+export async function PortalProjectPage({ projectId, tool = "overview", paymentId, sessionId }: { projectId: string; tool?: string; paymentId?: string; sessionId?: string }) {
   const selectedTool = portalTools.some(entry => entry.slug === tool) ? tool : "overview";
   const workspace = await getConstructionProjectWorkspace(projectId, selectedTool);
+  let paymentNotice = "";
+  if (paymentId && sessionId && workspace.audience === "external") {
+    const checked = await keystoneClient<{ checkPaymentStatus: { status: string } }>(`mutation CheckPayment($projectId: ID!, $paymentId: ID!) { checkPaymentStatus(projectId: $projectId, paymentId: $paymentId) { status } }`, { projectId, paymentId });
+    const status = checked.success ? checked.data.checkPaymentStatus.status : "unknown";
+    paymentNotice = status === "settled" ? "Payment received and applied to the claim. Thank you." : status === "pending" ? "Your payment is still processing. Bank payments can take a few days to clear." : "We could not confirm this payment. Check the status again or contact the contractor.";
+  }
+  const payableClaims = selectedTool === "billing" && workspace.audience === "external" ? await getPayableClaims(projectId) : [];
   const inbox = workspace.audience === "external" ? await getPortalInbox(projectId) : [];
   const actionGroups: Record<string, string[]> = {
     preconstruction: ["submit_bid"], execution: ["respond_rfi", "review_submittal", "decide_approval"],
@@ -53,6 +63,8 @@ export async function PortalProjectPage({ projectId, tool = "overview" }: { proj
               {portalTools.map(entry => <Pill key={entry.slug} href={`/portal/projects/${encodeURIComponent(projectId)}/${entry.slug}`} variant="quiet" size="sm" current={entry.slug === selectedTool}>{entry.label}</Pill>)}
             </Track>
           </nav>
+
+          {selectedTool === "billing" && <PayClaims projectId={projectId} claims={payableClaims} notice={paymentNotice} />}
 
           {workspace.audience === "external" && <PortalInbox projectId={projectId} items={visibleInbox} />}
 

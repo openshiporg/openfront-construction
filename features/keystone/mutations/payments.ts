@@ -192,3 +192,26 @@ export async function handlePaymentProviderWebhook(context: KeystoneContext, pro
   });
   return outcome;
 }
+
+export type PayableClaim = { id: string; claimNumber: string; status: string; currencyCode: string; retainageMinor: string; netMinor: string; remainingMinor: string; paymentId: string | null; paymentStatus: string | null };
+
+/** Owner claims the caller may pay (owner portal member), or all payable claims for billing staff. */
+export async function constructionPayableClaims(_root: unknown, { projectId }: { projectId: string }, context: KeystoneContext): Promise<PayableClaim[]> {
+  const session = humanSession(context);
+  const prisma = context.sudo().prisma;
+  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { companyId: true } });
+  if (!project?.companyId) return [];
+  const staff = hasProjectPermission(session, project.companyId, projectId, "canManageBilling", false);
+  const owner = staff ? null : await prisma.projectMembership.findFirst({ where: { userId: session.itemId, projectId, status: "active", portalType: "owner" } });
+  if (!staff && !owner) return [];
+  const claims = await prisma.progressClaim.findMany({ where: { projectId, claimType: "owner", status: { in: ["approved", "partially_paid"] } }, orderBy: { createdAt: "asc" }, take: 50 });
+  const out: PayableClaim[] = [];
+  for (const claim of claims) {
+    const settled = await prisma.paymentAllocation.aggregate({ _sum: { amountMinor: true }, where: { progressClaimId: claim.id, payment: { status: "settled" } } });
+    const remaining = BigInt(claim.currentPaymentDueMinor ?? 0) - BigInt(settled._sum.amountMinor ?? 0);
+    if (remaining <= BigInt(0)) continue;
+    const pending = await prisma.payment.findFirst({ where: { idempotencyKey: { startsWith: `construction-claim:${claim.id}:` }, status: "pending" }, orderBy: { createdAt: "desc" }, select: { id: true, status: true } });
+    out.push({ id: claim.id, claimNumber: claim.claimNumber, status: claim.status, currencyCode: claim.currencyCode, retainageMinor: String(claim.retainageMinor ?? 0), netMinor: String(claim.currentPaymentDueMinor ?? 0), remainingMinor: remaining.toString(), paymentId: pending?.id ?? null, paymentStatus: pending?.status ?? null });
+  }
+  return out;
+}

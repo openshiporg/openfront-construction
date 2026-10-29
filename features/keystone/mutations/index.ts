@@ -55,7 +55,7 @@ import {
 import { lifecycleResolvers } from "./lifecycle";
 import { constructionStoreSettings, updateConstructionStoreSettings } from "./store-settings";
 import { commandConstructionRequest, constructionCustomerRequest, constructionCustomerRequestCount, constructionCustomerRequests, constructionOperatorRequests, registerConstructionCustomer } from "./customer-requests";
-import { checkPaymentStatus, createClaimPayment, createClaimPaymentLink, createCustomerPayment, reconcileCustomerPayment } from "./payments";
+import { constructionPayableClaims, checkPaymentStatus, createClaimPayment, createClaimPaymentLink, createCustomerPayment, reconcileCustomerPayment } from "./payments";
 import { onboardConstructionWorkspace } from "./onboarding";
 import { issueApiCredential, revokeApiCredential } from "./api-credentials";
 import { decideConstructionApproval, requestConstructionApproval } from "./approvals";
@@ -925,6 +925,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
       type CustomerRegistrationResult { success: Boolean! }
       type CustomerPaymentResult { url: String!, paymentId: ID! }
       type PaymentStatusResult { status: String! }
+      type PayableClaim { id: ID!, claimNumber: String!, status: String!, currencyCode: String!, retainageMinor: String!, netMinor: String!, remainingMinor: String!, paymentId: ID, paymentStatus: String }
       type ConstructionCustomerRequest {
         id: ID!
         reference: String!
@@ -1035,6 +1036,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         constructionCustomerRequestCount(operator: Boolean): Int!
         constructionOperatorRequests(skip: Int, take: Int): [ConstructionOperatorRequest!]!
         constructionCustomerRequest(id: ID!): ConstructionCustomerRequest
+        constructionPayableClaims(projectId: ID!): [PayableClaim!]!
       }
 
       type Mutation {
@@ -1160,6 +1162,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         redirectToInit,
         constructionStoreSettings,
         constructionCustomerRequest,
+        constructionPayableClaims,
         constructionCustomerRequests,
         constructionCustomerRequestCount,
         constructionOperatorRequests,
