@@ -14,7 +14,7 @@ const value = (data: FormData, name: string) => String(data.get(name) || "").tri
 const canonicalEmail = (data: FormData) => value(data, "email").toLowerCase();
 
 export async function customerPaymentAction(_state: AccountState, data: FormData): Promise<AccountState> {
-  const result = await keystoneClient<{ createCustomerPayment: { url: string } }>(`mutation StartCustomerPayment($requestId: ID!, $providerId: ID!) { createCustomerPayment(requestId: $requestId, providerId: $providerId) { url paymentId } }`, { requestId: value(data, "requestId"), providerId: value(data, "providerId") });
+  const result = await keystoneClient<{ createCustomerPayment: { url: string } }>(`mutation StartCustomerPayment($requestId: ID!) { createCustomerPayment(requestId: $requestId) { url paymentId } }`, { requestId: value(data, "requestId") });
   if (!result.success) return { message: "Payment could not be started. Reload and try again or contact the contractor." };
   redirect(result.data.createCustomerPayment.url);
 }

@@ -5,12 +5,13 @@ async function stripeRequest(path: string, method = "GET", payload?: Record<stri
 }
 export async function createPaymentFunction({ order, amount, currency, idempotencyKey }: { order: any; amount: number; currency: string; idempotencyKey: string }) {
   const origin = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
-  const requestPath = `/account/requests/${encodeURIComponent(order?.requestId || "")}/payment`;
+  const requestPath = order?.returnPath && String(order.returnPath).startsWith("/") && !String(order.returnPath).startsWith("//") ? String(order.returnPath) : `/account/requests/${encodeURIComponent(order?.requestId || "")}/payment`;
+  const join = requestPath.includes("?") ? "&" : "?";
   const session: any = await stripeRequest("checkout/sessions", "POST", {
     mode: "payment", "payment_method_types[0]": "card", "payment_method_types[1]": "us_bank_account",
     "line_items[0][price_data][currency]": currency.toLowerCase(), "line_items[0][price_data][unit_amount]": String(amount),
     "line_items[0][price_data][product_data][name]": order?.description || "Construction payment", "line_items[0][quantity]": "1",
-    success_url: `${origin}${requestPath}?session_id={CHECKOUT_SESSION_ID}`, cancel_url: `${origin}${requestPath}?cancelled=1`,
+    success_url: `${origin}${requestPath}${join}session_id={CHECKOUT_SESSION_ID}`, cancel_url: `${origin}${requestPath}${join}cancelled=1`,
     "metadata[paymentId]": order?.paymentId || "", "metadata[projectId]": order?.projectId || "", "metadata[requestId]": order?.requestId || "", "metadata[progressClaimId]": order?.progressClaimId || "",
   }, idempotencyKey);
   if (!session.url) throw new Error("Stripe did not return a Checkout URL");

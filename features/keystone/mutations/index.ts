@@ -55,7 +55,7 @@ import {
 import { lifecycleResolvers } from "./lifecycle";
 import { constructionStoreSettings, updateConstructionStoreSettings } from "./store-settings";
 import { commandConstructionRequest, constructionCustomerRequest, constructionCustomerRequestCount, constructionCustomerRequests, constructionOperatorRequests, registerConstructionCustomer } from "./customer-requests";
-import { createCustomerPayment } from "./payments";
+import { checkPaymentStatus, createClaimPayment, createClaimPaymentLink, createCustomerPayment, reconcileCustomerPayment } from "./payments";
 import { onboardConstructionWorkspace } from "./onboarding";
 import { issueApiCredential, revokeApiCredential } from "./api-credentials";
 import { decideConstructionApproval, requestConstructionApproval } from "./approvals";
@@ -924,6 +924,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
 
       type CustomerRegistrationResult { success: Boolean! }
       type CustomerPaymentResult { url: String!, paymentId: ID! }
+      type PaymentStatusResult { status: String! }
       type ConstructionCustomerRequest {
         id: ID!
         reference: String!
@@ -1147,7 +1148,11 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         updateConstructionStoreSettings(input: JSON!): ConstructionCommandResult!
         registerConstructionCustomer(name: String!, email: String!, password: String!): CustomerRegistrationResult!
         commandConstructionRequest(input: ServiceRequestInput!): ConstructionCustomerRequest!
-        createCustomerPayment(requestId: ID!, providerId: ID!): CustomerPaymentResult!
+        createCustomerPayment(requestId: ID!): CustomerPaymentResult!
+        reconcileCustomerPayment(requestId: ID!, sessionId: String!): PaymentStatusResult!
+        createClaimPayment(projectId: ID!, claimId: ID!): CustomerPaymentResult!
+        createClaimPaymentLink(projectId: ID!, claimId: ID!): CustomerPaymentResult!
+        checkPaymentStatus(projectId: ID!, paymentId: ID!): PaymentStatusResult!
       }
     `,
     resolvers: {
@@ -1194,6 +1199,10 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         commandConstructionRequest,
         registerConstructionCustomer,
         createCustomerPayment,
+        reconcileCustomerPayment,
+        createClaimPayment,
+        createClaimPaymentLink,
+        checkPaymentStatus,
         createConstructionProject,
         startBidPackage,
         awardBidSubmission,

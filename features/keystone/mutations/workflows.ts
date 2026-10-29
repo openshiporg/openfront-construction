@@ -1423,15 +1423,11 @@ export async function reverseSettledPayment(_root: unknown, { input }: { input: 
   });
 }
 
-export async function allocateSettledPayment(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext) {
-  const id = projectId(input);
-  const paymentId = requiredText(input.relatedId, "Settled payment id", 200);
-  const claimId = requiredText(input.secondaryId, "Progress claim id", 200);
-  const allocation = amount(input.amountMinor, "Allocation amount", true);
-  return executeProjectCommand({
-    context, operation: "allocateSettledPayment", permission: "canManageBilling", projectId: id,
-    idempotencyKey: input.idempotencyKey, request: input, listKey: "PaymentAllocation", data: {},
-    beforeCreate: async tx => {
+/** Locking checks and claim roll-up for applying a settled payment to a claim.
+ * Used by the staff command and by provider-settled online payments. */
+export function settledAllocationHooks(id: string, paymentId: string, claimId: string, allocation: string) {
+  return {
+    beforeCreate: async (tx: CommandContext) => {
       if (!tx.prisma?.$queryRawUnsafe) throw new Error("Transactional settlement allocation is unavailable");
       const [payment] = await tx.prisma.$queryRawUnsafe<Array<{
         status: string; amountMinor: bigint; projectId: string; direction: string; currencyCode: string; partnerId: string | null;
@@ -1484,7 +1480,7 @@ export async function allocateSettledPayment(_root: unknown, { input }: { input:
         project: { connect: { id } },
       };
     },
-    afterCreate: async tx => {
+    afterCreate: async (tx: CommandContext) => {
       if (!tx.prisma?.$queryRawUnsafe || !tx.prisma.$executeRawUnsafe || !tx.prisma.progressClaim?.update) throw new Error("Transactional claim update is unavailable");
       const [totals] = await tx.prisma.$queryRawUnsafe<Array<{ allocated: bigint; due: bigint }>>(
         `SELECT COALESCE(SUM(allocation."amountMinor") FILTER (WHERE payment.status = 'settled'), 0)::bigint AS allocated,
@@ -1520,6 +1516,38 @@ export async function allocateSettledPayment(_root: unknown, { input }: { input:
         );
       }
     },
+  };
+}
+
+/** System allocation for a provider-settled online payment. Same checks and roll-up as
+ * the staff command, run under the payment row lock; allocates at most once per payment. */
+export async function allocateProviderSettlement(
+  context: { sudo(): { transaction<T>(cb: (tx: any) => Promise<T>, options?: { timeout?: number }): Promise<T> } },
+  input: { projectId: string; paymentId: string; claimId: string; amountMinor: string },
+): Promise<boolean> {
+  return context.sudo().transaction(async (raw: unknown) => {
+    const tx = raw as CommandContext;
+    if (!tx.prisma?.$queryRawUnsafe) throw new Error("Transactional settlement allocation is unavailable");
+    await tx.prisma.$queryRawUnsafe('SELECT id FROM "Payment" WHERE id = $1 FOR UPDATE', input.paymentId);
+    const [existing] = await tx.prisma.$queryRawUnsafe<Array<{ n: number }>>('SELECT COUNT(*)::int AS n FROM "PaymentAllocation" WHERE payment = $1', input.paymentId);
+    if ((existing?.n ?? 0) > 0) return false;
+    const hooks = settledAllocationHooks(input.projectId, input.paymentId, input.claimId, input.amountMinor);
+    const data = await hooks.beforeCreate(tx);
+    await requireCreate(tx.sudo(), "PaymentAllocation")({ data: data as Record<string, unknown> });
+    await hooks.afterCreate(tx);
+    return true;
+  }, { timeout: 30_000 });
+}
+
+export async function allocateSettledPayment(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext) {
+  const id = projectId(input);
+  const paymentId = requiredText(input.relatedId, "Settled payment id", 200);
+  const claimId = requiredText(input.secondaryId, "Progress claim id", 200);
+  const allocation = amount(input.amountMinor, "Allocation amount", true);
+  return executeProjectCommand({
+    context, operation: "allocateSettledPayment", permission: "canManageBilling", projectId: id,
+    idempotencyKey: input.idempotencyKey, request: input, listKey: "PaymentAllocation", data: {},
+    ...settledAllocationHooks(id, paymentId, claimId, allocation),
   });
 }
 
