@@ -1,6 +1,10 @@
+<!-- logo -->
+
 # Openfront Construction
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fopenshiporg%2Fopenfront-construction&env=DATABASE_URL%2CSESSION_SECRET)
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/openfront-construction)
 
 Openfront Construction is a self-hostable construction project and company-operations application. Prospective clients can explore services and request work, while project participants use scoped portal access. Teams manage preconstruction, contracts, budgets, procurement, execution, field records, documents, safety, billing, and approvals.
 
@@ -8,12 +12,10 @@ Openfront Construction is a self-hostable construction project and company-opera
 
 ## Demo
 
-Explore the application locally using the setup instructions below.
-
 | | |
 |---|---|
-| **Public application** | `/` on your development URL |
-| **Dashboard** | `/dashboard` on your development URL |
+| **Storefront** | [construction.openship.org](https://construction.openship.org) |
+| **Dashboard** | [construction.openship.org/dashboard](https://construction.openship.org/dashboard) |
 
 [Learn more →](https://openship.org/products/openfront-construction)
 
