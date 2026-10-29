@@ -14844,7 +14844,13 @@ type Mutation {
   updateConstructionStoreSettings(input: JSON!): ConstructionCommandResult!
   registerConstructionCustomer(name: String!, email: String!, password: String!): CustomerRegistrationResult!
   commandConstructionRequest(input: ServiceRequestInput!): ConstructionCustomerRequest!
-  createCustomerPayment(requestId: ID!, providerId: ID!): CustomerPaymentResult!
+  createCustomerPayment(requestId: ID!): CustomerPaymentResult!
+  reconcileCustomerPayment(requestId: ID!, sessionId: String!): PaymentStatusResult!
+  createClaimPayment(projectId: ID!, claimId: ID!): CustomerPaymentResult!
+  createClaimPaymentLink(projectId: ID!, claimId: ID!): CustomerPaymentResult!
+  checkPaymentStatus(projectId: ID!, paymentId: ID!): PaymentStatusResult!
+  installStripePaymentProvider(companyId: ID!): PaymentProviderState!
+  setPaymentProviderInstalled(providerId: ID!, isInstalled: Boolean!): PaymentProviderState!
 }
 
 union UserAuthenticationWithPasswordResult = UserAuthenticationWithPasswordSuccess | UserAuthenticationWithPasswordFailure
@@ -15175,6 +15181,7 @@ type Query {
   constructionCustomerRequestCount(operator: Boolean): Int!
   constructionOperatorRequests(skip: Int, take: Int): [ConstructionOperatorRequest!]!
   constructionCustomerRequest(id: ID!): ConstructionCustomerRequest
+  constructionPayableClaims(projectId: ID!): [PayableClaim!]!
 }
 
 union AuthenticatedItem = User
@@ -16122,6 +16129,28 @@ type CustomerRegistrationResult {
 type CustomerPaymentResult {
   url: String!
   paymentId: ID!
+}
+
+type PaymentStatusResult {
+  status: String!
+}
+
+type PaymentProviderState {
+  id: ID!
+  isInstalled: Boolean!
+  configured: Boolean!
+}
+
+type PayableClaim {
+  id: ID!
+  claimNumber: String!
+  status: String!
+  currencyCode: String!
+  retainageMinor: String!
+  netMinor: String!
+  remainingMinor: String!
+  paymentId: ID
+  paymentStatus: String
 }
 
 type ConstructionCustomerRequest {
