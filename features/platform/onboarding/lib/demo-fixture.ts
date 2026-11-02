@@ -10,7 +10,7 @@ import type { ConstructionOnboardingInput } from "@/features/keystone/mutations/
  * Everything here is clearly fictional sample data: the company, brand,
  * client, trade partner, project, public profile, services, portfolio and
  * financial codes are invented. Nothing here is a real contractor, owner, or
- * job: the company is stored with isDemo, its legal name says so, and the
+ * job: the company is stored with isDemo (an admin-only flag), and the
  * public capability summary and privacy notice state it in plain language.
  * The mutation seeds the sample drafts, the remaining public services and the
  * past-project portfolio (from seed.json, server side) as fictional records.
@@ -22,7 +22,7 @@ export function buildDemoOnboardingInput(idempotencyKey: string): ConstructionOn
     fictionalFixture: true,
     companyName: seedData.company.name,
     companySlug: seedData.company.slug,
-    legalName: `${seedData.company.name} LLC (fictional demo)`,
+    legalName: `${seedData.company.name} LLC`,
     brandName: seedData.company.name,
     brandMark: seedData.company.brandMark,
     brandTagline: seedData.company.brandTagline,
