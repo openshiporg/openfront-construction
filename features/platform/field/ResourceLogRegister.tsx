@@ -1,3 +1,4 @@
+import { formatInZone } from '@/features/dashboard/lib/storeTime';
 import { FormSelect } from "@/features/forms/components/FormSelect";
 import Link from "next/link";
 import { Search } from "lucide-react";
@@ -45,7 +46,7 @@ export function ResourceLogRegister({ projectId, register, searchParams }: { pro
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{row.resourceLabel || readable(row.resourceType)}</p>
         </div>
         <p className="text-sm font-medium tabular-nums">{row.quantity} {row.unit}</p>
-        <p className="text-xs tabular-nums text-muted-foreground">{row.occurredAt ? new Date(row.occurredAt).toLocaleString() : "Time unavailable"}</p>
+        <p className="text-xs tabular-nums text-muted-foreground">{row.occurredAt ? formatInZone(row.occurredAt, undefined, "datetime") : "Time unavailable"}</p>
       </li>)}</ul> : <EmptyState compact title="No activity matches these filters" />}
     </div>
   </section>;

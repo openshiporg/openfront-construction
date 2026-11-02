@@ -1,3 +1,4 @@
+import { ViewerTime } from '@/features/dashboard/components/ViewerTime';
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Database, ListChecks } from "lucide-react";
 
@@ -166,7 +167,7 @@ export function ProjectWorkspace({ resourceRegister, resourceUnavailable, worksp
         eyebrow={<><span>{project.projectNumber}</span><span aria-hidden="true">·</span><span>{project.companyName}</span></>}
         title={project.name}
         status={<TitleStatus status={project.status} />}
-        meta={<>{dates ? <span className="tabular-nums">{dates}</span> : null}<span className="tabular-nums">As of {new Date(workspace.generatedAt).toLocaleString()}</span></>}
+        meta={<>{dates ? <span className="tabular-nums">{dates}</span> : null}<span className="tabular-nums">As of <ViewerTime value={workspace.generatedAt} style="datetime" /></span></>}
         actions={<>
           {tool === "reports" && internal ? <ReportExportButton projectName={project.name} generatedAt={workspace.generatedAt} currencyCode={project.currencyCode} items={items} groups={workspace.queueGroups} /> : null}
           {internal ? <Track><PillLink href="/dashboard/projects" size="sm"><Database />Data</PillLink></Track> : null}

@@ -1,4 +1,6 @@
 'use client';
+import { ViewerTime } from '@/features/dashboard/components/ViewerTime';
+import { formatInZone } from '@/features/dashboard/lib/storeTime';
 
 import { FormSelect } from "@/features/forms/components/FormSelect";
 import Link from "next/link";
@@ -95,7 +97,7 @@ export function ResourceActivityPanel({ projectId, options, currencyCode, scope 
       <dl className="grid gap-3 rounded-[6px] border bg-muted/30 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">{["type", "relatedId", "reference", "quantity", "unit", "occurredAt", "amountMinor", "description"].map(field => {
         const raw = request.input[field as keyof typeof request.input];
         const shown = field === "relatedId" ? options.find(option => option.id === raw)?.label ?? String(raw ?? "—")
-          : field === "occurredAt" && raw ? new Date(String(raw)).toLocaleString()
+          : field === "occurredAt" && raw ? formatInZone(String(raw), undefined, "datetime")
           : String(raw ?? "—").replaceAll("_", " ");
         return <div key={field} className="min-w-0"><dt className="text-xs text-muted-foreground">{fieldLabels[field]}</dt><dd className="mt-0.5 whitespace-pre-wrap break-words font-medium">{shown}</dd></div>;
       })}</dl>
@@ -107,7 +109,7 @@ export function ResourceActivityPanel({ projectId, options, currencyCode, scope 
         {resolved && <button disabled={pending || !ready} onClick={() => original("retrieve", true)} className={pillClass("raised")}>New entry</button>}
       </div>
       {!resolved && <div className="grid gap-2"><label className={fieldLabelClass}>Discard reason<textarea value={closureReason} onChange={event => setClosureReason(event.target.value)} maxLength={500} className={textareaClass} /></label><span className={`${trackClass} w-fit justify-self-start`}><button disabled={pending || !ready || closureReason.trim().length < 3} onClick={() => original("close")} className={pillClass("danger")}>Discard unsaved entry</button></span></div>}
-      {resolved && receipt && <p className="flex items-center gap-2 text-xs"><StatusDot tone={receipt.outcome === "closed" ? "zinc" : "emerald"} />{receipt.outcome === "closed" ? "Entry discarded" : "Activity saved"}{receipt.completedAt ? ` · ${new Date(receipt.completedAt).toLocaleString()}` : ""}</p>}
+      {resolved && receipt && <p className="flex items-center gap-2 text-xs"><StatusDot tone={receipt.outcome === "closed" ? "zinc" : "emerald"} />{receipt.outcome === "closed" ? "Entry discarded" : "Activity saved"}{receipt.completedAt ? <> · <ViewerTime value={receipt.completedAt} style="datetime" /></> : ""}</p>}
       {accepted && receipt?.itemId && <div className="space-y-2 text-xs"><Link className="text-sm underline" href={`/dashboard/platform/projects/${encodeURIComponent(projectId)}/records/resource-log/${encodeURIComponent(receipt.itemId)}`}>Open saved entry</Link></div>}
     </div>}
     {ready && !request && <label className={`${fieldLabelClass} mt-4 max-w-sm`}>Restore a downloaded entry<input type="file" accept="application/json,.json" disabled={pending} className={`${inputClass} h-auto min-h-10 py-2 file:mr-3 file:rounded-full file:border-0 file:bg-muted file:px-3 file:py-1 file:text-xs file:font-medium`} onChange={async event => {
