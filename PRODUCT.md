@@ -23,7 +23,7 @@ The storefront shows only the firm's published services and projects, its servic
 Storefront routes: `/`, `/services`, `/services/[slug]`, `/projects`, `/projects/[slug]`, `/contact`, `/start-a-project`, `/estimate`, `/rfp`, `/bid`, `/trade-partners`, `/client-intake`, `/requests/[publicReference]/confirmation`, `/account` (reset, requests, payment), `/portal` and project tools, `/accept-invitation`, `/privacy`. Platform routes live under `/dashboard/platform`.
 
 ## Capabilities and Constraints
-- The demo company is a fictional sample company; that provenance stays visible where the seed states it.
+- The storefront reads as a real contractor site: no "fictional", "sample" or "demo" wording in shopper-visible copy.
 - Inquiries can be closed ("Not taking new projects").
 - Project records have no photographs; plates are built from real fields only.
 
