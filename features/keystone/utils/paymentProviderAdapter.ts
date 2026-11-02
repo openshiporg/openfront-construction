@@ -19,3 +19,4 @@ export async function executeAdapterFunction({ provider, functionName, args }: {
 export const createPayment = (provider: any, args: any) => executeAdapterFunction({ provider, functionName: "createPaymentFunction", args });
 export const getPaymentStatus = (provider: any, paymentId: string) => executeAdapterFunction({ provider, functionName: "getPaymentStatusFunction", args: { paymentId } });
 export const handleWebhook = (provider: any, args: any) => executeAdapterFunction({ provider, functionName: "handleWebhookFunction", args });
+export const refundPayment = (provider: any, args: any) => executeAdapterFunction({ provider, functionName: "refundPaymentFunction", args });

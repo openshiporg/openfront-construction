@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 
 import { hasCompanyPermission } from "../access";
+import { refundPayment } from "../utils/paymentProviderAdapter";
 import { queryById } from "../domain/tenancy";
 import { priceLineFromTotal } from "../domain/line-pricing";
 import { lockBidSubmissionAdmission } from "../domain/bid-submissions";
@@ -1350,6 +1351,16 @@ export async function inviteProjectMember(_root: unknown, { input }: { input: Co
 export async function reverseSettledPayment(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext) {
   const id = projectId(input);
   const paymentId = requiredText(input.relatedId, "Payment id", 200);
+  // A card or bank payment taken online goes back to the payer through Stripe
+  // before the ledger reversal is written; the Stripe refund id is the reference.
+  const online = await (context.sudo() as any).prisma.payment.findUnique({ where: { id: paymentId }, include: { paymentProvider: true } });
+  if (online?.projectId === id && online.status === "settled" && online.paymentProvider?.code?.startsWith("pp_stripe") && String(online.providerPaymentId || "").startsWith("pi_")) {
+    const session = requireCommandSession(context);
+    if (!online.companyId || !hasCompanyPermission(session as any, online.companyId, "canManageBilling")) throw new Error("Not authorized to refund this payment");
+    const refund: any = await refundPayment(online.paymentProvider, { paymentId: online.providerPaymentId, amount: Number(online.amountMinor), idempotencyKey: `construction-refund:${online.id}` });
+    if (!refund?.id || !["succeeded", "pending"].includes(refund.status)) throw new Error("Stripe did not accept the refund; nothing was reversed");
+    input = { ...input, title: refund.id };
+  }
   let amountMinor = "0";
   let allocations: Array<{ id: string; amountMinor: bigint; claimId: string }> = [];
   return executeProjectCommand({
