@@ -28,6 +28,7 @@ function isQuoteExpired(request: CustomerRequest, now = Date.now()) {
 }
 
 function RequestStatus({ request }: { request: CustomerRequest }) {
+  if (request.status === "payment_pending" && request.depositStatus === "settled") return <Status tone="ok">Deposit paid</Status>;
   if (isQuoteExpired(request)) return <Status tone="stop">Quote expired</Status>;
   const status = STATUS[request.status] ?? { label: request.status.replaceAll("_", " "), tone: "idle" as DotTone };
   return <Status tone={status.tone}>{status.label}</Status>;
@@ -158,6 +159,7 @@ export async function CustomerRequestPage({ params }: { params: Promise<{ id: st
   const snapshot = request.acceptedSnapshot;
   const expired = isQuoteExpired(request);
   const quoted = hasIssuedQuote(request);
+  const depositPaid = request.depositStatus === "settled";
   return <PublicShell site={site} account current="/account">
     <main>
       <PageHead
@@ -180,11 +182,16 @@ export async function CustomerRequestPage({ params }: { params: Promise<{ id: st
                 {request.expiresAt && !snapshot && <p className="sf-small sf-mono">{expired ? "Expired" : "Valid until"} {new Date(request.expiresAt).toISOString().replace("T", " ").slice(0, 16)} UTC</p>}
               </> : <p className="sf-small">{request.status === "cancelled" ? "Cancelled before a quote was issued" : "Not quoted yet"}</p>}
               {request.status === "quoted" && !expired && <RequestDecision request={request} operation="accept" label="Accept quote" />}
-              {request.status !== "cancelled" && <RequestDecision request={request} operation="cancel" label="Cancel request" />}
+              {request.status !== "cancelled" && !depositPaid && <RequestDecision request={request} operation="cancel" label="Cancel request" />}
             </section>
             {request.status === "payment_pending" && <section className="sf-notice sf-notice--ok" role="status">
               <span aria-hidden="true" className="sf-dot sf-dot--ok" />
-              <div className="sf-stack" style={{ gap: "0.5rem" }}><strong>Quote accepted</strong><ContractorContact site={site} /></div>
+              <div className="sf-stack" style={{ gap: "0.5rem" }}>
+                {depositPaid
+                  ? <><strong>Deposit received</strong><p className="sf-small">Thanks. Your payment is confirmed and the contractor will be in touch to schedule the work.</p></>
+                  : <><strong>Quote accepted</strong><p className="sf-small">Pay the deposit to confirm your booking.</p><Track><Pill href={`/account/requests/${encodeURIComponent(request.id)}/payment`} variant="primary" size="sm">Pay deposit</Pill></Track></>}
+                <ContractorContact site={site} />
+              </div>
             </section>}
             {expired && <section className="sf-notice sf-notice--warn">
               <span aria-hidden="true" className="sf-dot sf-dot--warn" />

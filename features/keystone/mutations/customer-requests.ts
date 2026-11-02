@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import type { KeystoneContext } from "@keystone-6/core/types";
 import { lockCustomerActor } from "../domain/customer-authority";
 import { getTrustedPublicSiteKey } from "../domain/public-site";
+import { requestPaymentKey } from "../domain/payment-settlement";
 
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const clean = (value: unknown, label: string, max: number, min = 1) => {
@@ -68,7 +69,8 @@ export async function constructionCustomerRequest(_root: unknown, { id }: { id: 
   if (!context.session?.itemId || context.session.authType !== "session") throw new Error("Sign in to continue");
   const row = await context.query.ServiceRequest.findOne({ where: { id }, query: selection });
   if (!row || row.customer?.id !== context.session.itemId) throw new Error("Request not found");
-  return row;
+  const payment = await context.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, context.session.itemId) }, select: { status: true } });
+  return { ...row, depositStatus: payment?.status ?? null };
 }
 
 export async function commandConstructionRequest(_root: unknown, { input }: { input: ServiceRequestInput }, context: KeystoneContext) {
@@ -156,6 +158,10 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
       } };
     } else {
       if (row.status === "cancelled") throw new Error("Request is already cancelled");
+      if (row.customerId === actorId) {
+        const deposit = await tx.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, actorId) }, select: { status: true } });
+        if (deposit?.status === "settled") throw new Error("Your deposit has been received. Contact the contractor to cancel.");
+      }
       data = { status: "cancelled", version };
     }
     await tx.sudo().db.ServiceRequest.updateOne({ where: { id }, data });

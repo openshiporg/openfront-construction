@@ -942,6 +942,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         acceptedAt: String
         acceptedSnapshot: JSON
         createdAt: String!
+        depositStatus: String
       }
       type ConstructionOperatorRequest {
         request: ConstructionCustomerRequest!
