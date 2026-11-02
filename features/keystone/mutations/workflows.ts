@@ -11,6 +11,7 @@ import { resourceAuthority, validateResourceFact } from "../domain/resource-acti
 import { validateResourceOccurrence } from "../domain/resource-fact";
 import { decodeResourceIntent, encodeResourceIntent } from "../domain/resource-intent";
 import { assertSettlementCompatibility, deriveClaimPaymentStatus, remainingCapacityMinor } from "../domain/billing-invariants";
+import { assertChangeQuoteClosable, changeQuoteCloseStatus, scopeWithCloseReason, type ChangeQuoteClose } from "../domain/change-quote";
 import { quantityToUnits, receiptCapacityIsValid } from "../domain/procurement-invariants";
 import {
   executeProjectCommand,
@@ -1677,4 +1678,37 @@ export async function recordChangeQuote(_root: unknown, { input }: { input: Cons
       };
     },
   });
+}
+
+async function closeChangeQuote(input: ConstructionWorkflowInput, context: CommandContext, action: ChangeQuoteClose) {
+  const id = projectId(input);
+  const quoteId = requiredText(input.relatedId, "Change quote id", 200);
+  const reason = requiredText(input.description, "Reason", 2000);
+  const quote = await queryById(context, "ChangeQuote", quoteId, "id status project { id }");
+  if (quote?.project?.id !== id) throw new Error("Change quote not found in this project");
+  assertChangeQuoteClosable(action, quote.status as string);
+  return executeProjectCommand({
+    context, operation: action === "withdraw" ? "withdrawChangeQuote" : "rejectChangeQuote", permission: "canManageContracts", projectId: id,
+    idempotencyKey: input.idempotencyKey, request: input, listKey: "ChangeQuote", updateId: quoteId,
+    data: { status: changeQuoteCloseStatus(action) },
+    beforeCreate: async tx => {
+      if (!tx.prisma?.$queryRawUnsafe) throw new Error("Change quote locking is unavailable");
+      const [locked] = await tx.prisma.$queryRawUnsafe<Array<{ status: string; scope: string | null }>>(
+        'SELECT status::text AS status, scope FROM "ChangeQuote" WHERE id = $1 AND project = $2 FOR UPDATE', quoteId, id,
+      );
+      if (!locked) throw new Error("Change quote not found in this project");
+      assertChangeQuoteClosable(action, locked.status);
+      return { status: changeQuoteCloseStatus(action), scope: scopeWithCloseReason(locked.scope, action, reason) };
+    },
+  });
+}
+
+/** The trade partner pulled its quote, or staff recorded that it did. Only a requested or received quote can be withdrawn. */
+export async function withdrawChangeQuote(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext) {
+  return closeChangeQuote(input, context, "withdraw");
+}
+
+/** Staff decline a received quote. */
+export async function rejectChangeQuote(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext) {
+  return closeChangeQuote(input, context, "reject");
 }

@@ -79,6 +79,8 @@ import {
   addChangeEventLine,
   registerInspectionTemplate,
   recordChangeQuote,
+  withdrawChangeQuote,
+  rejectChangeQuote,
   registerSpecificationSection,
   reviseEstimate,
   createBudgetChangeWithLine,
@@ -1110,6 +1112,8 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         registerInspectionTemplate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         addChangeEventLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         recordChangeQuote(input: ConstructionWorkflowInput!): ConstructionCommandResult!
+        withdrawChangeQuote(input: ConstructionWorkflowInput!): ConstructionCommandResult!
+        rejectChangeQuote(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         inviteBidder(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         recordBidSubmission(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         createPrimeContractWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
@@ -1257,6 +1261,8 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         registerInspectionTemplate,
         addChangeEventLine,
         recordChangeQuote,
+        withdrawChangeQuote,
+        rejectChangeQuote,
         inviteBidder,
         recordBidSubmission,
         createPrimeContractWithLine,

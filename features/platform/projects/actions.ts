@@ -59,7 +59,7 @@ export async function runConstructionCommand(
 
 const workflowOperations = new Set([
   "registerTradePartner", "addBudgetLine", "createBudgetChangeWithLine", "reversePostedDirectCost", "createEstimateWithLine", "reviseEstimate", "inviteBidder", "recordBidSubmission",
-  "registerSpecificationSection", "registerInspectionTemplate", "addChangeEventLine", "recordChangeQuote",
+  "registerSpecificationSection", "registerInspectionTemplate", "addChangeEventLine", "recordChangeQuote", "withdrawChangeQuote", "rejectChangeQuote",
   "createPrimeContractWithLine", "createCommitmentWithLine", "createChangeOrderWithLine", "routeRfi", "respondToRfi",
   "routeSubmittalReview", "recordSubmittalReview", "addDailyLogEntry", "registerFieldPhoto", "recordLaborTime", "createResourceCatalogItem", "registerSchedule", "registerScheduleTask", "linkScheduleDependency",
   "updateScheduleTaskProgress", "recordSafetyIncident", "createInspectionWithItem", "recordInspectionItemResult",

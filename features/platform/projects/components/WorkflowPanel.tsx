@@ -13,7 +13,7 @@ import { OneTimeSecretReceipt } from "./OneTimeSecretReceipt";
 import { eligibleOptions, localDateTimeToInstant, userTimeZone, type Field, type NumberRule } from "./workflow-fields";
 import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, selectClass, textareaClass, trackClass } from "@/features/platform/components/kit";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
-import { PlatformDateTimeInput } from '@/features/platform/components/PlatformDateTime'
+import { PlatformDateInput, PlatformDateTimeInput } from '@/features/platform/components/PlatformDateTime'
 
 type Workflow = { operation: string; label: string; help: string; fields: Field[] };
 
@@ -53,6 +53,8 @@ const workflows: Record<string, Workflow[]> = {
   contracts: [
     { operation: "addChangeEventLine", label: "Price change event", help: "Add an estimated cost line to an open change event.", fields: [select("relatedId", "Change event", ["changeEvent"], true, { statuses: ["open", "pricing"] }), title("Line description"), amount("Estimated cost"), select("secondaryId", "Budget code", ["budgetCode"])] },
     { operation: "recordChangeQuote", label: "Record change quote", help: "Record a trade partner's quote for a change event.", fields: [select("relatedId", "Change event", ["changeEvent"], true, { statuses: ["open", "pricing"] }), select("secondaryId", "Change event line (optional)", ["changeEventLine"], false, { parentField: "relatedId" }), select("partnerId", "Trade partner", ["partner"], true, { statuses: ["approved"] }), ref("Quote number"), notes("Quoted scope"), amount("Quoted amount"), { name: "dueAt", label: "Valid until", type: "date" }, occurred("Received")] },
+    { operation: "withdrawChangeQuote", label: "Withdraw change quote", help: "The trade partner pulled its quote, or staff recorded that it did. Requested and received quotes only.", fields: [select("relatedId", "Change quote", ["changeQuote"], true, { statuses: ["requested", "received"] }), notes("Reason", true)] },
+    { operation: "rejectChangeQuote", label: "Reject change quote", help: "Decline a received quote.", fields: [select("relatedId", "Change quote", ["changeQuote"], true, { statuses: ["received"] }), notes("Reason", true)] },
     { operation: "createPrimeContractWithLine", label: "Create prime contract", help: "Create an owner contract with its first schedule-of-values line.", fields: [ref("Contract number"), title("Contract title"), notes("Schedule of values scope", true), amount("Contract value"), select("secondaryId", "Budget code", ["budgetCode"]), select("partnerId", "Client", ["partner"]), values("type", "Contract type", ["lump_sum", "gmp", "cost_plus", "unit_price"])] },
     { operation: "createCommitmentWithLine", label: "Create subcontract or PO", help: "Create a subcontract or purchase order with its first line.", fields: [ref("Commitment number"), title("Commitment title"), notes("Schedule of values scope", true), amount("Commitment value"), select("secondaryId", "Budget code", ["budgetCode"]), select("partnerId", "Trade partner", ["partner"]), values("type", "Commitment type", ["subcontract", "purchase_order"])] },
     { operation: "createChangeOrderWithLine", label: "Create change order", help: "Create an owner or subcontract change order for approval.", fields: [ref("Change order number"), title("Change order title"), notes("Change scope", true), amount("Change value", true), select("relatedId", "Contract", ["primeContract", "commitment"]), select("secondaryId", "Budget code", ["budgetCode"]), changeOrderDirection] },
@@ -183,6 +185,7 @@ function WorkflowFields({ projectId, workflow, options }: { projectId: string; w
         }
         if (field.type === "evidence") return <EvidenceField key={field.name} field={field} />;
         if (field.type === "datetime-local") return <DateTimeField key={field.name} field={field} />;
+        if (field.type === "date") return <label key={field.name} className={className}><span>{field.label}</span><PlatformDateInput name={field.name} required={field.required} /></label>;
         if (field.type === "textarea") return <label key={field.name} className={className}>{field.label}<textarea name={field.name} required={field.required} className={`${textareaClass} min-h-20`} /></label>;
         if (field.type === "select" && field.values) {
           return <label key={field.name} className={className}>{field.label}<FormSelect name={field.name} required={field.required} defaultValue="" onValueChange={value => choose(field.name, value)} className={selectClass}><option value="">{field.required ? "Select…" : "None"}</option>{field.values.map(entry => <option key={`${field.name}:${entry.value}`} value={entry.value}>{entry.label.charAt(0).toUpperCase() + entry.label.slice(1)}</option>)}</FormSelect></label>;
