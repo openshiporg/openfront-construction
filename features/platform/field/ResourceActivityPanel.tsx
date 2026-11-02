@@ -1,6 +1,5 @@
 'use client';
 import { ViewerTime } from '@/features/dashboard/components/ViewerTime';
-import { formatInZone } from '@/features/dashboard/lib/storeTime';
 
 import { FormSelect } from "@/features/forms/components/FormSelect";
 import Link from "next/link";
@@ -97,7 +96,7 @@ export function ResourceActivityPanel({ projectId, options, currencyCode, scope 
       <dl className="grid gap-3 rounded-[6px] border bg-muted/30 p-3 text-sm sm:grid-cols-2 lg:grid-cols-4">{["type", "relatedId", "reference", "quantity", "unit", "occurredAt", "amountMinor", "description"].map(field => {
         const raw = request.input[field as keyof typeof request.input];
         const shown = field === "relatedId" ? options.find(option => option.id === raw)?.label ?? String(raw ?? "—")
-          : field === "occurredAt" && raw ? formatInZone(String(raw), undefined, "datetime")
+          : field === "occurredAt" && raw ? <ViewerTime value={String(raw)} style="datetime" />
           : String(raw ?? "—").replaceAll("_", " ");
         return <div key={field} className="min-w-0"><dt className="text-xs text-muted-foreground">{fieldLabels[field]}</dt><dd className="mt-0.5 whitespace-pre-wrap break-words font-medium">{shown}</dd></div>;
       })}</dl>
