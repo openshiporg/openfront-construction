@@ -39,3 +39,13 @@ test('custom SVG kept, unsafe SVG rejected', () => {
   assert.equal(sanitizeStoreLogoSvg('<svg onload="x()"></svg>'), '');
   assert.equal(sanitizeStoreLogoSvg('<svg><script>1</script></svg>'), '');
 });
+
+test('Store Settings exposes the legal name through the audited branding command', () => {
+  const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
+  const command = read('features/keystone/mutations/store-settings.ts');
+  assert.match(command, /operation: z\.literal\("branding"\), legalName: z\.string\(\)\.trim\(\)\.max\(240\)/);
+  assert.match(command, /select: \{ id: true, name: true, legalName: true/);
+  assert.match(command, /legalName: legalName \|\| null, brandName/);
+  assert.match(read('features/platform/store-settings/actions/store-settings.ts'), /legalName: value\(data, "legalName"\)/);
+  assert.match(read('features/platform/store-settings/screens/StoreSettingsPageClient.tsx'), /name="legalName"[\s\S]*?maxLength=\{240\}/);
+});

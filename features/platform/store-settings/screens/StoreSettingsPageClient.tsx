@@ -19,6 +19,7 @@ export function StoreSettingsPageClient({
   initial: {
     id: string;
     name: string;
+    legalName: string | null;
     brandName: string;
     brandMark: string;
     brandTagline: string;
@@ -32,6 +33,7 @@ export function StoreSettingsPageClient({
   const [id] = useState(initial?.id ?? "");
   const logoIcon = brandLogoSvg(initial?.logoIcon);
   const logoColor = initial?.logoColor ?? "0";
+  const [legalName, setLegalName] = useState(initial?.legalName ?? "");
   const [brandName, setBrandName] = useState(initial?.brandName ?? "");
   const [brandMark, setBrandMark] = useState(initial?.brandMark ?? "");
   const [brandTagline, setBrandTagline] = useState(initial?.brandTagline ?? "");
@@ -47,6 +49,7 @@ export function StoreSettingsPageClient({
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_8rem]">
           <label className={fieldLabelClass}>Brand name<input name="brandName" value={brandName} onChange={e => setBrandName(e.target.value)} required maxLength={120} className={inputClass} /></label>
           <label className={fieldLabelClass}>Initials<input name="brandMark" value={brandMark} onChange={e => setBrandMark(e.target.value)} required minLength={1} maxLength={4} pattern="[A-Za-z0-9]{1,4}" className={`${inputClass} font-mono uppercase`} /></label>
+          <label className={`${fieldLabelClass} md:col-span-2`}>Legal name<input name="legalName" value={legalName} onChange={e => setLegalName(e.target.value)} maxLength={240} className={inputClass} /></label>
           <label className={`${fieldLabelClass} md:col-span-2`}>Tagline<input name="brandTagline" value={brandTagline} onChange={e => setBrandTagline(e.target.value)} maxLength={240} className={inputClass} /></label>
         </div>
       </Panel>

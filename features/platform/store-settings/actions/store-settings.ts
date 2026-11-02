@@ -8,7 +8,7 @@ import { normalizeStoreLogoColor } from "@/features/lib/store-logo";
 import { PUBLIC_PROFILE_LIMITS, PUBLIC_PROJECT_LIMITS, PUBLIC_SERVICE_LIMITS, publicContentLengthError } from "@/features/lib/public-content-limits";
 import type { CommandState } from "@/features/platform/projects/action-state";
 
-export type StoreSettingsData = { id: string; name: string; brandName: string; brandMark: string; brandTagline: string; brandColor: string; logoIcon: string; logoColor: string };
+export type StoreSettingsData = { id: string; name: string; legalName: string | null; brandName: string; brandMark: string; brandTagline: string; brandColor: string; logoIcon: string; logoColor: string };
 export type PublicProfileSettings = { id: string; status: string; serviceArea: string; capabilitySummary: string; inquiryEmail: string; inquiryPhone: string; privacyNotice: string; acceptingInquiries: boolean };
 export type PublicServiceSettings = { id: string; title: string; slug: string; summary: string; details: string; market: string; status: string };
 export type PublicProjectSettings = { id: string; title: string; slug: string; summary: string; description: string; market: string; locationLabel: string; deliveryMethod: string; completionLabel: string; approvedOutcome: string; status: string };
@@ -36,7 +36,7 @@ export async function updateStoreSettingsAction(_previous: CommandState, data: F
   const submitted = value(data, "logoIcon");
   const logoIcon = sanitizeStoreLogoSvg(submitted);
   if (submitted && !logoIcon) return { status: "error", message: "Logo must be a valid, safe SVG document." };
-  return save({ operation: "branding", companyId: value(data, "id"), brandName: value(data, "brandName"), brandMark: value(data, "brandMark").toUpperCase(), brandTagline: value(data, "brandTagline"), brandColor: value(data, "brandColor"), logoIcon, logoColor: normalizeStoreLogoColor(value(data, "logoColor")) });
+  return save({ operation: "branding", companyId: value(data, "id"), legalName: value(data, "legalName"), brandName: value(data, "brandName"), brandMark: value(data, "brandMark").toUpperCase(), brandTagline: value(data, "brandTagline"), brandColor: value(data, "brandColor"), logoIcon, logoColor: normalizeStoreLogoColor(value(data, "logoColor")) });
 }
 
 export async function savePublicContentAction(_previous: CommandState, data: FormData): Promise<CommandState> {
