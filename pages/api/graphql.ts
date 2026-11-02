@@ -4,7 +4,6 @@ import { assertGraphQLQueryBudget } from "../../features/keystone/domain/graphql
 export { assertGraphQLQueryBudget } from "../../features/keystone/domain/graphql-query-budget";
 
 import { keystoneContext } from "../../features/keystone/context";
-import { useDemoGuardErrors } from "../../features/keystone/lib/demo-guard";
 
 export const config = {
   api: { bodyParser: false },
@@ -31,7 +30,6 @@ const yoga = createYoga({
   context: ({ req, res }: { req: NextApiRequest; res: NextApiResponse }) =>
     keystoneContext.withRequest(req, res),
   multipart: false,
-  plugins: [useDemoGuardErrors()],
   maskedErrors: { maskError: maskConstructionError },
 });
 

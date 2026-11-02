@@ -6,7 +6,6 @@ import { permissions } from "./access";
 import { requirePostgresDatabaseUrl } from "./domain/database-url";
 import { requireSessionSecret } from "./domain/session-secret";
 import { databaseSessions } from "./domain/session-strategy";
-import { withDemoGuard } from "./lib/demo-guard";
 import { sendPasswordResetEmail } from "./lib/mail";
 import { models } from "./models";
 import { permissionsList } from "./models/fields";
@@ -88,7 +87,7 @@ export default withAuth(
       provider: "postgresql",
       url: databaseURL,
     },
-    lists: withDemoGuard(models),
+    lists: models,
     // Construction files use the verified private-object adapter. No current
     // List uses starter my_images; do not instantiate an unused cloud client.
     ui: {
