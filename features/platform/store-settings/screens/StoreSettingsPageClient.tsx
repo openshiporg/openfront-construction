@@ -1,11 +1,12 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { BadgeCheck, Palette } from "lucide-react";
+import { BadgeCheck, Palette, Shapes } from "lucide-react";
 
 import { initialCommandState } from "@/features/platform/projects/action-state";
 import { EmptyState, FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, trackClass } from "@/features/platform/components/kit";
-import { LogoPicker } from "../components/LogoPicker";
+import { StoreLogoField } from "../components/StoreLogoField";
+import { StoreSettingsSaveBar } from "../components/StoreSettingsSaveBar";
 import { BrandColorPicker } from "../components/BrandColorPicker";
 import { updateStoreSettingsAction } from "../actions/store-settings";
 import { brandLogoSvg } from "../lib/brand-logo";
@@ -29,8 +30,8 @@ export function StoreSettingsPageClient({
 }) {
   const [state, action, pending] = useActionState(updateStoreSettingsAction, initialCommandState);
   const [id] = useState(initial?.id ?? "");
-  const [logoIcon, setLogoIcon] = useState(brandLogoSvg(initial?.logoIcon));
-  const [logoColor, setLogoColor] = useState(initial?.logoColor ?? "0");
+  const logoIcon = brandLogoSvg(initial?.logoIcon);
+  const logoColor = initial?.logoColor ?? "0";
   const [brandName, setBrandName] = useState(initial?.brandName ?? "");
   const [brandMark, setBrandMark] = useState(initial?.brandMark ?? "");
   const [brandTagline, setBrandTagline] = useState(initial?.brandTagline ?? "");
@@ -50,16 +51,19 @@ export function StoreSettingsPageClient({
         </div>
       </Panel>
 
-      <LogoPicker value={logoIcon} hue={logoColor} onChange={setLogoIcon} onHueChange={setLogoColor} brandName={brandName} tagline={brandTagline} />
+      <Panel id="store-logo" title="Logo" icon={Shapes}>
+        <StoreLogoField initialIcon={logoIcon} initialColor={logoColor} />
+      </Panel>
 
       <Panel id="badge-color" title="Initials badge colour" icon={Palette}>
         <input type="hidden" name="brandColor" value={brandColor} />
         <BrandColorPicker value={brandColor} onChange={setBrandColor} initials={brandMark} />
       </Panel>
 
-      <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-[6px] border bg-background/90 p-1.5 pr-4 shadow-sm backdrop-blur w-fit">
-        <span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : "Save brand"}</button></span>
-        <FormFeedback status={state.status} message={state.message} />
+      <div className="pb-24 md:pb-0">
+        <StoreSettingsSaveBar isSaving={pending} label="Save brand" status={state.status === "idle" ? null : state.message}
+          button={<span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : "Save brand"}</button></span>} />
+        <div className="md:hidden"><FormFeedback status={state.status} message={state.message} /></div>
       </div>
     </form>
   );

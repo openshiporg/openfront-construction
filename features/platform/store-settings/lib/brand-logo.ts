@@ -1,5 +1,5 @@
 import { DEFAULT_STORE_LOGO_ICON } from "@/features/lib/store-logo";
-import { LOGO_ICONS } from "./untitled-logo-registry";
+import { LOGO_ICONS } from "./icon-registry";
 
 /** Untitled UI registry mark used until a contractor picks one. */
 export const CONSTRUCTION_DEFAULT_LOGO = (LOGO_ICONS.find(icon => icon.id === "buildingblocks") ?? LOGO_ICONS[0]).lightSvg;
