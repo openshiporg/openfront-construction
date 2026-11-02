@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 
+import { PlatformDateInput } from "@/features/platform/components/PlatformDateTime";
 import { submitPublicIntakeAction } from "../actions";
 import { initialPublicIntakeState } from "../types";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
@@ -112,8 +113,8 @@ export function PublicIntakeForm({
                 <option value="over_20m">Over $20M</option>
               </FormSelect>
             </label>
-            <label className="sf-field"><span>Start<Optional /></span><input className="sf-input" name="desiredStart" type="date" /></label>
-            <label className="sf-field"><span>Completion<Optional /></span><input className="sf-input" name="desiredCompletion" type="date" /></label>
+            <label className="sf-field"><span>Start<Optional /></span><PlatformDateInput className="sf-input sf-date" name="desiredStart" /></label>
+            <label className="sf-field"><span>Completion<Optional /></span><PlatformDateInput className="sf-input sf-date" name="desiredCompletion" /></label>
             <label className="sf-field"><span>Design stage<Optional /></span><input className="sf-input" name="designStage" maxLength={160} placeholder="Concept, schematic, permit set" /></label>
             <label className="sf-field"><span>Referred by<Optional /></span><input className="sf-input" name="referralSource" maxLength={240} /></label>
           </div>

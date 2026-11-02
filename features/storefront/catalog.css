@@ -335,7 +335,8 @@ a.sf-list__item:hover { background: var(--sf-paper-2); }
 .sf-input:focus, .sf-textarea:focus, .sf-select:focus { outline: none; border-color: var(--sf-accent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--sf-accent) 22%, transparent); }
 .sf-textarea { min-height: 8rem; resize: vertical; }
 .sf-select { display: flex; align-items: center; justify-content: space-between; text-align: left; }
-.sf-input[type="date"] { min-height: 2.9rem; }
+.sf-date { display: flex; align-items: center; gap: 0.55rem; text-align: left; cursor: pointer; height: auto; font-size: 1rem; }
+.sf-date:focus-visible { outline: none; border-color: var(--sf-accent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--sf-accent) 22%, transparent); }
 .sf-check { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.92rem; line-height: 1.55; color: var(--sf-ink-2); font-weight: 400; }
 .sf-check input { width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; accent-color: var(--sf-accent); flex-shrink: 0; }
 .sf-error { display: flex; align-items: flex-start; gap: 0.55rem; color: var(--sf-error); font-size: 0.92rem; }

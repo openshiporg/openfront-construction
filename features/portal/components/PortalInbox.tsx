@@ -7,6 +7,7 @@ import { Download, FileSearch } from "lucide-react";
 import { getControlledDownload } from "@/features/platform/documents/actions";
 import { initialCommandState } from "@/features/platform/projects/action-state";
 import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on-success";
+import { PlatformDateInput } from "@/features/platform/components/PlatformDateTime";
 import { Empty, Status, readableStatus, statusDot } from "@/features/storefront/components/ui";
 import { acknowledgePortalDocument, decidePortalApproval, loadPortalApprovalSnapshot, submitPortalAction } from "../actions";
 import type { PortalInboxItem } from "../data";
@@ -122,13 +123,13 @@ function PortalAction({ projectId, item }: { projectId: string; item: PortalInbo
           <Field label="Pay application number"><input className="sf-input" name="reference" required /></Field>
           <Field label="Invoice number"><input className="sf-input" name="title" required /></Field>
           <Field label="Work this period (USD)"><input className="sf-input sf-mono" name="amount" required type="number" min="0" step="0.01" /></Field>
-          <Field label="Period end"><input className="sf-input" name="dueAt" type="date" required /></Field>
+          <Field label="Period end"><PlatformDateInput className="sf-input sf-date" name="dueAt" required /></Field>
         </>}
         {item.action === "submit_waiver" && <>
           <Field label="Waiver number"><input className="sf-input" name="reference" required /></Field>
           <Field label="Signer name"><input className="sf-input" name="title" required /></Field>
           <Field label="Waiver amount (USD)"><input className="sf-input sf-mono" name="amount" required type="number" min="0" step="0.01" /></Field>
-          <Field label="Through date"><input className="sf-input" name="dueAt" type="date" required /></Field>
+          <Field label="Through date"><PlatformDateInput className="sf-input sf-date" name="dueAt" required /></Field>
           <Field label="Waiver type"><FormSelect name="decision" className="sf-select">{["conditional_progress", "unconditional_progress", "conditional_final", "unconditional_final"].map(value => <option key={value} value={value}>{readableStatus(value)}</option>)}</FormSelect></Field>
           <Field label="Evidence reference"><input className="sf-input" name="evidenceReference" required /></Field>
           <Field label="Evidence SHA-256" wide><input className="sf-input sf-mono" name="evidenceChecksumSha256" required minLength={64} maxLength={64} /></Field>
