@@ -23,7 +23,7 @@ export function DemoFixtureForm({ onComplete }: { onComplete?(state: CommandStat
         <span className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground"><span aria-hidden="true" className="size-2 rounded-full bg-amber-500" />Sample data</span>
         <h2 id="demo-fixture-title" className="font-semibold">Northstar Builders · Civic Learning Center</h2>
       </div>
-      <p className="text-sm text-muted-foreground">Fictional company, client and project</p>
+      <p className="text-sm text-muted-foreground">Starter company, client and project</p>
       <ul className="grid gap-1.5 text-sm">
         {SAMPLE_WORKSPACE_SUMMARY.map(item => <li key={item} className="flex gap-2"><span aria-hidden="true" className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground" />{item}</li>)}
       </ul>

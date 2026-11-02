@@ -64,7 +64,7 @@ export function OnboardingSetup({ sampleAvailable, className }: { sampleAvailabl
                 </Label>
                 <Label htmlFor="setup-sample" className={cn("flex min-h-11 items-start gap-3 rounded-lg border p-3", sampleAvailable ? "cursor-pointer" : "cursor-not-allowed opacity-60", mode === "sample" && "border-foreground/40 bg-muted/50")}>
                   <RadioGroupItem id="setup-sample" value="sample" disabled={!sampleAvailable} className="mt-0.5" aria-describedby="setup-sample-state" />
-                  <span className="grid gap-0.5"><span className="font-medium">Sample workspace</span><span id="setup-sample-state" className="text-xs font-normal text-muted-foreground">{sampleAvailable ? "Fictional company with draft work" : "Available during first-company setup"}</span></span>
+                  <span className="grid gap-0.5"><span className="font-medium">Starter workspace</span><span id="setup-sample-state" className="text-xs font-normal text-muted-foreground">{sampleAvailable ? "Starter company with draft work" : "Available during first-company setup"}</span></span>
                 </Label>
               </RadioGroup>
             </>
