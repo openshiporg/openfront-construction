@@ -12,6 +12,7 @@ import { decodeResourceIntent, encodeResourceIntent, isCompleteResourceReceipt, 
 import { executeStoredResourceIntent, intentFromResourceForm, persistResourceIntent, readResourceIntentJournal, resolveStoredResourceIntent, resourceIntentStorageKey, type ResourceIntentMode } from "./resource-intent-journal";
 import { operateResourceOriginal } from "./resource-intent-actions";
 import { Panel, StatusDot, fieldLabelClass, inputClass, pillClass, readable, selectClass, textareaClass, trackClass } from "@/features/platform/components/kit";
+import { PlatformDateTimeInput } from '@/features/platform/components/PlatformDateTime'
 
 const subscribeToNothing = () => () => {};
 const fieldLabels: Record<string, string> = { type: "Resource type", relatedId: "Resource", reference: "Event", quantity: "Quantity", unit: "Unit", occurredAt: "Occurred", amountMinor: "Cost (minor units)", description: "Notes" };
@@ -83,7 +84,7 @@ export function ResourceActivityPanel({ projectId, options, currencyCode, scope 
       <label className={fieldLabelClass}>Resource type<FormSelect name="type" value={type} onValueChange={nextValue => setType(nextValue)} className={selectClass}><option value="equipment">Equipment</option><option value="material">Material</option></FormSelect></label>
       <label className={fieldLabelClass}>{type === "equipment" ? "Equipment" : "Material"}<RecordLookup key={type} name="relatedId" projectId={projectId} kinds={[type]} initial={options.filter(option => option.kind === type)} required /></label>
       <label className={fieldLabelClass}>Event<FormSelect key={`${type}-event`} name="reference" required defaultValue="" className={selectClass}><option value="">Select…</option>{(type === "equipment" ? ["equipment_use", "equipment_idle", "equipment_breakdown"] : ["material_received", "material_installed", "material_transferred", "material_wasted"]).map(value => <option key={value} value={value}>{readable(value)}</option>)}</FormSelect></label>
-      <label className={fieldLabelClass}>Occurred{timeZone ? ` (${timeZone})` : ""}<input type="datetime-local" value={occurredLocal} onChange={event => setOccurredLocal(event.target.value)} required className={inputClass} /><input type="hidden" name="occurredAt" value={localDateTimeToInstant(occurredLocal) ?? ""} /></label>
+      <label className={fieldLabelClass}>Occurred{timeZone ? ` (${timeZone})` : ""}<PlatformDateTimeInput value={occurredLocal} required onChange={setOccurredLocal} /><input type="hidden" name="occurredAt" value={localDateTimeToInstant(occurredLocal) ?? ""} /></label>
       <label className={fieldLabelClass}>Quantity<input name="quantity" inputMode="decimal" pattern="[0-9]{1,14}(\.[0-9]{1,4})?" required placeholder="0.0000" className={`${inputClass} tabular-nums`} /></label>
       <label className={fieldLabelClass}>Unit<input name="unit" required maxLength={40} className={inputClass} /></label>
       {currencyCode === "USD" ? <label className={fieldLabelClass}>Cost (USD, optional)<input name="amount" inputMode="decimal" placeholder="0.00" className={inputClass} /></label> : <p className="text-xs text-muted-foreground">Costs can be recorded for USD projects only.</p>}

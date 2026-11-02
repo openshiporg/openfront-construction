@@ -8,6 +8,8 @@ import { FormFeedback, fieldLabelClass, inputClass, pillClass, selectClass, text
 import { initialCommandState } from "@/features/platform/projects/action-state";
 import { createOpportunityAction } from "../actions";
 import { deliveryMethods, openStages } from "../lib";
+import { OptionSelect } from '@/features/platform/components/OptionSelect'
+import { PlatformDateInput } from '@/features/platform/components/PlatformDateTime'
 
 export function OpportunityForm({ companyId, clients }: { companyId: string; clients: Array<{ id: string; name: string }> }) {
   const [state, action, pending] = useActionState(createOpportunityAction, initialCommandState);
@@ -19,28 +21,28 @@ export function OpportunityForm({ companyId, clients }: { companyId: string; cli
       <label className={fieldLabelClass}>Number<input name="number" required maxLength={80} placeholder="BD-2026-014" className={`${inputClass} font-mono`} /></label>
       <label className={`${fieldLabelClass} sm:col-span-1 xl:col-span-3`}>Name<input name="name" required maxLength={240} className={inputClass} /></label>
       <label className={fieldLabelClass}>Client
-        <select name="clientId" defaultValue="" className={selectClass}>
+        <OptionSelect name="clientId" defaultValue="" className={selectClass}>
           <option value="">None</option>
           {clients.map(client => <option key={client.id} value={client.id}>{client.name}</option>)}
-        </select>
+        </OptionSelect>
       </label>
       <label className={fieldLabelClass}>Organization<input name="organization" maxLength={240} className={inputClass} /></label>
       <label className={fieldLabelClass}>Delivery method
-        <select name="deliveryMethod" defaultValue="" className={selectClass}>
+        <OptionSelect name="deliveryMethod" defaultValue="" className={selectClass}>
           <option value="">Not set</option>
           {deliveryMethods.map(method => <option key={method} value={method}>{method}</option>)}
-        </select>
+        </OptionSelect>
       </label>
       <label className={fieldLabelClass}>Stage
-        <select name="stage" defaultValue="qualifying" className={selectClass}>
+        <OptionSelect name="stage" defaultValue="qualifying" className={selectClass}>
           {openStages.map(stage => <option key={stage.value} value={stage.value}>{stage.label}</option>)}
-        </select>
+        </OptionSelect>
       </label>
       <label className={fieldLabelClass}>Estimated value (USD)<input name="estimatedValue" inputMode="decimal" placeholder="0.00" className={`${inputClass} tabular-nums`} /></label>
       <label className={fieldLabelClass}>Win probability (%)<input name="probability" type="number" min={0} max={100} step={1} placeholder="0" className={`${inputClass} tabular-nums`} /></label>
-      <label className={fieldLabelClass}>Bid date<input name="targetBidDate" type="date" className={inputClass} /></label>
-      <label className={fieldLabelClass}>Expected award<input name="expectedAwardDate" type="date" className={inputClass} /></label>
-      <label className={fieldLabelClass}>Next action<input name="nextActionAt" type="date" className={inputClass} /></label>
+      <label className={fieldLabelClass}>Bid date<PlatformDateInput name="targetBidDate" /></label>
+      <label className={fieldLabelClass}>Expected award<PlatformDateInput name="expectedAwardDate" /></label>
+      <label className={fieldLabelClass}>Next action<PlatformDateInput name="nextActionAt" /></label>
       <label className={`${fieldLabelClass} sm:col-span-2 xl:col-span-3`}>Location<input name="locationSummary" maxLength={500} className={inputClass} /></label>
       <label className={`${fieldLabelClass} sm:col-span-2 xl:col-span-4`}>Notes<textarea name="notes" rows={3} className={textareaClass} /></label>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2 xl:col-span-4">

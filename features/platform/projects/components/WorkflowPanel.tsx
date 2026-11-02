@@ -13,6 +13,7 @@ import { OneTimeSecretReceipt } from "./OneTimeSecretReceipt";
 import { eligibleOptions, localDateTimeToInstant, userTimeZone, type Field, type NumberRule } from "./workflow-fields";
 import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, selectClass, textareaClass, trackClass } from "@/features/platform/components/kit";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { PlatformDateTimeInput } from '@/features/platform/components/PlatformDateTime'
 
 type Workflow = { operation: string; label: string; help: string; fields: Field[] };
 
@@ -139,7 +140,7 @@ function DateTimeField({ field }: { field: Field }) {
   const instant = localDateTimeToInstant(local);
   const noteId = `${field.name}-timezone`;
   return <label className={fieldLabelClass}><span>{field.label}</span>
-    <input type="datetime-local" required={field.required} value={local} onChange={event => setLocal(event.target.value)} aria-describedby={noteId} className={inputClass} />
+    <PlatformDateTimeInput value={local} aria-describedby={noteId} onChange={setLocal} />
     <input type="hidden" name={field.name} value={instant ?? ""} />
     <span id={noteId} className="font-normal">{timeZone || "Local time"}</span>
   </label>;

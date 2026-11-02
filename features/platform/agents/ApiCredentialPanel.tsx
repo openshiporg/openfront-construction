@@ -11,6 +11,7 @@ import { OneTimeSecretReceipt } from "@/features/platform/projects/components/On
 import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, selectClass, trackClass } from "@/features/platform/components/kit";
 import { issueCredentialAction, revokeCredentialAction } from "./actions";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { PlatformDateTimeInput } from '@/features/platform/components/PlatformDateTime'
 
 const scopes = [
   "companies:read", "companies:write", "projects:read", "projects:write",
@@ -30,12 +31,12 @@ function Issue({ companyId, projectId }: { companyId: string; projectId: string 
       <input type="hidden" name="companyId" value={companyId} />
       <input type="hidden" name="projectId" value={projectId} />
       <label className={fieldLabelClass}>Credential name<input name="name" required minLength={3} maxLength={160} className={inputClass} /></label>
-      <label className={fieldLabelClass}>Expires (optional)<input name="expiresAt" type="datetime-local" className={inputClass} /></label>
+      <label className={fieldLabelClass}>Expires (optional)<PlatformDateTimeInput name="expiresAt" /></label>
       <fieldset className="grid gap-2 md:col-span-2">
         <legend className="mb-2 text-xs font-medium text-muted-foreground">Scopes (1–12)</legend>
         <div className="flex flex-wrap gap-2">
           {scopes.map(scope => (
-            <label key={scope} className="inline-flex cursor-pointer items-center gap-2 rounded-[5px] border bg-background px-3 py-1.5 font-mono text-[11px] has-[:checked]:border-foreground has-[:checked]:bg-muted has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+            <label key={scope} className="inline-flex cursor-pointer items-center gap-2 rounded-[5px] border bg-background px-3 py-1.5 font-mono text-xs has-[:checked]:border-foreground has-[:checked]:bg-muted has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
               <input type="checkbox" name="scopes" value={scope} className="size-3.5 accent-foreground" />{scope}
             </label>
           ))}

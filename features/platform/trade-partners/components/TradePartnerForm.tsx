@@ -9,6 +9,7 @@ import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on
 import { createTradePartnerAction, updateTradePartnerAction } from "../actions";
 import { partnerTypeLabel, partnerTypes } from "../lib/states";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { OptionSelect } from '@/features/platform/components/OptionSelect'
 
 export type TradePartnerFormValues = {
   id?: string; name?: string | null; legalName?: string | null; partnerType?: string | null;
@@ -29,9 +30,9 @@ export function TradePartnerForm({ companyId, values = {} }: { companyId?: strin
       {editing ? <input type="hidden" name="id" value={values.id} /> : <input type="hidden" name="companyId" value={companyId} />}
       <label className={`${fieldLabelClass} sm:col-span-2`}>Name<input name="name" required maxLength={240} defaultValue={values.name ?? ""} className={inputClass} /></label>
       <label className={fieldLabelClass}>Type
-        <select name="partnerType" defaultValue={values.partnerType ?? "subcontractor"} className={selectClass}>
+        <OptionSelect name="partnerType" defaultValue={values.partnerType ?? "subcontractor"} className={selectClass}>
           {partnerTypes.map(type => <option key={type.value} value={type.value}>{partnerTypeLabel[type.value]}</option>)}
-        </select>
+        </OptionSelect>
       </label>
       <label className={fieldLabelClass}>Legal name<input name="legalName" defaultValue={values.legalName ?? ""} className={inputClass} /></label>
       <label className={fieldLabelClass}>Email<input name="email" type="email" defaultValue={values.email ?? ""} className={inputClass} /></label>

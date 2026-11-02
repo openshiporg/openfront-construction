@@ -11,6 +11,7 @@ import { commandRelatedRecords, relatedOptionsFor } from "./workflow-fields";
 import type { ConstructionOption } from "../data";
 import { FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, textareaClass, trackClass } from "@/features/platform/components/kit";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { PlatformDateInput } from '@/features/platform/components/PlatformDateTime'
 
 export type CommandOption = { value: string; label: string };
 
@@ -89,7 +90,7 @@ function CommandFields({ projectId, operation, related, recordOptions, reference
     {!hideDue && (
       <label className={fieldLabelClass}>
         Date
-        <input name="dueAt" type="date" className={inputClass} />
+        <PlatformDateInput name="dueAt" />
       </label>
     )}
     {needsAmount && (

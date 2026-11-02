@@ -9,7 +9,7 @@ function CheckRow({ check, index }: { check: Check; index: number }) {
   return (
     <li>
       <Link href={check.href} className="grid min-h-14 grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/30 md:px-5">
-        <span className={`flex size-7 items-center justify-center rounded-full font-mono text-[11px] tabular-nums ${check.complete ? "bg-emerald-500 text-white dark:bg-emerald-400 dark:text-emerald-950" : "border text-muted-foreground"}`}>
+        <span className={`flex size-7 items-center justify-center rounded-full font-mono text-xs tabular-nums ${check.complete ? "bg-emerald-500 text-white dark:bg-emerald-400 dark:text-emerald-950" : "border text-muted-foreground"}`}>
           {check.complete ? <Check className="size-3.5" aria-hidden="true" /> : String(index + 1).padStart(2, "0")}
         </span>
         <span className="min-w-0">

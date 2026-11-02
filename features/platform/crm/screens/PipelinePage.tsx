@@ -68,7 +68,7 @@ export async function PipelinePage({ searchParams }: { searchParams: Promise<Rec
         {activeStages.map((stage, index) => {
           const count = response.data[stage] ?? 0;
           return <li key={stage} className="relative min-w-0 border-b p-4 sm:border-b-0 sm:border-r sm:last:border-r-0 [&:nth-child(odd)]:border-r">
-            <p className="font-mono text-[11px] tabular-nums text-muted-foreground">{String(index + 1).padStart(2, "0")}</p>
+            <p className="font-mono text-xs tabular-nums text-muted-foreground">{String(index + 1).padStart(2, "0")}</p>
             <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><StatusDot tone={statusTone(stage)} />{stageLabel(stage)}</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{count}</p>
             <div aria-hidden="true" className="mt-3 h-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-foreground/60" style={{ width: `${stageTotal ? Math.round((count / stageTotal) * 100) : 0}%` }} /></div>

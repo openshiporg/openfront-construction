@@ -10,6 +10,7 @@ import { createConstructionProjectAction } from "../actions";
 import { useKeyedCommand } from "../use-keyed-command";
 import type { CompanySummary } from "../data";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { PlatformDateInput } from '@/features/platform/components/PlatformDateTime'
 
 export function CreateProjectPanel({ companies: allCompanies, defaultOpen = false }: { companies: CompanySummary[]; defaultOpen?: boolean }) {
   const { state, action, pending, idempotencyKey } = useKeyedCommand(createConstructionProjectAction);
@@ -23,7 +24,7 @@ export function CreateProjectPanel({ companies: allCompanies, defaultOpen = fals
         <label className={fieldLabelClass}>Company<FormSelect name="companyId" className={selectClass}>{companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</FormSelect></label>
         <label className={fieldLabelClass}>Project number<input name="projectNumber" required className={`${inputClass} font-mono`} /></label>
         <label className={`${fieldLabelClass} md:col-span-2`}>Project name<input name="name" required className={inputClass} /></label>
-        <label className={fieldLabelClass}>Start date<input name="startDate" type="date" className={inputClass} /></label>
+        <label className={fieldLabelClass}>Start date<PlatformDateInput name="startDate" /></label>
         <label className={fieldLabelClass}>Budget currency<input name="currencyCode" value="USD" readOnly required className={`${inputClass} bg-muted/40 font-mono`} /></label>
         <label className={`${fieldLabelClass} md:col-span-2`}>Scope summary<textarea name="description" className={`${textareaClass} min-h-10`} rows={1} /></label>
         <div className="flex flex-wrap items-center gap-3 md:col-span-2 xl:col-span-4">

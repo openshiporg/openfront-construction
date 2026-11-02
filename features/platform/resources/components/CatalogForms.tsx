@@ -8,6 +8,7 @@ import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on
 import { saveEquipmentAction, saveMaterialAction, transitionCatalogItemAction } from "../actions";
 import { catalogTransitions, ownershipTypes, transitionVerbs, type CatalogKind } from "../lib/states";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { OptionSelect } from '@/features/platform/components/OptionSelect'
 
 function dollars(minor: string | null | undefined) {
   if (!minor || minor === "0") return "";
@@ -29,7 +30,7 @@ export function EquipmentForm({ companyId, values = {} }: { companyId?: string; 
       </label>
       <label className={`${fieldLabelClass} sm:col-span-1 xl:col-span-2`}>Name<input name="name" required maxLength={240} defaultValue={values.name ?? ""} className={inputClass} /></label>
       <label className={fieldLabelClass}>Ownership
-        <select name="ownershipType" defaultValue={values.ownershipType ?? "owned"} className={selectClass}>{ownershipTypes.map(entry => <option key={entry.value} value={entry.value}>{entry.label}</option>)}</select>
+        <OptionSelect name="ownershipType" defaultValue={values.ownershipType ?? "owned"} className={selectClass}>{ownershipTypes.map(entry => <option key={entry.value} value={entry.value}>{entry.label}</option>)}</OptionSelect>
       </label>
       <label className={fieldLabelClass}>Type<input name="equipmentType" maxLength={120} defaultValue={values.equipmentType ?? ""} className={inputClass} /></label>
       <label className={fieldLabelClass}>Make<input name="make" defaultValue={values.make ?? ""} className={inputClass} /></label>

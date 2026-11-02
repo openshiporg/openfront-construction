@@ -6,6 +6,7 @@ import { initialCommandState, type CommandState } from "@/features/platform/proj
 import { onboardConstructionWorkspaceAction } from "../actions/onboarding";
 import { FormFeedback, fieldLabelClass, inputClass, pillClass, textareaClass, trackClass } from "@/features/platform/components/kit";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { PlatformDateInput } from '@/features/platform/components/PlatformDateTime'
 
 
 export function OnboardingForm({ onComplete }: { onComplete?(state: CommandState): void }) {
@@ -20,7 +21,7 @@ export function OnboardingForm({ onComplete }: { onComplete?(state: CommandState
     <form action={action} onReset={keepUnlessSaved(state.status === "success")} className="grid gap-6" aria-labelledby="workspace-details-title">
       <input type="hidden" name="idempotencyKey" value={key} />
       <fieldset className="grid gap-4 rounded-xl border p-4 md:grid-cols-2 md:p-5">
-        <legend id="workspace-details-title" className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-[11px] text-muted-foreground">01</span>Contractor identity</legend>
+        <legend id="workspace-details-title" className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-xs text-muted-foreground">01</span>Contractor identity</legend>
         <label className={fieldLabelClass}>Company name<input name="companyName" required maxLength={200} className={inputClass} /></label>
         <label className={fieldLabelClass}>Workspace slug<input name="companySlug" required maxLength={120} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="northstar-builders" className={inputClass} /></label>
         <label className={fieldLabelClass}>Legal name<input name="legalName" maxLength={240} className={inputClass} /></label>
@@ -31,7 +32,7 @@ export function OnboardingForm({ onComplete }: { onComplete?(state: CommandState
       </fieldset>
 
       <fieldset className="grid gap-4 rounded-xl border p-4 md:grid-cols-2 md:p-5">
-        <legend className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-[11px] text-muted-foreground">02</span>Public contractor profile</legend>
+        <legend className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-xs text-muted-foreground">02</span>Public contractor profile</legend>
         <label className={fieldLabelClass}>Public contact email<input name="publicContactEmail" type="email" required maxLength={320} className={inputClass} /></label>
         <label className={fieldLabelClass}>Public contact phone<input name="publicContactPhone" type="tel" maxLength={50} className={inputClass} /></label>
         <label className={`${fieldLabelClass} md:col-span-2`}>Service area<input name="publicServiceArea" required maxLength={160} placeholder="Metro region and surrounding counties" className={inputClass} /></label>
@@ -42,13 +43,13 @@ export function OnboardingForm({ onComplete }: { onComplete?(state: CommandState
       </fieldset>
 
       <fieldset className="grid gap-4 rounded-xl border p-4 md:grid-cols-2 md:p-5">
-        <legend className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-[11px] text-muted-foreground">03</span>First project</legend>
+        <legend className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-xs text-muted-foreground">03</span>First project</legend>
         <label className={fieldLabelClass}>Project number<input name="projectNumber" required maxLength={80} placeholder="2026-001" className={inputClass} /></label>
         <label className={fieldLabelClass}>Project name<input name="projectName" required maxLength={publishFirstProject ? 200 : 240} className={inputClass} /></label>
         <label className={fieldLabelClass}>Client<input name="clientName" maxLength={240} placeholder="Project owner" className={inputClass} /></label>
         <label className={fieldLabelClass}>First trade partner<input name="tradePartnerName" maxLength={240} placeholder="Subcontractor or vendor" className={inputClass} /></label>
-        <label className={fieldLabelClass}>Start date<input name="startDate" type="date" className={inputClass} /></label>
-        <label className={fieldLabelClass}>Planned completion<input name="completionDate" type="date" className={inputClass} /></label>
+        <label className={fieldLabelClass}>Start date<PlatformDateInput name="startDate" /></label>
+        <label className={fieldLabelClass}>Planned completion<PlatformDateInput name="completionDate" /></label>
         <label className={fieldLabelClass}>Currency code<input name="currencyCode" required maxLength={3} value="USD" readOnly className={`${inputClass} uppercase`} /></label>
         <label className={`${fieldLabelClass} md:col-span-2`}>Project description<textarea name="projectDescription" maxLength={4000} className={`${textareaClass} min-h-24`} /></label>
         <label className="flex min-h-11 items-start gap-3 border-t pt-4 text-sm md:col-span-2">
@@ -63,7 +64,7 @@ export function OnboardingForm({ onComplete }: { onComplete?(state: CommandState
       </fieldset>
 
       <fieldset className="grid gap-4 rounded-xl border p-4 md:grid-cols-2 md:p-5">
-        <legend className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-[11px] text-muted-foreground">04</span>Initial work breakdown and budget</legend>
+        <legend className="px-2 text-sm font-semibold"><span className="mr-2 font-mono text-xs text-muted-foreground">04</span>Initial work breakdown and budget</legend>
         <label className={fieldLabelClass}>Cost code<input name="costCode" required maxLength={40} placeholder="03-3000" className={inputClass} /></label>
         <label className={fieldLabelClass}>Cost code name<input name="costCodeName" required maxLength={200} placeholder="Cast-in-place concrete" className={inputClass} /></label>
         <label className={fieldLabelClass}>Budget code<input name="budgetCode" required maxLength={80} placeholder="03-3000-LAB" className={inputClass} /></label>

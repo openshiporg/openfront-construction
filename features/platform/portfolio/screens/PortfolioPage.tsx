@@ -5,6 +5,7 @@ import { getConstructionPortfolio, type ProjectSummary } from "@/features/platfo
 import { MetricList } from "@/features/platform/projects/components/MetricList";
 import { ListPager, listHref, pageParam } from "@/features/platform/projects/components/ListPager";
 import { EmptyState, PageHeader, PillLink, PlatformPage, StatusDot, TitleStatus, Track, formatDate, formatMinor } from "@/features/platform/components/kit";
+import { plural } from '@/features/platform/lib/plural'
 
 function money(value: string | null, currencyCode: string) {
   if (value === null) return "—";
@@ -35,7 +36,7 @@ function BudgetBar({ project }: { project: ProjectSummary }) {
 function Count({ label, value, attention }: { label: string; value: number | null; attention?: boolean }) {
   return (
     <div className="min-w-0">
-      <dt className="flex items-center gap-1.5 text-[11px] text-muted-foreground">{attention && value ? <StatusDot tone="amber" /> : null}{label}</dt>
+      <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">{attention && value ? <StatusDot tone="amber" /> : null}{label}</dt>
       <dd className="mt-0.5 text-sm font-semibold tabular-nums">{value ?? "—"}</dd>
     </div>
   );
@@ -76,7 +77,7 @@ export async function PortfolioPage({ searchParams }: { searchParams: Promise<Re
       <PageHeader
         icon={Building2}
         title="Portfolio"
-        meta={portfolio.totalCount > 0 ? <span className="tabular-nums">{portfolio.totalCount} projects</span> : undefined}
+        meta={portfolio.totalCount > 0 ? <span className="tabular-nums">{plural(portfolio.totalCount, 'project', 'projects')}</span> : undefined}
         actions={<Track>{portfolio.canCreateProject ? <PillLink href="/dashboard/platform/projects" variant="primary"><Plus />New project</PillLink> : null}<PillLink href="/dashboard/platform/projects">All projects</PillLink></Track>}
       />
       {portfolio.totalCount > 0 && <MetricList metrics={portfolio.metrics} label="Portfolio summary" />}

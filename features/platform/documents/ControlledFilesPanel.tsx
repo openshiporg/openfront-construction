@@ -9,6 +9,7 @@ import type { ConstructionOption } from "@/features/platform/projects/data";
 import { localDateTimeToInstant, userTimeZone } from "@/features/platform/projects/components/workflow-fields";
 import { completeControlledUpload, distributeControlledDocument, getControlledDownload, requestControlledUpload } from "./actions";
 import { EmptyState, FormFeedback, Panel, StatusDot, fieldLabelClass, inputClass, pillClass, selectClass, trackClass } from "@/features/platform/components/kit";
+import { PlatformDateTimeInput } from '@/features/platform/components/PlatformDateTime'
 
 const MAX_BYTES = 50 * 1024 * 1024;
 const subscribeToNothing = () => () => {};
@@ -180,7 +181,7 @@ export function ControlledFilesPanel({ projectId, options, canManage }: { projec
           <label className={fieldLabelClass}>Issued version<FormSelect name="versionId" required defaultValue="" className={selectClass}><option value="">Select…</option>{options.filter(option => option.kind === "documentVersion").map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</FormSelect></label>
           <label className={fieldLabelClass}>Recipient<FormSelect name="membershipId" required defaultValue="" className={selectClass}><option value="">Select…</option>{options.filter(option => option.kind === "membership").map(option => <option key={option.id} value={option.id}>{option.label} — {option.detail}</option>)}</FormSelect></label>
           <label className={fieldLabelClass}>Purpose<input name="purpose" required maxLength={500} className={inputClass} /></label>
-          <label className={fieldLabelClass}>Expires{timeZone ? ` (${timeZone})` : ""}<input name="expiresAt" type="datetime-local" className={inputClass} /></label>
+          <label className={fieldLabelClass}>Expires{timeZone ? ` (${timeZone})` : ""}<PlatformDateTimeInput name="expiresAt" /></label>
           <span className={`${trackClass} md:col-span-2 lg:col-span-4`}><button type="submit" disabled={pending} className={pillClass("primary")}>Share version</button></span>
         </form>
       )}

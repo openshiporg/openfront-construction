@@ -6,6 +6,7 @@ import { operatorRequestAction, type OperatorRequestState } from "./actions";
 import type { OperatorRequest } from "./data";
 import { FormFeedback, fieldLabelClass, inputClass, pillClass, textareaClass, trackClass } from "@/features/platform/components/kit";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { PlatformDateTimeInput } from '@/features/platform/components/PlatformDateTime'
 
 const initialState: OperatorRequestState = { status: "idle", message: "" };
 const subscribeToNothing = () => () => {};
@@ -36,7 +37,7 @@ export function QuoteForm({ request }: { request: OperatorRequest }) {
     <input type="hidden" name="expiresAt" value={localDateTimeToInstant(expiry) ?? ""} />
     <label className={fieldLabelClass}>Amount (USD)<input name="amount" inputMode="decimal" required pattern="[0-9]+(\.[0-9]{1,2})?" defaultValue={quoted ? `${BigInt(request.quoteMinor) / BigInt(100)}.${(BigInt(request.quoteMinor) % BigInt(100)).toString().padStart(2, "0")}` : ""} className={`${inputClass} text-base font-semibold tabular-nums`} /></label>
     <label className={fieldLabelClass}>Terms<textarea name="terms" required minLength={20} maxLength={4000} defaultValue={request.quoteTerms} className={`${textareaClass} min-h-24`} /></label>
-    <label className={fieldLabelClass}>Expires<input type="datetime-local" required value={expiry} onChange={event => setEdited(event.target.value)} className={inputClass} /></label>
+    <label className={fieldLabelClass}>Expires<PlatformDateTimeInput value={expiry} required onChange={setEdited} /></label>
     <span className={`${trackClass} w-fit justify-self-start`}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : quoted ? "Update quote" : "Issue quote"}</button></span>
     <Feedback state={state} />
   </form>;

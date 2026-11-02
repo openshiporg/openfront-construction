@@ -9,6 +9,7 @@ import { useRefreshOnSuccess } from "@/features/platform/projects/use-refresh-on
 import { createBudgetCodeAction, createLocationAction, renameLocationAction, setBudgetCodeActiveAction } from "../actions";
 import { costTypes, locationTypes } from "../lib";
 import { keepUnlessSaved } from "@/features/lib/form-reset";
+import { OptionSelect } from '@/features/platform/components/OptionSelect'
 
 export function BudgetCodeForm({ projectId, costCodes }: { projectId: string; costCodes: Array<{ id: string; code: string; name: string }> }) {
   const [state, action, pending] = useActionState(createBudgetCodeAction, initialCommandState);
@@ -19,10 +20,10 @@ export function BudgetCodeForm({ projectId, costCodes }: { projectId: string; co
       <label className={fieldLabelClass}>Code<input name="code" required maxLength={80} className={`${inputClass} font-mono uppercase`} /></label>
       <label className={fieldLabelClass}>Description<input name="description" required maxLength={240} className={inputClass} /></label>
       <label className={fieldLabelClass}>Cost type
-        <select name="costType" defaultValue="subcontract" className={selectClass}>{costTypes.map(entry => <option key={entry.value} value={entry.value}>{entry.label}</option>)}</select>
+        <OptionSelect name="costType" defaultValue="subcontract" className={selectClass}>{costTypes.map(entry => <option key={entry.value} value={entry.value}>{entry.label}</option>)}</OptionSelect>
       </label>
       <label className={fieldLabelClass}>Company cost code
-        <select name="costCodeId" required className={selectClass}>{costCodes.map(entry => <option key={entry.id} value={entry.id}>{entry.code} · {entry.name}</option>)}</select>
+        <OptionSelect name="costCodeId" required className={selectClass}>{costCodes.map(entry => <option key={entry.id} value={entry.id}>{entry.code} · {entry.name}</option>)}</OptionSelect>
       </label>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2 xl:col-span-4">
         <span className={trackClass}><button disabled={pending || costCodes.length === 0} className={pillClass("primary")}>{pending ? "Saving…" : "Add budget code"}</button></span>
@@ -55,13 +56,13 @@ export function LocationForm({ projectId, parents }: { projectId: string; parent
       <label className={fieldLabelClass}>Code<input name="code" required maxLength={80} className={`${inputClass} font-mono uppercase`} /></label>
       <label className={fieldLabelClass}>Name<input name="name" required maxLength={200} className={inputClass} /></label>
       <label className={fieldLabelClass}>Type
-        <select name="locationType" defaultValue="area" className={selectClass}>{locationTypes.map(entry => <option key={entry.value} value={entry.value}>{entry.label}</option>)}</select>
+        <OptionSelect name="locationType" defaultValue="area" className={selectClass}>{locationTypes.map(entry => <option key={entry.value} value={entry.value}>{entry.label}</option>)}</OptionSelect>
       </label>
       <label className={fieldLabelClass}>Inside
-        <select name="parentId" defaultValue="" className={selectClass}>
+        <OptionSelect name="parentId" defaultValue="" className={selectClass}>
           <option value="">Top level</option>
           {parents.map(entry => <option key={entry.id} value={entry.id}>{entry.label}</option>)}
-        </select>
+        </OptionSelect>
       </label>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2 xl:col-span-4">
         <span className={trackClass}><button disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : "Add location"}</button></span>

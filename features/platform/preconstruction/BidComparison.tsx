@@ -1,5 +1,6 @@
 import type { BidComparisonRow } from "@/features/platform/projects/data";
 import { Panel, TitleStatus, formatDate, formatMinor } from "@/features/platform/components/kit";
+import { plural } from '@/features/platform/lib/plural'
 
 /** Submitted bids per package, cheapest first, with the spread against the low bid. */
 export function BidComparison({ rows }: { rows: BidComparisonRow[] }) {
@@ -7,7 +8,7 @@ export function BidComparison({ rows }: { rows: BidComparisonRow[] }) {
   const packages = new Map<string, BidComparisonRow[]>();
   for (const row of rows) packages.set(row.packageNumber, [...(packages.get(row.packageNumber) ?? []), row]);
   return (
-    <Panel id="bid-comparison" title="Bid leveling" meta={`${rows.length} bids · ${packages.size} packages`} padded={false}>
+    <Panel id="bid-comparison" title="Bid leveling" meta={`${plural(rows.length, 'bid', 'bids')} · ${packages.size} packages`} padded={false}>
       <div className="divide-y">
         {[...packages.entries()].map(([packageNumber, bids]) => {
           const low = bids.reduce((min, bid) => { try { return BigInt(bid.totalMinor) < min ? BigInt(bid.totalMinor) : min; } catch { return min; } }, BigInt(bids[0]?.totalMinor || "0"));
@@ -26,7 +27,7 @@ export function BidComparison({ rows }: { rows: BidComparisonRow[] }) {
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                           <span className="text-sm font-medium">{bid.partnerName}</span>
                           <TitleStatus status={bid.status} />
-                          {index === 0 ? <span className="rounded-[3px] bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">Low bid</span> : null}
+                          {index === 0 ? <span className="rounded-[3px] bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">Low bid</span> : null}
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground">{bid.submissionNumber} · {formatDate(bid.submittedAt)} · {bid.lineCount} line{bid.lineCount === 1 ? "" : "s"}</p>
                         {bid.exclusions || bid.clarifications ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{bid.exclusions || bid.clarifications}</p> : null}
