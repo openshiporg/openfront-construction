@@ -270,18 +270,15 @@ export const ChangeQuote = list({
   ui: { listView: { initialColumns: ["quoteNumber", "tradePartner", "status", "amountMinor", "dueAt"] } },
   fields: {
     quoteNumber: text({ validation: { isRequired: true, length: { min: 1, max: 80 } } }),
-    status: select({
-      type: "enum",
-      options: [
-        { label: "Requested", value: "requested" },
-        { label: "Received", value: "received" },
-        { label: "Accepted", value: "accepted" },
-        { label: "Rejected", value: "rejected" },
-        { label: "Withdrawn", value: "withdrawn" },
-      ],
-      defaultValue: "requested",
-      validation: { isRequired: true },
-    }),
+    // Workflow-owned: recordChangeQuote sets received; withdrawChangeQuote and
+    // rejectChangeQuote close it. Never edited from the generic admin form.
+    status: lifecycleStatus([
+      { label: "Requested", value: "requested" },
+      { label: "Received", value: "received" },
+      { label: "Accepted", value: "accepted" },
+      { label: "Rejected", value: "rejected" },
+      { label: "Withdrawn", value: "withdrawn" },
+    ], "requested"),
     scope: text({ ui: { displayMode: "textarea" } }),
     amountMinor: moneyField(),
     currencyCode: currencyCodeField(),

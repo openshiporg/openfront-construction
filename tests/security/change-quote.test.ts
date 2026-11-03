@@ -32,3 +32,12 @@ test("the close reason is appended to the scope", () => {
   assert.equal(scopeWithCloseReason("Layout check", "withdraw", "Partner pulled out"), "Layout check\n\nWithdrawn: Partner pulled out");
   assert.equal(scopeWithCloseReason(null, "reject", "Too high"), "Rejected: Too high");
 });
+
+test("change quote status is workflow-owned: read-only in the admin, never updated generically", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(new URL("../../features/keystone/models/contracts.ts", import.meta.url), "utf8");
+  const start = src.indexOf("export const ChangeQuote = list(");
+  const block = src.slice(start, src.indexOf("\n});", start));
+  assert.match(block, /status: lifecycleStatus\(\[/);
+  assert.doesNotMatch(block, /status: select\(/);
+});
