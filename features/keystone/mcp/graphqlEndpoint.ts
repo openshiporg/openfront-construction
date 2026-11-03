@@ -27,7 +27,13 @@ export function getTrustedInternalEndpoint(
   const configuredUrl = portlessUrl || appUrl
   const isLoopback = ['localhost', '127.0.0.1', '[::1]'].includes(externalEndpoint.hostname)
   if (!configuredUrl) {
-    if (isLoopback) return externalEndpoint.href
+    // `next start` reports request.url as http://localhost:<PORT> behind Railway's edge. "localhost" can
+    // resolve to ::1 while Next listens on IPv4, so every self-call failed; use the dashboard's loopback
+    // resolver (127.0.0.1:PORT) when the port is known.
+    if (isLoopback) {
+      const loopback = loopbackOrigin(port)
+      return loopback ? new URL(pathname, loopback).href : externalEndpoint.href
+    }
     throw new Error('APP_URL or PORTLESS_URL is required for authenticated internal GraphQL forwarding')
   }
 

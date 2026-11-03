@@ -1,5 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { getInternalGraphqlEndpoint } from './graphqlEndpoint';
+import { requireMcpSession } from '../mcpGate';
+import { keystoneContext } from '../context';
 import { clientSourceFromHeaders, internalIdentityHeaders } from '../lib/internal-origin';
 
 // Signed end-user identity for the loopback self-call (only honoured by the verifier on a loopback socket).
@@ -115,32 +117,6 @@ async function executeGraphQL(
   return { data: result.data };
 }
 
-// Get GraphQL schema from introspection
-async function getGraphQLSchema(graphqlEndpoint: string, cookie: string, extra: Record<string, string> = {}): Promise<GraphQLSchema> {
-  const response = await fetch(graphqlEndpoint, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Cookie': cookie,
-      ...extra,
-    },
-    body: JSON.stringify({ query: getIntrospectionQuery() }),
-    signal: AbortSignal.timeout(15_000),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-  
-  const result = await readBoundedGraphqlResult(response, 8 * 1_048_576);
-  if (!isRecord(result)) throw new Error('GraphQL introspection returned an invalid envelope');
-  if (result.errors) {
-    throw new Error('GraphQL schema discovery failed');
-  }
-  if (!isIntrospectionResult(result.data)) throw new Error('GraphQL introspection returned no schema data');
-  
-  return buildClientSchema(result.data);
-}
 
 async function handlePost(request: Request, { params }: { params: Promise<{ transport: string }> }) {
   try {
@@ -158,7 +134,9 @@ async function handlePost(request: Request, { params }: { params: Promise<{ tran
   
     // Reject oversized transport input before schema discovery or database work.
     const body = await readBoundedObjectJson(request);
-    // Handshake/tool descriptions do not execute schema or data queries.
+    // Refuse anonymous callers before any handshake, tool list, schema or data work.
+    const refused = await requireMcpSession(request, body);
+    if (refused) return refused;
     
     // Handle the request based on method
     if (body.method === 'initialize') {
@@ -294,7 +272,10 @@ async function handlePost(request: Request, { params }: { params: Promise<{ tran
       const { name, arguments: args } = body.params;
 
       try {
-        const schema = await getGraphQLSchema(graphqlEndpoint, cookie, extra);
+        // The served schema, read in-process (rideshare 2bf4b2f). Fetching it over HTTP made every tool
+        // call fail for the signed-in owner ("The MCP read could not be completed"). The gate above already
+        // requires a session; data reads still go through /api/graphql with the caller's cookie.
+        const schema = keystoneContext.graphql.schema;
         if (name === 'listModels') {
           const allModels: ModelInfo[] = [];
           
@@ -612,6 +593,9 @@ async function handlePost(request: Request, { params }: { params: Promise<{ tran
 
         throw new Error(`Tool ${name} not found`);
       } catch (error) {
+        if (!(error instanceof McpQueryPolicyError)) {
+          console.error('MCP tool failed:', String((error as Error)?.message ?? error).replace(/\s+/g, ' ').slice(0, 160));
+        }
         return new Response(JSON.stringify({
           jsonrpc: '2.0',
           id: body.id,
