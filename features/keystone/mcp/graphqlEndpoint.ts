@@ -1,3 +1,5 @@
+import { loopbackOrigin } from '../lib/internal-origin'
+
 export type RuntimeEnvironment = {
   PORT?: string
   PORTLESS_URL?: string
@@ -49,7 +51,9 @@ export function getTrustedInternalEndpoint(
     }
   }
   if (externalEndpoint.origin !== configuredOrigin) throw new Error('Untrusted request origin')
-  return new URL(pathname, configuredOrigin).href
+  // Same resolver as the dashboard (internal-origin): this process over loopback when PORT is valid, else the configured origin.
+  const loopback = loopbackOrigin(port)
+  return new URL(pathname, loopback ?? configuredOrigin).href
 }
 
 export function getInternalGraphqlEndpoint(

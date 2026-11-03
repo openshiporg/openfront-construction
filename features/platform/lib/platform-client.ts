@@ -1,7 +1,7 @@
 import { ClientError, GraphQLClient } from "graphql-request";
 
 import { getAuthHeaders } from "@/features/dashboard/lib/cookies";
-import { getGraphQLEndpoint } from "@/features/dashboard/lib/getBaseUrl";
+import { getServerGraphQLTarget } from "@/features/dashboard/lib/getBaseUrl";
 import type { KeystoneResponse } from "@/features/dashboard/lib/keystoneClient";
 import { PUBLIC_REQUEST_ERROR, safeErrorSummary } from "@/features/dashboard/lib/security";
 import { operatorErrorMessage } from "@/features/lib/operator-error";
@@ -10,9 +10,12 @@ import { operatorErrorMessage } from "@/features/lib/operator-error";
  * returns the reason ("03-3000 already exists") instead of the generic retry text. */
 export async function platformClient<T = any>(query: string, variables: Record<string, unknown> = {}): Promise<KeystoneResponse<T>> {
   try {
-    const client = new GraphQLClient(await getGraphQLEndpoint(), {
+    // Built per request, so the signed identity is the CURRENT visitor's.
+    const target = await getServerGraphQLTarget();
+    const client = new GraphQLClient(target.endpoint, {
       credentials: "include",
       redirect: "error",
+      ...(target.fetch ? { fetch: target.fetch } : {}),
       headers: (await getAuthHeaders()) || {},
     });
     return { success: true, data: await client.request<T>(query, variables) };

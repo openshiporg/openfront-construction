@@ -1,5 +1,14 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { getInternalGraphqlEndpoint } from './graphqlEndpoint';
+import { clientSourceFromHeaders, internalIdentityHeaders } from '../lib/internal-origin';
+
+// Signed end-user identity for the loopback self-call (only honoured by the verifier on a loopback socket).
+function identityFor(graphqlEndpoint: string, request: Request): Record<string, string> {
+  try {
+    const host = new URL(graphqlEndpoint).hostname;
+    return host === '127.0.0.1' ? internalIdentityHeaders(clientSourceFromHeaders(request.headers)) : {};
+  } catch { return {}; }
+}
 import { buildBoundedReadQuery, resolveModelListOperation, readBoundedGraphqlResult, McpQueryPolicyError } from './query-policy';
 import { 
   getIntrospectionQuery, 
@@ -88,12 +97,14 @@ async function executeGraphQL(
   graphqlEndpoint: string,
   cookie: string,
   variables: Record<string, unknown> = {},
+  extra: Record<string, string> = {},
 ): Promise<GraphQLExecutionResult> {
   const response = await fetch(graphqlEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Cookie': cookie,
+      ...extra,
     },
     body: JSON.stringify({ query, variables }),
     signal: AbortSignal.timeout(15_000),
@@ -105,12 +116,13 @@ async function executeGraphQL(
 }
 
 // Get GraphQL schema from introspection
-async function getGraphQLSchema(graphqlEndpoint: string, cookie: string): Promise<GraphQLSchema> {
+async function getGraphQLSchema(graphqlEndpoint: string, cookie: string, extra: Record<string, string> = {}): Promise<GraphQLSchema> {
   const response = await fetch(graphqlEndpoint, {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
       'Cookie': cookie,
+      ...extra,
     },
     body: JSON.stringify({ query: getIntrospectionQuery() }),
     signal: AbortSignal.timeout(15_000),
@@ -142,6 +154,7 @@ async function handlePost(request: Request, { params }: { params: Promise<{ tran
     
     // Extract cookie from request
     const cookie = request.headers.get('cookie') || ''
+    const extra = identityFor(graphqlEndpoint, request)
   
     // Reject oversized transport input before schema discovery or database work.
     const body = await readBoundedObjectJson(request);
@@ -281,7 +294,7 @@ async function handlePost(request: Request, { params }: { params: Promise<{ tran
       const { name, arguments: args } = body.params;
 
       try {
-        const schema = await getGraphQLSchema(graphqlEndpoint, cookie);
+        const schema = await getGraphQLSchema(graphqlEndpoint, cookie, extra);
         if (name === 'listModels') {
           const allModels: ModelInfo[] = [];
           
@@ -352,7 +365,7 @@ async function handlePost(request: Request, { params }: { params: Promise<{ tran
         
         if (name === 'queryData') {
           const plan = buildBoundedReadQuery(schema, args);
-          const result = await executeGraphQL(plan.query, graphqlEndpoint, cookie, plan.variables);
+          const result = await executeGraphQL(plan.query, graphqlEndpoint, cookie, plan.variables, extra);
           const items = isRecord(result.data) ? result.data[plan.operation] : undefined;
           return Response.json({ jsonrpc: '2.0', id: body.id, result: { content: [{ type: 'text', text: JSON.stringify({
             results: result,
@@ -588,7 +601,7 @@ async function handlePost(request: Request, { params }: { params: Promise<{ tran
           if (typeof args.searchQuery !== 'string') throw new McpQueryPolicyError('Search text is required');
           const operation = resolveModelListOperation(schema, args.modelName);
           const plan = buildBoundedReadQuery(schema, { operation, fields: args.fields, limit: args.limit ?? 10, skip: args.skip, search: args.searchQuery });
-          const result = await executeGraphQL(plan.query, graphqlEndpoint, cookie, plan.variables);
+          const result = await executeGraphQL(plan.query, graphqlEndpoint, cookie, plan.variables, extra);
           const items = isRecord(result.data) ? result.data[operation] : undefined;
           return Response.json({ jsonrpc: '2.0', id: body.id, result: { content: [{ type: 'text', text: JSON.stringify({
             operationName: operation, validSearchFields: plan.validSearchFields, results: result,
