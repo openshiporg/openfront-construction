@@ -8,6 +8,7 @@ import { requireSessionSecret } from "./domain/session-secret";
 import { databaseSessions } from "./domain/session-strategy";
 import { sendPasswordResetEmail } from "./lib/mail";
 import { models } from "./models";
+import { withCreateAwareUi } from "./ui-create-access";
 import { permissionsList } from "./models/fields";
 import { extendGraphqlSchema } from "./mutations";
 
@@ -87,7 +88,8 @@ export default withAuth(
       provider: "postgresql",
       url: databaseURL,
     },
-    lists: models,
+    // Admin "Create" buttons follow each list's create access (ui-create-access.ts).
+    lists: withCreateAwareUi(models),
     // Construction files use the verified private-object adapter. No current
     // List uses starter my_images; do not instantiate an unused cloud client.
     ui: {
