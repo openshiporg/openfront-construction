@@ -7,6 +7,7 @@ import { hasNativeAuthorityPort, lockInitialOnboardingAuthority } from "../domai
 import { APPROVAL_POLICY_DOMAINS, assertWorkspaceReady, seedSampleWorkspace, seedWorkspaceSetup, type SeedDb } from "../domain/onboarding-seed";
 import { queryCount, queryOne, type KeystoneQueryApi } from "../domain/tenancy";
 import sampleSeed from "../../platform/onboarding/lib/seed.json";
+import { DEFAULT_STORE_LOGO_COLOR, DEFAULT_STORE_LOGO_ICON } from "../../lib/store-logo";
 
 export type ConstructionOnboardingInput = {
   fictionalFixture?: boolean;
@@ -236,6 +237,9 @@ export async function onboardConstructionWorkspace(
         brandMark: normalized.brandMark,
         brandTagline: normalized.brandTagline || "",
         brandColor: normalized.brandColor,
+        // Like E-commerce's onboarding, the new company always gets the registry logo.
+        logoIcon: DEFAULT_STORE_LOGO_ICON,
+        logoColor: DEFAULT_STORE_LOGO_COLOR,
       } });
       const [administratorRole, managerRole, fieldRole, externalRole] = await Promise.all([
         sudo.db.Role.createOne({ data: roleData("Company Administrator", company.id, "all") }),

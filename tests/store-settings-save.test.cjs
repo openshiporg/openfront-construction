@@ -11,7 +11,9 @@ function load(relative) {
   const filename = path.resolve(root, relative);
   const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const module = { exports: {} };
-  vm.runInNewContext(output, { module, exports: module.exports }, { filename });
+  // Store-logo defaults now come from the registry, so relative imports load the same way.
+  const req = (name) => (name.startsWith('.') ? load(path.relative(root, path.resolve(path.dirname(filename), name + '.ts'))) : require(name));
+  vm.runInNewContext(output, { module, exports: module.exports, require: req }, { filename });
   return module.exports;
 }
 
