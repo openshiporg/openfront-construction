@@ -70,8 +70,17 @@ export async function bookPaidRequest(context: KeystoneContext, paymentId: strin
     if (!row.projectId) {
       await initializeProjectBudget(sudo, { companyId, projectId: String(project.id), currencyCode, approverId: manager?.userId ?? null, roleId: manager?.roleId ?? null });
       // Owner portal: the customer follows the job, approvals and invoices from /portal.
+      // Project access is role-driven, so the grant carries the company's external
+      // (read-only, no dashboard) role, the same one portal invitations use.
+      const portalRole = await sudo.prisma.role.findFirst({
+        where: { companyId, name: "External Collaborator" }, select: { id: true },
+      }) ?? await sudo.prisma.role.findFirst({
+        where: { companyId, canReadProjects: true, canAccessDashboard: false, canManageProjects: false }, orderBy: { createdAt: "asc" }, select: { id: true },
+      });
       await sudo.db.ProjectMembership.createOne({ data: {
+        membershipKey: `${project.id}:${request.customerId}`,
         status: "active", accessLevel: "contributor", portalType: "owner", joinedAt: new Date(),
+        ...(portalRole ? { role: { connect: { id: portalRole.id } } } : {}),
         portalOrganization: { connect: { id: String(client.id) } },
         project: { connect: { id: project.id } }, user: { connect: { id: request.customerId } },
       } });

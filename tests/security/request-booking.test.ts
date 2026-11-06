@@ -35,6 +35,7 @@ function fakeContext(initial: { requestStatus?: string; paymentStatus?: string }
     payment: { findUnique: async () => payment, update: async ({ data }: any) => Object.assign(payment, data) },
     serviceRequest: { findUnique: async () => request },
     companyMembership: { findFirst: async () => ({ userId: "u_pm", roleId: "role_pm" }) },
+    role: { findFirst: async ({ where }: any) => where.name === "External Collaborator" ? { id: "role_external" } : null },
     constructionLead: { findFirst: async () => null, update: async () => undefined },
     tradePartner: { findFirst: async () => created.TradePartner?.[0] ?? null },
     costCode: { findUnique: async () => null },
@@ -64,6 +65,7 @@ test("a settled deposit books the job: won opportunity, project, owner portal, l
   const [membership] = created.ProjectMembership;
   assert.equal(membership.portalType, "owner");
   assert.deepEqual(membership.user, { connect: { id: "u_cust" } });
+  assert.deepEqual(membership.role, { connect: { id: "role_external" } }, "portal reads are role-driven");
   assert.ok(membership.portalOrganization.connect.id);
   assert.equal(created.ConstructionLead[0].status, "converted");
   assert.equal(created.Budget.length, 1);
