@@ -5,7 +5,7 @@ import { lockCurrentAuthority } from "../domain/current-authority";
 import { getTrustedPublicSiteKey, publicSlug } from "../domain/public-site";
 import { normalizeStoreLogoColor } from "../../lib/store-logo";
 import { sanitizeStoreLogoSvg } from "../../lib/sanitize-store-logo";
-import { PUBLIC_PROJECT_LIMITS as P } from "../../lib/public-content-limits";
+import { PUBLIC_PROJECT_LIMITS as P, parseProjectPhotos, projectPhotosError } from "../../lib/public-content-limits";
 
 const base = { companyId: z.string().min(1).max(200), idempotencyKey: z.string().min(1).max(200) };
 const status = z.enum(["draft", "published", "archived"]);
@@ -13,7 +13,7 @@ const content = z.discriminatedUnion("operation", [
   z.object({ ...base, operation: z.literal("branding"), legalName: z.string().trim().max(240), brandName: z.string().trim().min(2).max(120), brandMark: z.string().regex(/^[A-Z0-9]{1,4}$/), brandTagline: z.string().max(240), brandColor: z.string().regex(/^#[0-9a-f]{6}$/i), logoIcon: z.string().max(100000), logoColor: z.string().max(40) }).strict(),
   z.object({ ...base, operation: z.literal("profile"), status, serviceArea: z.string().trim().min(2).max(240), capabilitySummary: z.string().trim().min(20).max(1200), inquiryEmail: z.string().email().max(320), inquiryPhone: z.string().max(50), privacyNotice: z.string().trim().min(20).max(1200), acceptingInquiries: z.boolean() }).strict(),
   z.object({ ...base, operation: z.literal("service"), id: z.string().max(200).optional(), title: z.string().trim().min(2).max(160), summary: z.string().trim().min(20).max(500), details: z.string().max(4000), market: z.string().max(160), status }).strict(),
-  z.object({ ...base, operation: z.literal("project"), id: z.string().max(200).optional(), sourceProjectId: z.string().max(200).optional(), title: z.string().trim().min(2).max(P.title.max), summary: z.string().trim().min(20).max(P.summary.max), description: z.string().max(P.description.max), market: z.string().max(P.market.max), locationLabel: z.string().max(P.locationLabel.max), deliveryMethod: z.string().max(P.deliveryMethod.max), completionLabel: z.string().max(P.completionLabel.max), approvedOutcome: z.string().max(P.approvedOutcome.max).optional(), status }).strict(),
+  z.object({ ...base, operation: z.literal("project"), id: z.string().max(200).optional(), sourceProjectId: z.string().max(200).optional(), title: z.string().trim().min(2).max(P.title.max), summary: z.string().trim().min(20).max(P.summary.max), description: z.string().max(P.description.max), market: z.string().max(P.market.max), locationLabel: z.string().max(P.locationLabel.max), deliveryMethod: z.string().max(P.deliveryMethod.max), completionLabel: z.string().max(P.completionLabel.max), approvedOutcome: z.string().max(P.approvedOutcome.max).optional(), photos: z.string().max(P.photos.max).optional().refine(value => !projectPhotosError(value), { message: "Each photo must be an https image URL or a site path, one per line" }), status }).strict(),
 ]);
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
@@ -34,7 +34,7 @@ export async function constructionStoreSettings(_root: unknown, { companyId }: {
     const profile = configured?.company?.id === selected ? await tx.prisma.publicSiteProfile.findUnique({ where: { id: configured.id }, select: { id: true, status: true, serviceArea: true, capabilitySummary: true, inquiryEmail: true, inquiryPhone: true, privacyNotice: true, acceptingInquiries: true } }) : null;
     const [services, projects] = profile ? await Promise.all([
       tx.prisma.publicService.findMany({ where: { companyId: selected, siteId: profile.id }, take: 50, orderBy: [{ sortOrder: "asc" }, { title: "asc" }], select: { id: true, title: true, slug: true, summary: true, details: true, market: true, status: true } }),
-      tx.prisma.publicProject.findMany({ where: { companyId: selected, siteId: profile.id }, take: 50, orderBy: [{ sortOrder: "asc" }, { title: "asc" }], select: { id: true, title: true, slug: true, summary: true, description: true, market: true, locationLabel: true, deliveryMethod: true, completionLabel: true, approvedOutcome: true, status: true } }),
+      tx.prisma.publicProject.findMany({ where: { companyId: selected, siteId: profile.id }, take: 50, orderBy: [{ sortOrder: "asc" }, { title: "asc" }], select: { id: true, title: true, slug: true, summary: true, description: true, market: true, locationLabel: true, deliveryMethod: true, completionLabel: true, approvedOutcome: true, photos: true, status: true } }),
     ]) : [[], []];
     return { companies, company: company && { ...company, logoIcon: sanitizeStoreLogoSvg(company.logoIcon), logoColor: normalizeStoreLogoColor(company.logoColor) }, profile, services, projects };
   });
@@ -88,16 +88,17 @@ export async function updateConstructionStoreSettings(_root: unknown, { input: u
         }
       } else {
         const { title, summary, description, market, locationLabel, deliveryMethod, completionLabel, approvedOutcome, status } = input;
+        const photos = parseProjectPhotos(input.photos ?? "").join("\n");
         if (input.id) {
           const current = await tx.prisma.publicProject.findUnique({ where: { id: input.id } });
           if (!current || current.companyId !== input.companyId || current.siteId !== site.id) throw new Error("Public project not found");
-          await sudo.db.PublicProject.updateOne({ where: { id: input.id }, data: { title, summary, description, market, locationLabel, deliveryMethod, completionLabel, approvedOutcome, status } });
+          await sudo.db.PublicProject.updateOne({ where: { id: input.id }, data: { title, summary, description, market, locationLabel, deliveryMethod, completionLabel, approvedOutcome, photos, status } });
         } else {
           const source = input.sourceProjectId ? await tx.prisma.project.findUnique({ where: { id: input.sourceProjectId } }) : null;
           if (input.sourceProjectId && source?.companyId !== input.companyId) throw new Error("Source project not found");
           if (await tx.prisma.publicProject.count({ where: { siteId: site.id } }) >= 50) throw new Error("Public project limit reached");
           const slug = publicSlug(title, randomUUID());
-          await sudo.db.PublicProject.createOne({ data: { title, summary, description, market, locationLabel, deliveryMethod, completionLabel, approvedOutcome, status, slug, publicationKey: `${input.companyId}:${slug}`, ...(source ? { sourceProject: { connect: { id: source.id } } } : {}), company: { connect: { id: input.companyId } }, site: { connect: { id: site.id } } } });
+          await sudo.db.PublicProject.createOne({ data: { title, summary, description, market, locationLabel, deliveryMethod, completionLabel, approvedOutcome, photos, status, slug, publicationKey: `${input.companyId}:${slug}`, ...(source ? { sourceProject: { connect: { id: source.id } } } : {}), company: { connect: { id: input.companyId } }, site: { connect: { id: site.id } } } });
         }
       }
     }

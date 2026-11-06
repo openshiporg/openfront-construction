@@ -78,6 +78,8 @@ export const PublicProject = list({
     deliveryMethod: text({ validation: { length: { max: 120 } }, access: immutable }),
     completionLabel: text({ validation: { length: { max: 80 } }, access: immutable }),
     approvedOutcome: text({ validation: { length: { max: 1000 } }, ui: { displayMode: "textarea" }, access: immutable }),
+    // Project photos, one image URL per line (site-hosted /projects/... or https). The first is the cover.
+    photos: text({ validation: { length: { max: 4000 } }, ui: { displayMode: "textarea", description: "One image URL per line; the first is the cover photo." }, access: immutable }),
     sortOrder: integer({ defaultValue: 0, validation: { min: 0, max: 10_000 }, access: immutable }),
     status: publicationStatus(),
     sourceProject: relationship({ ref: "Project.publications", access: { create: denyAll, update: denyAll } }),

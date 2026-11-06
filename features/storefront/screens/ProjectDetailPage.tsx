@@ -15,6 +15,7 @@ export async function ProjectDetailPage({ slug }: { slug: string }) {
     ["Delivery", project.deliveryMethod],
     ["Status", project.completionLabel],
   ].filter((entry): entry is [string, string] => Boolean(entry[1]));
+  const photos = project.photos ?? [];
   const related = (site?.projects ?? []).filter(entry => entry.slug !== project.slug && (!project.market || entry.market === project.market)).slice(0, 3);
   return (
     <PublicShell site={site} current="/projects">
@@ -29,16 +30,36 @@ export async function ProjectDetailPage({ slug }: { slug: string }) {
                 {project.completionLabel && <p className="sf-mt"><Status tone={completionTone(project.completionLabel)}>{project.completionLabel}</Status></p>}
                 <p className="sf-lede sf-hero__lede">{project.summary}</p>
               </div>
-              <div className="sf-plate sf-plate--tall" aria-hidden="true" style={{ borderRadius: "1rem", border: "1px solid var(--sf-slab-rule)" }}>
-                <div className="sf-plate__meta"><span>{project.market || "Project"}</span><span>{project.deliveryMethod}</span></div>
-                <span className="sf-plate__mono">{monogram(project.title)}</span>
-              </div>
+              {photos[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="sf-hero__photo" src={photos[0]} alt={`${project.title}`} fetchPriority="high" />
+              ) : (
+                <div className="sf-plate sf-plate--tall" aria-hidden="true" style={{ borderRadius: "1rem", border: "1px solid var(--sf-slab-rule)" }}>
+                  <div className="sf-plate__meta"><span>{project.market || "Project"}</span><span>{project.deliveryMethod}</span></div>
+                  <span className="sf-plate__mono">{monogram(project.title)}</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="sf-tape" aria-hidden="true" />
         </section>
         <section className="sf-section">
           <div className="sf-wrap sf-stack sf-stack--lg">
+            {photos.length > 1 && (
+              <section aria-labelledby="gallery-title" className="sf-stack">
+                <h2 id="gallery-title" className="sf-h3">Photos</h2>
+                <ul className="sf-gallery">
+                  {photos.map((photo, index) => (
+                    <li key={photo}>
+                      <a href={photo} target="_blank" rel="noreferrer" aria-label={`Open photo ${index + 1} of ${photos.length}`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photo} alt={`${project.title}, photo ${index + 1}`} loading="lazy" decoding="async" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
             {facts.length > 0 && <dl className="sf-spec">{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>}
             <div className="sf-split">
               <div className="sf-prose">

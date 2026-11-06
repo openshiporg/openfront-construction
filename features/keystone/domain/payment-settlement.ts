@@ -20,6 +20,10 @@ export function assertProviderResult(payment: LocalPayment, result: ProviderPaym
 }
 
 export const requestPaymentKey = (requestId: string, actorId: string) => `construction-request:${requestId}:${actorId}`;
+export function requestIdFromPaymentKey(key: string | null | undefined): string | null {
+  const match = /^construction-request:([^:]+):[^:]+$/.exec(key || "");
+  return match ? match[1] : null;
+}
 export const claimPaymentKey = (claimId: string, remainingMinor: bigint | string) => `construction-claim:${claimId}:${remainingMinor}`;
 export function claimIdFromPaymentKey(key: string | null | undefined): string | null {
   const match = /^construction-claim:([^:]+):\d+$/.exec(key || "");
@@ -28,7 +32,7 @@ export function claimIdFromPaymentKey(key: string | null | undefined): string | 
 
 export function assertRequestOwner(request: { customerId?: string | null; status: string } | null, actorId: string | undefined): void {
   if (!actorId) throw new Error("Sign in to pay");
-  if (!request || request.customerId !== actorId || request.status !== "payment_pending") throw new Error("Request not payable");
+  if (!request || request.customerId !== actorId || request.status !== "payment_pending") throw new Error(request?.status === "booked" ? "Deposit already received" : "Request not payable");
 }
 
 export type SettlementPorts = {

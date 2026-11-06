@@ -16,6 +16,7 @@ const STATUS: Record<string, { label: string; tone: DotTone }> = {
   requested: { label: "Awaiting quote", tone: "warn" },
   quoted: { label: "Quote ready", tone: "busy" },
   payment_pending: { label: "Accepted", tone: "ok" },
+  booked: { label: "Booked", tone: "ok" },
   cancelled: { label: "Cancelled", tone: "stop" },
 };
 
@@ -30,6 +31,8 @@ function isQuoteExpired(request: CustomerRequest, now = Date.now()) {
 
 function RequestStatus({ request }: { request: CustomerRequest }) {
   if (request.status === "payment_pending" && request.depositStatus === "settled") return <Status tone="ok">Deposit paid</Status>;
+  if (request.status === "booked" && request.depositStatus === "reversed") return <Status tone="idle">Deposit refunded</Status>;
+  if (request.status === "booked") return <Status tone="ok">Booked</Status>;
   if (request.status === "payment_pending" && request.depositStatus === "reversed") return <Status tone="idle">Deposit refunded</Status>;
   if (isQuoteExpired(request)) return <Status tone="stop">Quote expired</Status>;
   const status = STATUS[request.status] ?? { label: request.status.replaceAll("_", " "), tone: "idle" as DotTone };
@@ -186,6 +189,16 @@ export async function CustomerRequestPage({ params }: { params: Promise<{ id: st
               {request.status === "quoted" && !expired && <RequestDecision request={request} operation="accept" label="Accept quote" />}
               {request.status !== "cancelled" && !depositPaid && <RequestDecision request={request} operation="cancel" label="Cancel request" />}
             </section>
+            {request.status === "booked" && <section className={`sf-notice ${request.depositStatus === "reversed" ? "" : "sf-notice--ok"}`.trim()} role="status">
+              <span aria-hidden="true" className={`sf-dot sf-dot--${request.depositStatus === "reversed" ? "idle" : "ok"}`} />
+              <div className="sf-stack" style={{ gap: "0.5rem" }}>
+                {request.depositStatus === "reversed"
+                  ? <><strong>Deposit refunded</strong><p className="sf-small">The contractor refunded your deposit. Refunds reach your card or bank in 5–10 business days.</p></>
+                  : <><strong>Booked</strong><p className="sf-small">Deposit received and your job is on the schedule. Follow progress, approvals and invoices in your project portal.</p>
+                    {request.projectId && <Track><Pill href={`/portal/projects/${encodeURIComponent(request.projectId)}`} variant="primary" size="sm">Open project portal</Pill></Track>}</>}
+                <ContractorContact site={site} />
+              </div>
+            </section>}
             {request.status === "payment_pending" && <section className={`sf-notice ${request.depositStatus === "reversed" ? "" : "sf-notice--ok"}`.trim()} role="status">
               <span aria-hidden="true" className={`sf-dot sf-dot--${request.depositStatus === "reversed" ? "idle" : "ok"}`} />
               <div className="sf-stack" style={{ gap: "0.5rem" }}>

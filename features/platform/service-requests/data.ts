@@ -4,6 +4,7 @@ export type OperatorRequest = {
   id: string; reference: string; serviceTitle: string; scope: string; status: string; version: number;
   currencyCode: string; quoteMinor: string; quoteTerms: string; expiresAt: string | null;
   acceptedSnapshot: Record<string, unknown> | null; createdAt: string; depositStatus: string | null;
+  projectId?: string | null; opportunityId?: string | null;
 };
 export type OperatorQueueRow = { request: OperatorRequest; customerName: string; customerEmail: string; customerPhone: string | null };
 
@@ -14,7 +15,7 @@ export async function getOperatorRequests(page: number): Promise<{ rows: Operato
     query OperatorRequests($skip: Int, $take: Int) {
       constructionOperatorRequests(skip: $skip, take: $take) {
         customerName customerEmail customerPhone
-        request { id reference serviceTitle scope status version currencyCode quoteMinor quoteTerms expiresAt acceptedSnapshot createdAt depositStatus }
+        request { id reference serviceTitle scope status version currencyCode quoteMinor quoteTerms expiresAt acceptedSnapshot createdAt depositStatus projectId opportunityId }
       }
       constructionCustomerRequestCount(operator: true)
     }

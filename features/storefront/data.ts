@@ -15,7 +15,7 @@ export async function getPublicConstructionSite(): Promise<PublicConstructionSit
         brandName brandMark brandTagline brandColor logoIcon logoColor serviceArea capabilitySummary
         inquiryEmail inquiryPhone privacyNotice acceptingInquiries
         services { slug title summary details market }
-        projects { slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome }
+        projects { slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome photos }
       }
     }
   `);
@@ -61,7 +61,7 @@ export async function getPublicConstructionProject(slug: string): Promise<Public
   const response = await keystoneClient<{ publicConstructionProject: PublicProjectSummary | null }>(`
     query PublicConstructionProject($slug: String!) {
       publicConstructionProject(slug: $slug) {
-        slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome
+        slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome photos
       }
     }
   `, { slug });

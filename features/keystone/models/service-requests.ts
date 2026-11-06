@@ -27,7 +27,7 @@ export const ServiceRequest = list({
     serviceTitle: text({ validation: { isRequired: true } }),
     serviceSlug: text(),
     scope: text({ validation: { isRequired: true }, ui: { displayMode: "textarea" } }),
-    status: select({ type: "enum", options: ["requested", "quoted", "payment_pending", "cancelled"], defaultValue: "requested", validation: { isRequired: true } }),
+    status: select({ type: "enum", options: ["requested", "quoted", "payment_pending", "booked", "cancelled"], defaultValue: "requested", validation: { isRequired: true } }),
     version: integer({ defaultValue: 0, validation: { isRequired: true } }),
     currencyCode: text({ defaultValue: "USD" }),
     quoteMinor: bigInt({ defaultValue: BigInt(0), validation: { isRequired: true } }),
@@ -38,6 +38,9 @@ export const ServiceRequest = list({
     customer: relationship({ ref: "User.serviceRequests" }),
     company: relationship({ ref: "Company.serviceRequests" }),
     service: relationship({ ref: "PublicService.serviceRequests" }),
+    // Set when the paid deposit books the job (see mutations/request-booking.ts).
+    project: relationship({ ref: "Project", access: { create: denyAll, update: denyAll } }),
+    opportunity: relationship({ ref: "ConstructionOpportunity", access: { create: denyAll, update: denyAll } }),
     events: readOnlyRelationshipMany("ServiceRequestEvent.request"),
     ...trackingFields,
   },

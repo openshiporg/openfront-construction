@@ -69,8 +69,11 @@ export async function constructionCustomerRequest(_root: unknown, { id }: { id: 
   if (!context.session?.itemId || context.session.authType !== "session") throw new Error("Sign in to continue");
   const row = await context.query.ServiceRequest.findOne({ where: { id }, query: selection });
   if (!row || row.customer?.id !== context.session.itemId) throw new Error("Request not found");
-  const payment = await context.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, context.session.itemId) }, select: { status: true } });
-  return { ...row, depositStatus: payment?.status ?? null };
+  const [payment, links] = await Promise.all([
+    context.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, context.session.itemId) }, select: { status: true } }),
+    context.sudo().prisma.serviceRequest.findUnique({ where: { id }, select: { projectId: true } }),
+  ]);
+  return { ...row, depositStatus: payment?.status ?? null, projectId: links?.projectId ?? null, opportunityId: null };
 }
 
 export async function commandConstructionRequest(_root: unknown, { input }: { input: ServiceRequestInput }, context: KeystoneContext) {
@@ -158,10 +161,10 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
       } };
     } else {
       if (row.status === "cancelled") throw new Error("Request is already cancelled");
-      if (row.customerId === actorId) {
-        const deposit = await tx.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, actorId) }, select: { status: true } });
-        if (deposit?.status === "settled") throw new Error("Your deposit has been received. Contact the contractor to cancel.");
-      }
+      const deposit = row.customerId ? await tx.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, row.customerId) }, select: { status: true } }) : null;
+      if (deposit?.status === "settled") throw new Error(row.customerId === actorId
+        ? "Your deposit has been received. Contact the contractor to cancel."
+        : "Refund the deposit first from the booked project's Billing tab (Reverse payment), then cancel.");
       data = { status: "cancelled", version };
     }
     await tx.sudo().db.ServiceRequest.updateOne({ where: { id }, data });
@@ -181,10 +184,11 @@ export async function constructionOperatorRequests(_root: unknown, { skip = 0, t
   const rows = await constructionCustomerRequests(_root, { operator: true, skip, take }, context);
   // User read access hides other users from staff, so `customer { id }` resolves to null under the
   // operator session. Resolve owners with sudo, but only for requests this operator can already read.
-  const owners: Array<{ id: string; customerId: string | null }> = rows.length
-    ? await context.sudo().prisma.serviceRequest.findMany({ where: { id: { in: rows.map(row => String(row.id)) } }, select: { id: true, customerId: true } })
+  const owners: Array<{ id: string; customerId: string | null; projectId: string | null; opportunityId: string | null }> = rows.length
+    ? await context.sudo().prisma.serviceRequest.findMany({ where: { id: { in: rows.map(row => String(row.id)) } }, select: { id: true, customerId: true, projectId: true, opportunityId: true } })
     : [];
   const ownerByRequest = new Map(owners.map(owner => [String(owner.id), owner.customerId ? String(owner.customerId) : ""]));
+  const linksByRequest = new Map(owners.map(owner => [String(owner.id), { projectId: owner.projectId, opportunityId: owner.opportunityId }]));
   const customerIds = [...new Set(owners.map(owner => owner.customerId).filter((id): id is string => typeof id === "string"))];
   const customers = customerIds.length
     ? await context.sudo().query.User.findMany({ where: { id: { in: customerIds } }, query: "id name email phone" })
@@ -199,7 +203,7 @@ export async function constructionOperatorRequests(_root: unknown, { skip = 0, t
     const ownerId = ownerByRequest.get(String(row.id));
     const customer = byId.get(ownerId || String(row.customer?.id ?? ""));
     return {
-      request: { ...row, depositStatus: ownerId ? depositByKey.get(requestPaymentKey(String(row.id), ownerId)) ?? null : null },
+      request: { ...row, ...linksByRequest.get(String(row.id)), depositStatus: ownerId ? depositByKey.get(requestPaymentKey(String(row.id), ownerId)) ?? null : null },
       customerName: String(customer?.name ?? ""),
       customerEmail: String(customer?.email ?? ""),
       customerPhone: customer?.phone ? String(customer.phone) : null,

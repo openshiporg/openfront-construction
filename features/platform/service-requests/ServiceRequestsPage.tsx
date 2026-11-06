@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FileSignature, Mail, Phone } from "lucide-react";
 
 import { formatUsdMinor } from "@/features/lib/money";
@@ -10,6 +11,7 @@ const requestStatus: Record<string, { label: string; tone: Tone }> = {
   requested: { label: "Awaiting quote", tone: "amber" },
   quoted: { label: "Quote sent", tone: "blue" },
   payment_pending: { label: "Accepted", tone: "emerald" },
+  booked: { label: "Booked", tone: "emerald" },
   cancelled: { label: "Cancelled", tone: "rose" },
 };
 
@@ -30,7 +32,8 @@ export async function ServiceRequestsPage({ searchParams }: { searchParams: Prom
       <ul className="grid gap-4">
         {rows.map(({ request, customerName, customerEmail, customerPhone }) => {
           const depositPaid = request.depositStatus === "settled";
-          const status = request.status === "payment_pending"
+          const status = request.status === "booked" && request.depositStatus === "reversed" ? { label: "Booked · deposit refunded", tone: "zinc" as Tone }
+            : request.status === "payment_pending"
             ? depositPaid ? { label: "Deposit paid", tone: "emerald" as Tone }
               : request.depositStatus === "reversed" ? { label: "Deposit refunded", tone: "zinc" as Tone }
               : { label: "Awaiting deposit", tone: "amber" as Tone }
@@ -61,6 +64,13 @@ export async function ServiceRequestsPage({ searchParams }: { searchParams: Prom
                       <p className="text-xs text-muted-foreground">Accepted quote</p>
                       <p className="mt-0.5 text-lg font-semibold tabular-nums">{formatUsdMinor(String(request.acceptedSnapshot.totalMinor))}</p>
                       <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{String(request.acceptedSnapshot.terms)}</p>
+                    </div>
+                  )}
+                  {request.status === "booked" && request.projectId && (
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 rounded-[6px] border border-emerald-600/20 bg-emerald-500/5 p-3 text-sm">
+                      <p className="min-w-0 flex-1">Deposit paid. The job is booked as project <strong>{request.reference}</strong> with a won opportunity, and the customer can follow it in their portal.</p>
+                      <Link className="font-medium underline underline-offset-4" href={`/dashboard/platform/projects/${encodeURIComponent(request.projectId)}`}>Open project</Link>
+                      <Link className="font-medium underline underline-offset-4" href="/dashboard/platform/pipeline">Pipeline</Link>
                     </div>
                   )}
                   {depositPaid

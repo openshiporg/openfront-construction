@@ -5,6 +5,7 @@ export type CustomerRequest = {
   status: string; version: number; currencyCode: string; quoteMinor: string; quoteTerms: string;
   expiresAt: string | null; acceptedAt: string | null; acceptedSnapshot: Record<string, unknown> | null; createdAt: string;
   depositStatus?: string | null;
+  projectId?: string | null;
 };
 export const REQUEST_SELECTION = "id reference serviceTitle serviceSlug scope status version currencyCode quoteMinor quoteTerms expiresAt acceptedAt acceptedSnapshot createdAt";
 
@@ -25,6 +26,6 @@ export async function getCustomerRequestCount(operator = false): Promise<number>
   return result.data.constructionCustomerRequestCount;
 }
 export async function getCustomerRequest(id: string): Promise<CustomerRequest | null> {
-  const result = await keystoneClient<{ constructionCustomerRequest: CustomerRequest | null }>(`query CustomerRequest($id: ID!) { constructionCustomerRequest(id: $id) { ${REQUEST_SELECTION} depositStatus } }`, { id });
+  const result = await keystoneClient<{ constructionCustomerRequest: CustomerRequest | null }>(`query CustomerRequest($id: ID!) { constructionCustomerRequest(id: $id) { ${REQUEST_SELECTION} depositStatus projectId } }`, { id });
   return result.success ? result.data.constructionCustomerRequest : null;
 }

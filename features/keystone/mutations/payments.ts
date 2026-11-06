@@ -8,6 +8,7 @@ import {
   processWebhookOnce, requestPaymentKey, type ProviderPaymentResult,
 } from "../domain/payment-settlement";
 import { allocateProviderSettlement } from "./workflows";
+import { bookPaidRequest } from "./request-booking";
 
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 const PROVIDER_QUERY = "id code isInstalled company { id } credentials createPaymentFunction capturePaymentFunction refundPaymentFunction getPaymentStatusFunction generatePaymentLinkFunction handleWebhookFunction";
@@ -99,6 +100,8 @@ export async function settlePayment(context: KeystoneContext, paymentId: string)
     },
     allocateOnce: () => allocateProviderSettlement(context.sudo() as any, { projectId: payment.projectId!, paymentId: payment.id, claimId: claimId!, amountMinor: payment.amountMinor.toString() }),
   }, claimId);
+  // A paid quote deposit books the job: won opportunity + project + owner portal.
+  if (!claimId) await bookPaidRequest(context, payment.id);
   return "settled";
 }
 

@@ -5,13 +5,13 @@ import { revalidatePath } from "next/cache";
 import { platformClient } from "@/features/platform/lib/platform-client";
 import { sanitizeStoreLogoSvg } from "@/features/lib/sanitize-store-logo";
 import { normalizeStoreLogoColor } from "@/features/lib/store-logo";
-import { PUBLIC_PROFILE_LIMITS, PUBLIC_PROJECT_LIMITS, PUBLIC_SERVICE_LIMITS, publicContentLengthError } from "@/features/lib/public-content-limits";
+import { PUBLIC_PROFILE_LIMITS, PUBLIC_PROJECT_LIMITS, PUBLIC_SERVICE_LIMITS, publicContentLengthError, projectPhotosError } from "@/features/lib/public-content-limits";
 import type { CommandState } from "@/features/platform/projects/action-state";
 
 export type StoreSettingsData = { id: string; name: string; legalName: string | null; brandName: string; brandMark: string; brandTagline: string; brandColor: string; logoIcon: string; logoColor: string };
 export type PublicProfileSettings = { id: string; status: string; serviceArea: string; capabilitySummary: string; inquiryEmail: string; inquiryPhone: string; privacyNotice: string; acceptingInquiries: boolean };
 export type PublicServiceSettings = { id: string; title: string; slug: string; summary: string; details: string; market: string; status: string };
-export type PublicProjectSettings = { id: string; title: string; slug: string; summary: string; description: string; market: string; locationLabel: string; deliveryMethod: string; completionLabel: string; approvedOutcome: string; status: string };
+export type PublicProjectSettings = { id: string; title: string; slug: string; summary: string; description: string; market: string; locationLabel: string; deliveryMethod: string; completionLabel: string; approvedOutcome: string; photos: string; status: string };
 export type PublicSettings = { companies: Array<{ id: string; name: string }>; company: StoreSettingsData | null; profile: PublicProfileSettings | null; services: PublicServiceSettings[]; projects: PublicProjectSettings[] };
 const value = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 
@@ -49,10 +49,12 @@ export async function savePublicContentAction(_previous: CommandState, data: For
     limits = PUBLIC_PROFILE_LIMITS;
   } else if (operation === "service" || operation === "project") {
     if (value(data, "id")) input.id = value(data, "id");
-    for (const key of ["title", "summary", "market", "status", ...(operation === "service" ? ["details"] : ["description", "locationLabel", "deliveryMethod", "completionLabel", "approvedOutcome"])]) input[key] = value(data, key);
+    for (const key of ["title", "summary", "market", "status", ...(operation === "service" ? ["details"] : ["description", "locationLabel", "deliveryMethod", "completionLabel", "approvedOutcome", "photos"])]) input[key] = value(data, key);
     limits = operation === "service" ? PUBLIC_SERVICE_LIMITS : PUBLIC_PROJECT_LIMITS;
   } else return { status: "error", message: "Unsupported settings operation" };
   const lengthError = publicContentLengthError(limits, input);
   if (lengthError) return { status: "error", message: lengthError };
+  const photosError = operation === "project" ? projectPhotosError(input.photos) : null;
+  if (photosError) return { status: "error", message: photosError };
   return save(input);
 }

@@ -61,6 +61,7 @@ export function PublicProjectForm({ companyId, project }: { companyId: string; p
     <label className={fieldLabelClass}>Delivery method<input className={inputClass} name="deliveryMethod" maxLength={PUBLIC_PROJECT_LIMITS.deliveryMethod.max} defaultValue={project?.deliveryMethod || ""} /></label>
     <label className={fieldLabelClass}>Completion<input className={inputClass} name="completionLabel" maxLength={PUBLIC_PROJECT_LIMITS.completionLabel.max} defaultValue={project?.completionLabel || ""} /></label>
     <label className={`${fieldLabelClass} sm:col-span-2`}>Outcome<textarea className={textareaClass} name="approvedOutcome" maxLength={PUBLIC_PROJECT_LIMITS.approvedOutcome.max} defaultValue={project?.approvedOutcome || ""} /></label>
+    <label className={`${fieldLabelClass} sm:col-span-2`}>Photos<textarea className={`${textareaClass} min-h-20 font-mono`} name="photos" maxLength={PUBLIC_PROJECT_LIMITS.photos.max} placeholder={"/projects/photo-1.jpg\nhttps://…/photo-2.jpg"} defaultValue={project?.photos || ""} /><span className="text-xs text-muted-foreground">One image URL per line. The first photo is the cover on the website.</span></label>
     <Status value={project?.status} />
     <div className="flex flex-wrap items-center gap-3 sm:col-span-2"><Save pending={pending} label={project ? "Save project" : "Add project"} /><Result state={state} /></div>
   </form>;

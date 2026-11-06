@@ -3,6 +3,7 @@ import { queryOne, type KeystoneContextLike, type KeystoneQueryRecord } from "..
 
 import { sanitizeStoreLogoSvg } from "../../lib/sanitize-store-logo";
 import { normalizeStoreLogoColor } from "../../lib/store-logo";
+import { parseProjectPhotos } from "../../lib/public-content-limits";
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -64,6 +65,7 @@ function projectProjection(record: PublicRecord) {
     deliveryMethod: text(record.deliveryMethod),
     completionLabel: text(record.completionLabel),
     approvedOutcome: text(record.approvedOutcome),
+    photos: parseProjectPhotos(record.photos),
   };
 }
 
@@ -82,7 +84,7 @@ export async function publicConstructionSite(_root: unknown, _args: unknown, con
   if (!site?.id || !site.company?.id) return null;
   const [services, projects] = await Promise.all([
     findMany(context, "PublicService", { site: { id: { equals: site.id } }, status: { equals: "published" } }, "slug title summary details market sortOrder", 50),
-    findMany(context, "PublicProject", { site: { id: { equals: site.id } }, status: { equals: "published" } }, "slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome sortOrder", 50),
+    findMany(context, "PublicProject", { site: { id: { equals: site.id } }, status: { equals: "published" } }, "slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome photos sortOrder", 50),
   ]);
   return {
     brandName: text(site.company.brandName, text(site.company.name, "Openfront Construction")),
@@ -132,7 +134,7 @@ export async function publicConstructionProject(
     context,
     "PublicProject",
     { publicationKey: `${site.company.id}:${slug}` },
-    "slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome status site { id }",
+    "slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome photos status site { id }",
   ) as PublicRecord | null;
   if (!record || record.status !== "published" || (record.site as { id?: string } | null)?.id !== site.id) return null;
   return projectProjection(record);

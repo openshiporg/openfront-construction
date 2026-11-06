@@ -16,6 +16,7 @@ export type PublicProjectSummary = {
   deliveryMethod: string;
   completionLabel: string;
   approvedOutcome: string;
+  photos?: string[];
 };
 
 export type PublicConstructionSite = {

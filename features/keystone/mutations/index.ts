@@ -905,6 +905,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         deliveryMethod: String!
         completionLabel: String!
         approvedOutcome: String!
+        photos: [String!]!
       }
 
       type PublicConstructionSite {
@@ -945,6 +946,8 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         acceptedSnapshot: JSON
         createdAt: String!
         depositStatus: String
+        projectId: ID
+        opportunityId: ID
       }
       type ConstructionOperatorRequest {
         request: ConstructionCustomerRequest!

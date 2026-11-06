@@ -28,7 +28,20 @@ export const PUBLIC_PROJECT_LIMITS = {
   deliveryMethod: { label: "Delivery method", max: 120 },
   completionLabel: { label: "Completion state", max: 80 },
   approvedOutcome: { label: "Outcome", max: 1000 },
+  photos: { label: "Photos", max: 4000 },
 } as const;
+
+/** Project photo URLs: site-hosted paths or https images, at most 12, one per line. */
+export function parseProjectPhotos(value: unknown): string[] {
+  if (typeof value !== "string") return [];
+  return value.split(/\r?\n/).map(line => line.trim()).filter(line => /^\/[A-Za-z0-9._~\/-]+\.(?:jpe?g|png|webp|avif)$/i.test(line) || /^https:\/\/[^\s"'<>]+$/i.test(line)).slice(0, 12);
+}
+export function projectPhotosError(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const lines = value.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  if (lines.length > 12) return "Add at most 12 photos.";
+  return parseProjectPhotos(value).length === lines.length ? null : "Each photo must be an https image URL or a site path like /projects/photo.jpg, one per line.";
+}
 
 type Limits = Record<string, { label: string; max: number }>;
 
