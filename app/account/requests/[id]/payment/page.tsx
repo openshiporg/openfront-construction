@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 import { getCustomerRequest, getCustomerUser } from "@/features/storefront/account/data";
 import { getPublicConstructionSite } from "@/features/storefront/data";
@@ -19,6 +20,23 @@ export default async function Page({ params, searchParams }: { params: Promise<{
       : "We could not confirm this payment. Reload to check again or contact the contractor.";
   }
   const snapshot = request.acceptedSnapshot; const amount = Number(snapshot?.totalMinor || request.quoteMinor);
-  const payable = request.status === "payment_pending";
-  return <PublicShell site={site} account current="/account"><main><header className="sf-pagehead"><div className="sf-wrap"><Track><Pill href={`/account/requests/${encodeURIComponent(id)}`} variant="raised" size="sm">Back to request</Pill></Track><p className="sf-kicker">{request.reference}</p><h1 className="sf-display sf-h1">Pay deposit</h1></div></header><section className="sf-section"><div className="sf-wrap sf-stack"><h2>{snapshot?.serviceTitle ? String(snapshot.serviceTitle) : request.serviceTitle}</h2><p>Deposit due: {(amount / 100).toLocaleString("en-US", { style: "currency", currency: request.currencyCode })}</p>{notice && <p role="status">{notice}</p>}{payable ? <PaymentStartForm requestId={id}/> : <p>This quote is not currently payable.</p>}<p className="sf-small">Pay by card or US bank account (ACH) through Stripe secure checkout.</p></div></section></main></PublicShell>;
+  const payable = request.status === "payment_pending" && !["settled", "reversed"].includes(String(request.depositStatus ?? ""));
+  const due = (amount / 100).toLocaleString("en-US", { style: "currency", currency: request.currencyCode });
+  return <PublicShell site={site} account current="/account"><main>
+    <header className="sf-pagehead"><div className="sf-wrap">
+      <div className="sf-back"><Track><Pill href={`/account/requests/${encodeURIComponent(id)}`} variant="raised" size="sm"><ArrowLeft />Back to request</Pill></Track></div>
+      <p className="sf-kicker">{request.reference}</p>
+      <h1 className="sf-display sf-h1">Pay deposit</h1>
+    </div></header>
+    <section className="sf-section"><div className="sf-wrap">
+      <section className="sf-panel sf-stack" aria-labelledby="deposit-title" style={{ maxWidth: "32rem" }}>
+        <h2 id="deposit-title" className="sf-kicker">{snapshot?.serviceTitle ? String(snapshot.serviceTitle) : request.serviceTitle}</h2>
+        <p className="sf-amount sf-amount--xl">{due}</p>
+        <p className="sf-small">Deposit due on the accepted quote</p>
+        {notice && <p role="status" className="sf-small">{notice}</p>}
+        {payable ? <PaymentStartForm requestId={id}/> : <p className="sf-small">This quote is not currently payable.</p>}
+        <p className="sf-small">Pay by card or US bank account (ACH) through Stripe secure checkout.</p>
+      </section>
+    </div></section>
+  </main></PublicShell>;
 }

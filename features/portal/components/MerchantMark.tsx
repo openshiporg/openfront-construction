@@ -14,5 +14,5 @@ export function MerchantMark({ logoIcon, logoColor, brandColor, initials, classN
     return <span aria-hidden="true" className={`block shrink-0 overflow-hidden [&>svg]:block [&>svg]:size-full ${className}`}
       style={{ filter: `hue-rotate(${normalizeStoreLogoColor(logoColor)}deg)` }} dangerouslySetInnerHTML={{ __html: safe }} />;
   }
-  return <span aria-hidden="true" className={`inline-flex shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-white ${className}`} style={{ backgroundColor: brandColor }}>{initials}</span>;
+  return <span aria-hidden="true" className={`inline-flex shrink-0 items-center justify-center rounded-md text-xs font-bold text-white ${className}`} style={{ backgroundColor: brandColor }}>{initials}</span>;
 }

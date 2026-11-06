@@ -179,15 +179,27 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
  * of the customer projection. */
 export async function constructionOperatorRequests(_root: unknown, { skip = 0, take = 25 }: { skip?: number | null; take?: number | null }, context: KeystoneContext) {
   const rows = await constructionCustomerRequests(_root, { operator: true, skip, take }, context);
-  const customerIds = [...new Set(rows.map(row => row.customer?.id).filter((id): id is string => typeof id === "string"))];
+  // User read access hides other users from staff, so `customer { id }` resolves to null under the
+  // operator session. Resolve owners with sudo, but only for requests this operator can already read.
+  const owners: Array<{ id: string; customerId: string | null }> = rows.length
+    ? await context.sudo().prisma.serviceRequest.findMany({ where: { id: { in: rows.map(row => String(row.id)) } }, select: { id: true, customerId: true } })
+    : [];
+  const ownerByRequest = new Map(owners.map(owner => [String(owner.id), owner.customerId ? String(owner.customerId) : ""]));
+  const customerIds = [...new Set(owners.map(owner => owner.customerId).filter((id): id is string => typeof id === "string"))];
   const customers = customerIds.length
     ? await context.sudo().query.User.findMany({ where: { id: { in: customerIds } }, query: "id name email phone" })
     : [];
   const byId = new Map(customers.map(customer => [String(customer.id), customer]));
+  const depositKeys = owners.filter(owner => owner.customerId).map(owner => requestPaymentKey(String(owner.id), String(owner.customerId)));
+  const deposits: Array<{ idempotencyKey: string | null; status: string }> = depositKeys.length
+    ? await context.sudo().prisma.payment.findMany({ where: { idempotencyKey: { in: depositKeys } }, select: { idempotencyKey: true, status: true } })
+    : [];
+  const depositByKey = new Map(deposits.map(deposit => [String(deposit.idempotencyKey), String(deposit.status)]));
   return rows.map(row => {
-    const customer = byId.get(String(row.customer?.id ?? ""));
+    const ownerId = ownerByRequest.get(String(row.id));
+    const customer = byId.get(ownerId || String(row.customer?.id ?? ""));
     return {
-      request: row,
+      request: { ...row, depositStatus: ownerId ? depositByKey.get(requestPaymentKey(String(row.id), ownerId)) ?? null : null },
       customerName: String(customer?.name ?? ""),
       customerEmail: String(customer?.email ?? ""),
       customerPhone: customer?.phone ? String(customer.phone) : null,

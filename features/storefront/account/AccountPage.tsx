@@ -6,6 +6,7 @@ import { Empty, Pill, Status, Track, type DotTone } from "../components/ui";
 import { getPublicConstructionService, getPublicConstructionSite } from "../data";
 import type { PublicConstructionSite } from "../types";
 import { CUSTOMER_REQUEST_PAGE_SIZE, getCustomerRequest, getCustomerRequestCount, getCustomerRequests, getCustomerUser, type CustomerRequest } from "./data";
+import { ViewerTime } from "@/features/dashboard/components/ViewerTime";
 import { CustomerAuthForm, ProfileForm, RequestDecision, RequestForm, ResetPasswordForm, ResetRequestForm } from "./AccountForms";
 import { customerSignOut } from "./actions";
 import { customerContinuation } from "./continuation";
@@ -29,6 +30,7 @@ function isQuoteExpired(request: CustomerRequest, now = Date.now()) {
 
 function RequestStatus({ request }: { request: CustomerRequest }) {
   if (request.status === "payment_pending" && request.depositStatus === "settled") return <Status tone="ok">Deposit paid</Status>;
+  if (request.status === "payment_pending" && request.depositStatus === "reversed") return <Status tone="idle">Deposit refunded</Status>;
   if (isQuoteExpired(request)) return <Status tone="stop">Quote expired</Status>;
   const status = STATUS[request.status] ?? { label: request.status.replaceAll("_", " "), tone: "idle" as DotTone };
   return <Status tone={status.tone}>{status.label}</Status>;
@@ -179,15 +181,17 @@ export async function CustomerRequestPage({ params }: { params: Promise<{ id: st
               <h2 id="quote-title" className="sf-kicker">Quote</h2>
               {quoted ? <>
                 <p className="sf-amount sf-amount--xl">{quoteAmount(request)}</p>
-                {request.expiresAt && !snapshot && <p className="sf-small sf-mono">{expired ? "Expired" : "Valid until"} {new Date(request.expiresAt).toISOString().replace("T", " ").slice(0, 16)} UTC</p>}
+                {request.expiresAt && !snapshot && <p className="sf-small">{expired ? "Expired" : "Valid until"} <ViewerTime value={request.expiresAt} style="datetime" /></p>}
               </> : <p className="sf-small">{request.status === "cancelled" ? "Cancelled before a quote was issued" : "Not quoted yet"}</p>}
               {request.status === "quoted" && !expired && <RequestDecision request={request} operation="accept" label="Accept quote" />}
               {request.status !== "cancelled" && !depositPaid && <RequestDecision request={request} operation="cancel" label="Cancel request" />}
             </section>
-            {request.status === "payment_pending" && <section className="sf-notice sf-notice--ok" role="status">
-              <span aria-hidden="true" className="sf-dot sf-dot--ok" />
+            {request.status === "payment_pending" && <section className={`sf-notice ${request.depositStatus === "reversed" ? "" : "sf-notice--ok"}`.trim()} role="status">
+              <span aria-hidden="true" className={`sf-dot sf-dot--${request.depositStatus === "reversed" ? "idle" : "ok"}`} />
               <div className="sf-stack" style={{ gap: "0.5rem" }}>
-                {depositPaid
+                {request.depositStatus === "reversed"
+                  ? <><strong>Deposit refunded</strong><p className="sf-small">The contractor refunded your deposit. Refunds reach your card or bank in 5–10 business days. Contact the contractor with any questions.</p></>
+                  : depositPaid
                   ? <><strong>Deposit received</strong><p className="sf-small">Thanks. Your payment is confirmed and the contractor will be in touch to schedule the work.</p></>
                   : <><strong>Quote accepted</strong><p className="sf-small">Pay the deposit to confirm your booking.</p><Track><Pill href={`/account/requests/${encodeURIComponent(request.id)}/payment`} variant="primary" size="sm">Pay deposit</Pill></Track></>}
                 <ContractorContact site={site} />

@@ -29,7 +29,12 @@ export async function ServiceRequestsPage({ searchParams }: { searchParams: Prom
       {!rows.length && <EmptyState icon={FileSignature} title="No quote requests" />}
       <ul className="grid gap-4">
         {rows.map(({ request, customerName, customerEmail, customerPhone }) => {
-          const status = requestStatus[request.status] ?? { label: request.status.replaceAll("_", " "), tone: "zinc" as Tone };
+          const depositPaid = request.depositStatus === "settled";
+          const status = request.status === "payment_pending"
+            ? depositPaid ? { label: "Deposit paid", tone: "emerald" as Tone }
+              : request.depositStatus === "reversed" ? { label: "Deposit refunded", tone: "zinc" as Tone }
+              : { label: "Awaiting deposit", tone: "amber" as Tone }
+            : requestStatus[request.status] ?? { label: request.status.replaceAll("_", " "), tone: "zinc" as Tone };
           const open = ["requested", "quoted"].includes(request.status);
           return (
             <li key={request.id} className="min-w-0 overflow-hidden rounded-[6px] border bg-background">
@@ -58,7 +63,9 @@ export async function ServiceRequestsPage({ searchParams }: { searchParams: Prom
                       <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{String(request.acceptedSnapshot.terms)}</p>
                     </div>
                   )}
-                  {request.status !== "cancelled" && <CancelRequestForm key={`cancel:${request.version}`} request={request} />}
+                  {depositPaid
+                    ? <p className="text-sm text-muted-foreground">Deposit received online. To cancel, refund it first from the project's Billing tab (Reverse payment).</p>
+                    : request.status !== "cancelled" && <CancelRequestForm key={`cancel:${request.version}`} request={request} />}
                 </article>
                 {open && (
                   <div className="min-w-0 border-t bg-muted/20 p-4 md:p-5 lg:border-t-0">

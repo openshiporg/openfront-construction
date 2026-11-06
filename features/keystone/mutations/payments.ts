@@ -59,6 +59,7 @@ export async function createCustomerPayment(_root: unknown, { requestId }: { req
   const prisma = context.sudo().prisma;
   let payment = await prisma.payment.findUnique({ where: { idempotencyKey: key } });
   if (payment?.status === "settled") throw new Error("Deposit already received");
+  if (payment?.status === "reversed") throw new Error("This deposit was refunded. Contact the contractor to rebook.");
   if (!payment) payment = await prisma.payment.create({ data: { paymentNumber: `RCPT-${requestId.slice(-10)}`, direction: "receipt", status: "pending", amountMinor: BigInt(amount), currencyCode: request!.currencyCode, paymentMethod: "card", idempotencyKey: key, companyId, projectId, paymentProviderId: provider.id, reference: "awaiting-provider" } });
   return startProviderCheckout(context, { payment, provider, amount, currency: request!.currencyCode, key, projectId, requestId, description: `Deposit for ${snapshot.serviceTitle || "accepted quote"}` });
 }
