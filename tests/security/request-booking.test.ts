@@ -35,6 +35,7 @@ function fakeContext(initial: { requestStatus?: string; paymentStatus?: string }
     payment: { findUnique: async () => payment, update: async ({ data }: any) => Object.assign(payment, data) },
     serviceRequest: { findUnique: async () => request },
     companyMembership: { findFirst: async () => ({ userId: "u_pm", roleId: "role_pm" }) },
+    projectMembership: { update: async ({ where, data }: any) => Object.assign(created.ProjectMembership.find((m: any) => m.id === where.id), { role: { connect: { id: data.roleId } } }) },
     role: { findFirst: async ({ where }: any) => where.name === "External Collaborator" ? { id: "role_external" } : null },
     constructionLead: { findFirst: async () => null, update: async () => undefined },
     tradePartner: { findFirst: async () => created.TradePartner?.[0] ?? null },

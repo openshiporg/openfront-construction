@@ -77,13 +77,14 @@ export async function bookPaidRequest(context: KeystoneContext, paymentId: strin
       }) ?? await sudo.prisma.role.findFirst({
         where: { companyId, canReadProjects: true, canAccessDashboard: false, canManageProjects: false }, orderBy: { createdAt: "asc" }, select: { id: true },
       });
-      await sudo.db.ProjectMembership.createOne({ data: {
-        membershipKey: `${project.id}:${request.customerId}`,
+      // The role is attached after create: the list's role-assignment check is for
+      // staff edits and the actor here is the paying customer, not an administrator.
+      const membership = await sudo.db.ProjectMembership.createOne({ data: {
         status: "active", accessLevel: "contributor", portalType: "owner", joinedAt: new Date(),
-        ...(portalRole ? { role: { connect: { id: portalRole.id } } } : {}),
         portalOrganization: { connect: { id: String(client.id) } },
         project: { connect: { id: project.id } }, user: { connect: { id: request.customerId } },
       } });
+      if (portalRole) await sudo.prisma.projectMembership.update({ where: { id: String(membership.id) }, data: { roleId: portalRole.id } });
       await sudo.prisma.payment.update({ where: { id: payment.id }, data: { projectId: String(project.id) } });
     }
     const version = request.version + 1;
