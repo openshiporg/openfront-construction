@@ -17,6 +17,5 @@ declare global {
 export const keystoneContext: ConstructionContext =
   globalThis.__openfrontKeystoneContext ?? createKeystoneContext()
 
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.__openfrontKeystoneContext = keystoneContext
-}
+// Next evaluates this module in several server layers; keep one context (one Prisma pool) per Node process.
+globalThis.__openfrontKeystoneContext = keystoneContext

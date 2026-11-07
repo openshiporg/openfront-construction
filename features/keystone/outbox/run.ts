@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 
 import { prismaOutboxDatabase } from "./prisma-database";
 import { deliverOutboxDrain, webhookAdapter } from "./worker";
+import { pooledPrismaOptions } from "../database-url";
 
 function requiredEnvironment(name: string): string {
   const value = process.env[name]?.trim();
@@ -19,7 +20,7 @@ function boundedIntegerEnvironment(name: string, fallback: number, maximum: numb
 }
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient(pooledPrismaOptions("worker"));
   try {
     const result = await deliverOutboxDrain({
       database: prismaOutboxDatabase(prisma),

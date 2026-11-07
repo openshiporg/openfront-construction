@@ -11,6 +11,7 @@ import { models } from "./models";
 import { withCreateAwareUi, withDeleteAwareUi, withItemViewAwareUi } from "./ui-create-access";
 import { permissionsList } from "./models/fields";
 import { extendGraphqlSchema } from "./mutations";
+import { pooledDatabaseUrl } from './database-url';
 
 // `keystone build` and `next build` load this config but never connect or sign a
 // session, so the build step does not depend on runtime variables being present.
@@ -86,7 +87,7 @@ export default withAuth(
   config({
     db: {
       provider: "postgresql",
-      url: databaseURL,
+      url: pooledDatabaseUrl(databaseURL),
     },
     // Admin "Create" buttons follow each list's create access (ui-create-access.ts).
     lists: withItemViewAwareUi(withDeleteAwareUi(withCreateAwareUi(models))),
