@@ -13,12 +13,8 @@ function identityFor(graphqlEndpoint: string, request: Request): Record<string, 
 }
 import { buildBoundedReadQuery, resolveModelListOperation, readBoundedGraphqlResult, McpQueryPolicyError } from './query-policy';
 import { 
-  getIntrospectionQuery, 
-  buildClientSchema, 
-  GraphQLSchema,
   type GraphQLFormattedError,
   type GraphQLType,
-  type IntrospectionQuery,
   isInterfaceType,
   isNonNullType,
   isListType,
@@ -62,11 +58,6 @@ type InputFieldInfo = {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isIntrospectionResult(value: unknown): value is IntrospectionQuery {
-  return isRecord(value) && isRecord(value.__schema) && Array.isArray(value.__schema.types) &&
-    isRecord(value.__schema.queryType) && typeof value.__schema.queryType.name === 'string';
 }
 
 export async function POST(request: Request, context: { params: Promise<{ transport: string }> }) {

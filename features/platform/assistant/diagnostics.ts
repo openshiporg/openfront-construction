@@ -3,6 +3,6 @@ export function reportAssistantFailure(code: AssistantFailureCode, sink: (event:
   sink({ code });
 }
 /** Never serialize SDK errors: they contain prompts, headers and tool results. */
-export function publicAssistantFailure(_error: unknown): string {
+export function publicAssistantFailure(): string {
   return "The response could not be generated. Try again.";
 }

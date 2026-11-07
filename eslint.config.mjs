@@ -33,6 +33,15 @@ export default defineConfig([
       "react/no-unescaped-entities": "warn",
     },
   },
+  {
+    // Server boundary: Keystone's context/tx and payment-provider payloads are untyped.
+    files: [
+      "app/api/completion/route.ts",
+      "features/keystone/mutations/**/*.ts",
+      "tests/security/**/*.ts",
+    ],
+    rules: { "@typescript-eslint/no-explicit-any": "off" },
+  },
   globalIgnores([
     ".next/**",
     ".keystone/**",

@@ -8,7 +8,7 @@
     "build": "keystone build --no-ui && next build",
     "start": "next start",
     "lint": "eslint .",
-    "lint:schema": "eslint features/keystone/access.ts features/keystone/index.ts features/keystone/domain features/keystone/models features/keystone/mutations features/platform/assistant features/keystone/mcp app/api/completion/route.ts 'app/api/mcp-transport/[transport]/route.ts' tests/schema tests/security --max-warnings=0",
+    "lint:schema": "eslint features/keystone/access.ts features/keystone/index.ts features/keystone/domain features/keystone/models features/keystone/mutations features/platform/assistant features/keystone/mcp app/api/completion/route.ts 'app/api/mcp-transport/[transport]/route.ts' tests/security --max-warnings=0",
     "test": "npm run test:schema && npm run test:security",
     "test:schema": "tsx --test tests/schema/*.test.ts tests/schema/*.test.mjs",
     "test:security": "tsx --test tests/security/*.test.ts features/keystone/lib/internal-origin.test.ts",
