@@ -21,6 +21,7 @@ import {
 } from "../domain/tenancy";
 import { ownedCompanyField, readOnlyRelationshipMany, scopeOptions } from "./fields";
 import { trackingFields } from "./trackingFields";
+import { statusGuard } from "../domain/state-machines";
 import { validateCompanyOwner, type CompanyOwnerValidation } from "../domain/company-owners";
 
 function validateIdentityOwner(args: Omit<CompanyOwnerValidation, "listKey">) {
@@ -68,6 +69,7 @@ export const AgentIdentity = list({
       ],
       defaultValue: "active",
       validation: { isRequired: true },
+  hooks: statusGuard("AgentIdentity"),
     }),
     approvalMode: select({
       type: "enum",
@@ -173,6 +175,7 @@ export const ScopeGrant = list({
       ],
       defaultValue: "active",
       validation: { isRequired: true },
+  hooks: statusGuard("ScopeGrant"),
     }),
     reason: text({ validation: { isRequired: true, length: { min: 3, max: 500 } } }),
     expiresAt: timestamp(),

@@ -61,8 +61,16 @@ export async function createCustomerPayment(_root: unknown, { requestId }: { req
   let payment = await prisma.payment.findUnique({ where: { idempotencyKey: key } });
   if (payment?.status === "settled") throw new Error("Deposit already received");
   if (payment?.status === "reversed") throw new Error("This deposit was refunded. Contact the contractor to rebook.");
+  // An expired/failed checkout is a finished attempt: retire it (keeps its history, frees the key)
+  // and start a new one with its own provider idempotency key, or Stripe replays the expired session.
+  let providerKey = key;
+  if (payment && (payment.status === "failed" || payment.status === "voided")) {
+    await prisma.payment.updateMany({ where: { id: payment.id, status: payment.status }, data: { idempotencyKey: `${key}:retired:${payment.id}` } });
+    providerKey = `${key}:after:${payment.id}`;
+    payment = await prisma.payment.findUnique({ where: { idempotencyKey: key } });
+  }
   if (!payment) payment = await prisma.payment.create({ data: { paymentNumber: `RCPT-${requestId.slice(-10)}`, direction: "receipt", status: "pending", amountMinor: BigInt(amount), currencyCode: request!.currencyCode, paymentMethod: "card", idempotencyKey: key, companyId, projectId, paymentProviderId: provider.id, reference: "awaiting-provider" } });
-  return startProviderCheckout(context, { payment, provider, amount, currency: request!.currencyCode, key, projectId, requestId, description: `Deposit for ${snapshot.serviceTitle || "accepted quote"}` });
+  return startProviderCheckout(context, { payment, provider, amount, currency: request!.currencyCode, key: providerKey, projectId, requestId, description: `Deposit for ${snapshot.serviceTitle || "accepted quote"}` });
 }
 
 /** Return from Checkout: settle the customer's payment for this request, idempotently. */
@@ -81,7 +89,7 @@ export async function settlePayment(context: KeystoneContext, paymentId: string)
   const prisma = context.sudo().prisma;
   const payment = await prisma.payment.findUnique({ where: { id: paymentId }, include: { paymentProvider: true } });
   if (!payment || !payment.paymentProviderId || !payment.companyId) throw new Error("Payment not found");
-  if (payment.status === "failed" || payment.status === "voided") return payment.status;
+  if (payment.status === "failed" || payment.status === "voided" || payment.status === "reversed") return payment.status;
   const provider = await context.sudo().query.PaymentProvider.findOne({ where: { id: payment.paymentProviderId }, query: PROVIDER_QUERY });
   if (!provider || provider.company?.id !== payment.companyId) throw new Error("Payment provider unavailable");
   const raw: any = await getPaymentStatus(provider, payment.reference);

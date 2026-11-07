@@ -3,6 +3,7 @@ import type { KeystoneContext } from "@keystone-6/core/types";
 import { lockCustomerActor } from "../domain/customer-authority";
 import { getTrustedPublicSiteKey } from "../domain/public-site";
 import { requestPaymentKey } from "../domain/payment-settlement";
+import { assertMachineMove } from "../domain/state-machines";
 
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const clean = (value: unknown, label: string, max: number, min = 1) => {
@@ -167,6 +168,7 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
         : "Refund the deposit first from the booked project's Billing tab (Reverse payment), then cancel.");
       data = { status: "cancelled", version };
     }
+    assertMachineMove("ServiceRequest", row.status, String(data.status));
     await tx.sudo().db.ServiceRequest.updateOne({ where: { id }, data });
     await tx.sudo().db.ServiceRequestEvent.createOne({ data: {
       eventKey, commandDigest, action: operation, fromStatus: row.status, toStatus: String(data.status), version,

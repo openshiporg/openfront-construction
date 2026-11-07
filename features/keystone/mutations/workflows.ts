@@ -11,6 +11,7 @@ import { resourceAuthority, validateResourceFact } from "../domain/resource-acti
 import { validateResourceOccurrence } from "../domain/resource-fact";
 import { decodeResourceIntent, encodeResourceIntent } from "../domain/resource-intent";
 import { assertSettlementCompatibility, deriveClaimPaymentStatus, remainingCapacityMinor } from "../domain/billing-invariants";
+import { assertMachineMove, assertMachineTransition } from "../domain/state-machines";
 import { assertChangeQuoteClosable, changeQuoteCloseStatus, scopeWithCloseReason, type ChangeQuoteClose } from "../domain/change-quote";
 import { quantityToUnits, receiptCapacityIsValid } from "../domain/procurement-invariants";
 import {
@@ -389,7 +390,9 @@ export async function inviteBidder(
     context, operation: "inviteBidder", permission: "canManagePreconstruction", projectId: id,
     idempotencyKey: input.idempotencyKey, request: input, listKey: "BidInvitation",
     data: {
-      status: "draft",
+      // Inviting sends it: a draft invitation could never accept a bid.
+      status: "invited",
+      sentAt: new Date(),
       recipientName: requiredText(input.title, "Recipient name", 200),
       recipientEmail: requiredText(input.reference, "Recipient email", 320),
       bidPackage: { connect: { id: bidPackageId } },
@@ -1358,6 +1361,12 @@ export async function reverseSettledPayment(_root: unknown, { input }: { input: 
   if (online?.projectId === id && online.status === "settled" && online.paymentProvider?.code?.startsWith("pp_stripe") && String(online.providerPaymentId || "").startsWith("pi_")) {
     const session = requireCommandSession(context);
     if (!online.companyId || !hasCompanyPermission(session as any, online.companyId, "canManageBilling")) throw new Error("Not authorized to refund this payment");
+    // Same guards the ledger reversal applies, checked BEFORE Stripe moves money so a refusal never leaves a refund without a reversal.
+    const guard = (context.sudo() as unknown as { prisma: { retainageRelease: { count(a: unknown): Promise<number> }; paymentAllocation: { count(a: unknown): Promise<number> } } }).prisma;
+    const released = await guard.retainageRelease.count({ where: { paymentId: online.id, status: "released" } });
+    if (released > 0) throw new Error("Reverse released retainage through a reviewed accounting correction before reversing this payment");
+    const closedClaims = await guard.paymentAllocation.count({ where: { paymentId: online.id, progressClaim: { status: { in: ["closed", "voided"] } } } });
+    if (closedClaims > 0) throw new Error("This payment settled a closed claim; reverse it through a reviewed accounting correction");
     const refund: any = await refundPayment(online.paymentProvider, { paymentId: online.providerPaymentId, amount: Number(online.amountMinor), idempotencyKey: `construction-refund:${online.id}` });
     if (!refund?.id || !["succeeded", "pending"].includes(refund.status)) throw new Error("Stripe did not accept the refund; nothing was reversed");
     input = { ...input, title: refund.id };
@@ -1383,6 +1392,12 @@ export async function reverseSettledPayment(_root: unknown, { input }: { input: 
       for (const claimId of [...new Set(allocations.map(entry => entry.claimId))].sort()) {
         await tx.prisma.$queryRawUnsafe(`SELECT id FROM "ProgressClaim" WHERE id = $1 FOR UPDATE`, claimId);
       }
+      const [closed] = await tx.prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+        `SELECT COUNT(*)::bigint AS count FROM "PaymentAllocation" a JOIN "ProgressClaim" c ON c.id = a."progressClaim"
+         WHERE a.payment = $1 AND c.status::text IN ('closed', 'voided')`, paymentId,
+      );
+      if ((closed?.count ?? BigInt(0)) > BigInt(0)) throw new Error("This payment settled a closed claim; reverse it through a reviewed accounting correction");
+      assertMachineTransition("PaymentSystem", payment.status, "reversed");
       amountMinor = payment.amountMinor.toString();
       return { status: "reversed" };
     },
@@ -1409,6 +1424,8 @@ export async function reverseSettledPayment(_root: unknown, { input }: { input: 
         );
         if (!totals) throw new Error("Reversed claim settlement total is unavailable");
         const status = deriveClaimPaymentStatus(totals.due, totals.allocated);
+        const [current] = await tx.prisma.$queryRawUnsafe<Array<{ status: string }>>(`SELECT status::text FROM "ProgressClaim" WHERE id = $1`, claimId);
+        assertMachineMove("ProgressClaimSystem", String(current?.status), status);
         await tx.prisma.progressClaim.update({ where: { id: claimId }, data: { status } });
         const [parent] = await tx.prisma.$queryRawUnsafe<Array<{ commitmentId: string | null; primeContractId: string | null }>>(
           `SELECT commitment AS "commitmentId", "primeContract" AS "primeContractId" FROM "ProgressClaim" WHERE id = $1`, claimId,
@@ -1504,6 +1521,8 @@ export function settledAllocationHooks(id: string, paymentId: string, claimId: s
       if (!totals) throw new Error("Claim settlement total is unavailable");
       const status = deriveClaimPaymentStatus(totals.due, totals.allocated);
       if (status === "approved") throw new Error("Settled allocation did not change the claim balance");
+      const [before] = await tx.prisma.$queryRawUnsafe<Array<{ status: string }>>(`SELECT status::text FROM "ProgressClaim" WHERE id = $1`, claimId);
+      assertMachineMove("ProgressClaimSystem", String(before?.status), status);
       await tx.prisma.progressClaim.update({ where: { id: claimId }, data: { status } });
       const [parent] = await tx.prisma.$queryRawUnsafe<Array<{ commitmentId: string | null; primeContractId: string | null }>>(
         `SELECT commitment AS "commitmentId", "primeContract" AS "primeContractId" FROM "ProgressClaim" WHERE id = $1`, claimId,

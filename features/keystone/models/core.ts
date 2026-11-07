@@ -36,6 +36,7 @@ import {
   readOnlyRelationshipMany,
 } from "./fields";
 import { trackingFields } from "./trackingFields";
+import { statusGuard } from "../domain/state-machines";
 import { syncDashboardAdmission } from "../domain/dashboard-admission";
 import { sanitizeStoreLogoSvg } from "../../lib/sanitize-store-logo";
 import { DEFAULT_STORE_LOGO_ICON, DEFAULT_STORE_LOGO_COLOR, normalizeStoreLogoColor } from "../../lib/store-logo";
@@ -203,7 +204,7 @@ export const CompanyMembership = list({
     }),
     user: relationship({ ref: "User.companyMemberships", access: { update: denyAll } }),
     company: relationship({ ref: "Company.memberships", access: { update: denyAll } }),
-    status: select({ type: "enum", options: membershipStatuses, defaultValue: "invited", validation: { isRequired: true } }),
+    status: select({ type: "enum", options: membershipStatuses, defaultValue: "invited", validation: { isRequired: true }, hooks: statusGuard("Membership") }),
     title: text({ validation: { length: { max: 160 } } }),
     role: relationship({ ref: "Role.companyMemberships" }),
     canAccessAllProjects: checkbox({ defaultValue: false }),
@@ -452,7 +453,7 @@ export const ProjectMembership = list({
     }),
     user: relationship({ ref: "User.projectMemberships", access: { update: denyAll } }),
     project: relationship({ ref: "Project.memberships", access: { update: denyAll } }),
-    status: select({ type: "enum", options: membershipStatuses, defaultValue: "invited", validation: { isRequired: true } }),
+    status: select({ type: "enum", options: membershipStatuses, defaultValue: "invited", validation: { isRequired: true }, hooks: statusGuard("Membership") }),
     accessLevel: select({
       type: "enum",
       options: [
@@ -513,6 +514,7 @@ export const TradePartner = list({
       ],
       defaultValue: "prospective",
       validation: { isRequired: true },
+  hooks: statusGuard("TradePartner"),
     }),
     taxIdLast4: text({ access: { read: denyAll } }),
     email: text(),

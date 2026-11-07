@@ -23,7 +23,7 @@ export async function lockBidSubmissionAdmission(context: BidAdmissionContext, p
     WHERE invitation.id = $1 AND invitation.project = $2 AND package.project = $2
       AND invitation.company = project.company AND package.company = project.company
     FOR UPDATE OF invitation, package`, invitationId, projectId);
-  if (!current?.partnerId || current.packageStatus !== "open" || current.hasSubmission || !["invited", "viewed", "intent_to_bid"].includes(current.invitationStatus)) throw new Error("This invitation is no longer eligible for a new bid submission");
+  if (!current?.partnerId || current.packageStatus !== "open" || current.hasSubmission || !["draft", "invited", "viewed", "intent_to_bid"].includes(current.invitationStatus)) throw new Error("This invitation is no longer eligible for a new bid submission");
   if (options.organizationId && current.partnerId !== options.organizationId) throw new Error("Bid invitation is not assigned to this organization");
   if (options.enforceDeadline && current.dueAt && new Date(current.dueAt).getTime() <= Date.now()) throw new Error("Bid invitation is past due");
   return { packageId: current.packageId, partnerId: current.partnerId, budgetCodeId: current.budgetCodeId };

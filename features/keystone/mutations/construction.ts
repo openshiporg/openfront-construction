@@ -796,6 +796,12 @@ export async function awardBidSubmission(
         where: { id: awardedPackageId },
         data: { status: "awarded" },
       });
+      // The package is awarded: every other open bid on it is closed out, not left "submitted".
+      if (!prisma.$executeRawUnsafe) throw new Error("Transactional bid award is unavailable");
+      await prisma.$executeRawUnsafe(
+        `UPDATE "BidSubmission" SET status = 'rejected', "reviewedAt" = CURRENT_TIMESTAMP, "updatedAt" = CURRENT_TIMESTAMP
+         WHERE "bidPackage" = $1 AND id <> $2 AND status::text IN ('submitted', 'under_review')`, awardedPackageId, submissionId,
+      );
     },
   });
 }

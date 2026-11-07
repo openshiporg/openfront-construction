@@ -8,6 +8,7 @@ import { companyModelAccess } from "../access";
 import { getConnectedId, queryById, type KeystoneContextLike } from "../domain/tenancy";
 import { currencyCodeField, moneyField, ownedCompanyField } from "./fields";
 import { trackingFields } from "./trackingFields";
+import { statusGuard } from "../domain/state-machines";
 import { validateCompanyOwner, type CompanyOwnerValidation } from "../domain/company-owners";
 
 function validateLeadOwner(args: Omit<CompanyOwnerValidation, "listKey">) {
@@ -96,6 +97,7 @@ export const ConstructionLead = list({
       ],
       defaultValue: "new",
       validation: { isRequired: true },
+  hooks: statusGuard("ConstructionLead"),
     }),
     notes: text({ ui: { displayMode: "textarea" } }),
     nextActionAt: timestamp(),
@@ -130,6 +132,7 @@ export const ConstructionOpportunity = list({
       ],
       defaultValue: "qualifying",
       validation: { isRequired: true },
+  hooks: statusGuard("ConstructionOpportunity"),
     }),
     estimatedValueMinor: moneyField(),
     currencyCode: currencyCodeField(),

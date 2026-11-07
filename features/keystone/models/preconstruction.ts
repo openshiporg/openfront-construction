@@ -21,6 +21,7 @@ import {
   projectTenantField,
 } from "./fields";
 import { trackingFields } from "./trackingFields";
+import { statusGuard } from "../domain/state-machines";
 
 const preconstructionAccess = () =>
   controlledProjectModelAccess("canReadPreconstruction", "canManagePreconstruction");
@@ -81,6 +82,7 @@ export const BidInvitation = list({
       ],
       defaultValue: "draft",
       validation: { isRequired: true },
+  hooks: statusGuard("BidInvitation"),
     }),
     recipientName: text({ validation: { length: { max: 200 } } }),
     recipientEmail: text({ validation: { length: { max: 320 } } }),
@@ -115,6 +117,7 @@ export const BidSubmission = list({
       ],
       defaultValue: "draft",
       validation: { isRequired: true },
+  hooks: statusGuard("BidSubmission"),
     }),
     totalMinor: moneyField({ nonNegative: true }),
     currencyCode: currencyCodeField(),

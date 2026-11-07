@@ -21,6 +21,7 @@ import {
   projectTenantField,
 } from "./fields";
 import { trackingFields } from "./trackingFields";
+import { statusGuard } from "../domain/state-machines";
 
 const fieldAccess = () =>
   controlledProjectModelAccess("canReadFieldOperations", "canManageFieldOperations");
@@ -100,6 +101,7 @@ export const Equipment = list({
       ],
       defaultValue: "available",
       validation: { isRequired: true },
+  hooks: statusGuard("Equipment"),
     }),
     hourlyCostMinor: moneyField({ nonNegative: true }),
     currencyCode: currencyCodeField(),
@@ -130,6 +132,7 @@ export const Material = list({
       ],
       defaultValue: "active",
       validation: { isRequired: true },
+  hooks: statusGuard("Material"),
     }),
     company: ownedCompanyField("Company.materials"),
     logs: relationship({ ref: "ResourceLog.material", many: true, access: { create: denyAll, update: denyAll } }),

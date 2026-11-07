@@ -263,6 +263,13 @@ export async function assertTransitionPrerequisites(
       return;
     }
     case "Payment": {
+      // Online (provider-backed) payments are settled, failed and reversed only by the provider
+      // flow. A manual move would mark money received that never arrived, or void a checkout
+      // the customer is still paying.
+      const owner = await queryById(context, listKey, id, "id paymentProvider { id }") as RecordWithRelations | null;
+      if ((owner?.paymentProvider as { id?: string } | null | undefined)?.id) {
+        throw new Error("This is an online payment; its status follows the payment provider and cannot be changed by hand");
+      }
       if (toStatus !== "authorized" && toStatus !== "settled") return;
       const record = await queryById(context, listKey, id, "id reference paidAt") as RecordWithRelations | null;
       if (!String(record?.reference ?? "").trim() || !record?.paidAt) {
