@@ -12,6 +12,7 @@ import { withCreateAwareUi, withDeleteAwareUi, withItemViewAwareUi } from "./ui-
 import { permissionsList } from "./models/fields";
 import { extendGraphqlSchema } from "./mutations";
 import { pooledDatabaseUrl } from './database-url';
+import { throwKeystonePrismaErrors } from './lib/keystonePrismaErrors';
 
 // `keystone build` and `next build` load this config but never connect or sign a
 // session, so the build step does not depend on runtime variables being present.
@@ -88,6 +89,8 @@ export default withAuth(
     db: {
       provider: "postgresql",
       url: pooledDatabaseUrl(databaseURL),
+      // Keystone returns failed queries as values; this makes them throw so transactions roll back.
+      extendPrismaClient: throwKeystonePrismaErrors,
     },
     // Admin "Create" buttons follow each list's create access (ui-create-access.ts).
     lists: withItemViewAwareUi(withDeleteAwareUi(withCreateAwareUi(models))),
