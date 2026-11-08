@@ -103,3 +103,8 @@ test("every business-number rule has its backstop index in the migration", () =>
   for (const rule of Object.values(BUSINESS_NUMBERS)) assert.match(sql, new RegExp(`CREATE UNIQUE INDEX "${rule.index}"`));
   assert.match(sql, /CREATE UNIQUE INDEX "DailyLog_project_logDay_key"/);
 });
+
+test("RFI numbers are saved upper-case", () => {
+  const src = readFileSync(new URL("../../features/keystone/mutations/construction.ts", import.meta.url), "utf8");
+  assert.match(src, /listKey: "RFI",\s*build: \(input, session\) => \(\{[^}]*number: input\.reference\.toUpperCase\(\)/);
+});

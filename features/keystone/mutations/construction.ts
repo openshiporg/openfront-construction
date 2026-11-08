@@ -599,7 +599,8 @@ export const raiseRfi = commandResolver({
   permission: "canManageProjectExecution",
   listKey: "RFI",
   build: (input, session) => ({
-    number: input.reference,
+    // RFI numbers are read and filed upper-case ("RFI-002"), whatever was typed.
+    number: input.reference.toUpperCase(),
     subject: input.title,
     question: requiredText(input.description, "Question", 10_000),
     dueAt: optionalDate(input.dueAt, "Due date"),
