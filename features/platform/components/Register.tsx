@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
-import { EmptyState, Pager, SegmentTabs, TitleStatus, formatDate } from "./kit";
+import { EmptyState, Pager, SegmentTabs, TitleStatus, formatDate, formatDay } from "./kit";
 
 export type RegisterFilter = { value: string; label: string };
 
@@ -73,6 +73,6 @@ export function RegisterRow({ reference, title, href, status, statusLabel, meta,
   );
 }
 
-export function dateMeta(label: string, value: string | null | undefined, missing: string) {
-  return value ? `${label} ${formatDate(value)}` : missing;
+export function dateMeta(label: string, value: string | null | undefined, missing: string, kind: "instant" | "day" = "instant") {
+  return value ? `${label} ${kind === "day" ? formatDay(value) : formatDate(value)}` : missing;
 }

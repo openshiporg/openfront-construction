@@ -39,7 +39,7 @@ export function ProcurementRequestsRegister({ projectId, register, searchParams 
           title={item.title}
           href={detailHref(projectId, item)}
           status={item.status}
-          meta={dateMeta("Needed by", item.dueAt, "No need-by date")}
+          meta={dateMeta("Needed by", item.dueAt, "No need-by date", "day")}
           action={<TransitionControl projectId={projectId} item={item} />}
         />
       ))}

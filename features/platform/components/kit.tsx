@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { calendarDayHasPassed } from "@/features/keystone/domain/calendar-dates";
 import { PageBreadcrumbs } from "@/features/dashboard/components/PageBreadcrumbs";
 import { pillClass, trackClass, type PillVariant } from "./pill";
 
@@ -292,6 +293,18 @@ export function formatDate(value: string | null | undefined) {
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export function isOverdue(value: string | null | undefined) {
-  return Boolean(value) && new Date(String(value)).getTime() < Date.now();
+/** Due dates are calendar days: an item is overdue only once its whole due day has ended on the project calendar,
+ * never at 8 pm the evening before (a date-only value stored as UTC midnight/noon). */
+/** A date-only value (due, needed-by, through dates) shown as the calendar day it was saved for, in any viewer zone. */
+export function formatDay(value: string | null | undefined) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" });
+}
+
+export function isOverdue(value: string | null | undefined, timeZone?: string | null, now = Date.now()) {
+  if (!value) return false;
+  const due = new Date(String(value));
+  if (Number.isNaN(due.getTime())) return false;
+  return calendarDayHasPassed(due, timeZone, now);
 }

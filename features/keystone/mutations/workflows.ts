@@ -3,6 +3,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { hasCompanyPermission } from "../access";
 import { refundPayment } from "../utils/paymentProviderAdapter";
 import { queryById } from "../domain/tenancy";
+import { calendarDayKey } from "../domain/calendar-dates";
 import { priceLineFromTotal } from "../domain/line-pricing";
 import { lockBidSubmissionAdmission } from "../domain/bid-submissions";
 import { incidentClassification } from "./safety-private";
@@ -698,13 +699,18 @@ export async function recordLaborTime(_root: unknown, { input }: { input: Constr
 export async function registerScheduleTask(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext) {
   const id = projectId(input);
   const scheduleId = requiredText(input.relatedId, "Schedule id", 200);
+  const plannedStart = optionalDate(input.occurredAt, "Planned start");
+  const plannedFinish = optionalDate(input.dueAt, "Planned finish");
+  if (plannedStart && plannedFinish && calendarDayKey(plannedFinish) < calendarDayKey(plannedStart)) {
+    throw new Error("Planned finish cannot be before the planned start");
+  }
   return executeProjectCommand({
     context, operation: "registerScheduleTask", permission: "canManageProjectExecution", projectId: id,
     idempotencyKey: input.idempotencyKey, request: input, listKey: "ScheduleTask",
     data: {
       taskCode: requiredText(input.reference, "Task code", 80), name: requiredText(input.title, "Task name", 300),
-      description: input.description?.trim(), plannedStart: optionalDate(input.occurredAt, "Planned start"),
-      plannedFinish: optionalDate(input.dueAt, "Planned finish"), schedule: { connect: { id: scheduleId } },
+      description: input.description?.trim(), plannedStart,
+      plannedFinish, schedule: { connect: { id: scheduleId } },
       ...(input.userId ? { assignedTo: { connect: { id: input.userId } } } : {}), project: { connect: { id } },
     },
   });

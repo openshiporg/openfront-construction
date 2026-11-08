@@ -65,6 +65,8 @@ export type ProjectSummary = {
   startDate: string | null;
   completionDate: string | null;
   currencyCode: string;
+  /** Project calendar (IANA zone) on which date-only due dates are judged. */
+  timezone: string;
   originalBudgetMinor: string | null;
   revisedBudgetMinor: string | null;
   committedMinor: string | null;

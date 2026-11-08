@@ -107,9 +107,9 @@ function QueueTitle({ projectId, entry, internal }: { projectId: string; entry: 
   );
 }
 
-function DueDate({ value, status }: { value: string | null; status: string }) {
+function DueDate({ value, status, timeZone }: { value: string | null; status: string; timeZone?: string }) {
   if (!value) return <span className="text-muted-foreground">—</span>;
-  const late = isOverdue(value) && !["closed", "completed", "approved", "voided", "cancelled", "paid", "settled", "archived"].includes(status);
+  const late = isOverdue(value, timeZone) && !["closed", "completed", "approved", "voided", "cancelled", "paid", "settled", "archived"].includes(status);
   return <span className={`inline-flex items-center gap-1 tabular-nums ${late ? "font-medium text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}><CalendarDays className="size-3.5" aria-hidden="true" />{formatDate(value)}</span>;
 }
 
@@ -220,7 +220,7 @@ export function ProjectWorkspace({ resourceRegister, resourceUnavailable, worksp
                   <QueueTitle projectId={project.id} entry={entry} internal={internal} />
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className="text-muted-foreground">{entry.owner || "Unassigned"}</span>
-                    <DueDate value={entry.dueAt} status={entry.status} />
+                    <DueDate value={entry.dueAt} status={entry.status} timeZone={project.timezone} />
                   </div>
                   {entry.amountMinor && <p className="text-sm font-semibold tabular-nums">{formatMinor(entry.amountMinor, project.currencyCode)}</p>}
                   <TransitionControl projectId={project.id} item={entry} />
@@ -235,7 +235,7 @@ export function ProjectWorkspace({ resourceRegister, resourceUnavailable, worksp
                     <tr key={`${entry.kind}:${entry.id}`} className="align-top transition-colors hover:bg-muted/30">
                       <td className="px-4 py-3"><QueueTitle projectId={project.id} entry={entry} internal={internal} /></td>
                       <td className="px-4 py-3 text-muted-foreground">{entry.owner || "—"}</td>
-                      <td className="px-4 py-3"><DueDate value={entry.dueAt} status={entry.status} /></td>
+                      <td className="px-4 py-3"><DueDate value={entry.dueAt} status={entry.status} timeZone={project.timezone} /></td>
                       <td className="px-4 py-3 text-right font-medium tabular-nums">{entry.amountMinor ? formatMinor(entry.amountMinor, project.currencyCode) : "—"}</td>
                       <td className="px-4 py-3"><TransitionControl projectId={project.id} item={entry} /></td>
                     </tr>

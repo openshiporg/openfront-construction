@@ -41,7 +41,7 @@ export function RfiRegister({ projectId, register, submittalPage, submittalStatu
           title={item.title}
           href={register.audience === "internal" && item.id ? `${projectToolHref(projectId, "")}/records/rfi/${encodeURIComponent(item.id)}` : null}
           status={item.status}
-          meta={dateMeta("Due", item.dueAt, "No due date")}
+          meta={dateMeta("Due", item.dueAt, "No due date", "day")}
         />
       ))}
     </RegisterFrame>

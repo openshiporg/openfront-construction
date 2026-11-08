@@ -48,7 +48,7 @@ export function SubmittalRegister({ projectId, register, rfiPage, rfiStatus }: {
           title={item.title}
           href={detailHref(projectId, item)}
           status={item.status}
-          meta={dateMeta("Due", item.dueAt, "No due date")}
+          meta={dateMeta("Due", item.dueAt, "No due date", "day")}
         />
       ))}
     </RegisterFrame>

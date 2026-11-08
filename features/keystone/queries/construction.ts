@@ -164,6 +164,7 @@ function projectSummary(
     startDate: dateOf(project.startDate),
     completionDate: dateOf(project.substantialCompletionDate),
     currencyCode: text(project.currencyCode, "USD"),
+    timezone: text(project.timezone, "America/New_York"),
     originalBudgetMinor: exposeFinancials ? money(activeBudget?.totalOriginalMinor) ?? "0" : null,
     revisedBudgetMinor: exposeFinancials ? money(activeBudget?.totalRevisedMinor) ?? "0" : null,
     committedMinor: exposeFinancials
@@ -183,7 +184,7 @@ function projectSummary(
 }
 
 const projectIdentityQuery = `
-  id projectNumber name status startDate substantialCompletionDate currencyCode
+  id projectNumber name status startDate substantialCompletionDate currencyCode timezone
   company { id name brandName brandMark brandTagline brandColor logoIcon logoColor }
 `;
 

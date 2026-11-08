@@ -31,7 +31,7 @@ export function LienWaiversRegister({ projectId, register, searchParams }: {
           title={waiver.waiverNumber}
           href={`${projectToolHref(projectId, "")}/records/lien-waiver/${encodeURIComponent(waiver.id)}`}
           status={waiver.status}
-          meta={dateMeta("Through", waiver.throughDate, "Through date unavailable")}
+          meta={dateMeta("Through", waiver.throughDate, "Through date unavailable", "day")}
         />
       ))}
     </RegisterFrame>

@@ -10,6 +10,9 @@ import {
 } from "../domain/tenancy";
 import type { Permission } from "../models/fields";
 import { hasNativeAuthorityPort, lockCurrentAuthority } from "../domain/current-authority";
+import { parseCommandDate } from "../domain/calendar-dates";
+import { assertBusinessNumberAvailable, businessNumberConflictMessage } from "../domain/business-numbers";
+import { domainErrorMessage } from "../../lib/graphql-error-mask";
 
 export type CommandInput = {
   projectId: string;
@@ -147,10 +150,7 @@ export function requiredText(value: unknown, label: string, max: number): string
 }
 
 export function optionalDate(value: string | null | undefined, label: string): Date | undefined {
-  if (!value) return undefined;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) throw new Error(`${label} must be a valid date`);
-  return date;
+  return parseCommandDate(value, label);
 }
 
 export function requireCreate(sudo: CommandSudo, listKey: string) {
@@ -165,9 +165,37 @@ export function requireUpdate(sudo: CommandSudo, listKey: string) {
   return updateOne;
 }
 
+/** Marks an error thrown by our own transaction callback. Prisma rolls an interactive transaction back when its
+ * callback rejects, so these are definite refusals rather than unknown outcomes. */
+class CommandRefusal extends Error {
+  constructor(readonly refusal: string) { super(refusal); this.name = "CommandRefusal"; }
+}
+
+function commandRefusalMessage(error: unknown): string | null {
+  return error instanceof CommandRefusal ? error.refusal : null;
+}
+
 async function runTransaction<T>(context: CommandContext, callback: (tx: CommandContext) => Promise<T>) {
   if (!context.transaction) throw new Error("Transactional construction context is required");
   return context.transaction(callback, { timeout: 30_000 });
+}
+
+/** NEW admission: refusals raised by the callback are marked so the caller can report them instead of
+ * treating the rollback as a lost acknowledgement. */
+async function runAdmissionTransaction<T>(context: CommandContext, callback: (tx: CommandContext) => Promise<T>) {
+  if (!context.transaction) throw new Error("Transactional construction context is required");
+  return context.transaction(async tx => {
+    try {
+      return await callback(tx);
+    } catch (error) {
+      const conflict = businessNumberConflictMessage(error);
+      if (conflict) throw new CommandRefusal(conflict);
+      const domain = domainErrorMessage(error);
+      // "Idempotent request is started" is a concurrency signal the recovery path handles.
+      if (domain && !/request is started/i.test(domain)) throw new CommandRefusal(domain);
+      throw error;
+    }
+  }, { timeout: 30_000 });
 }
 
 async function findReplay(
@@ -299,7 +327,7 @@ export async function executeProjectCommand(args: ExecuteArgs): Promise<CommandR
   await args.beforeAdmission?.(args.context);
 
   try {
-    const result = await runTransaction(args.context, async tx => {
+    const result = await runAdmissionTransaction(args.context, async tx => {
       if (hasNativeAuthorityPort(tx)) {
         const fresh = await lockCurrentAuthority(tx, companyId, args.createsProject ? null : args.projectId, requiredPermissions, args.allowExternalProjectWrite ? args.externalOrganizationId : undefined);
         if (tx.withSession) tx = tx.withSession(fresh);
@@ -357,6 +385,9 @@ export async function executeProjectCommand(args: ExecuteArgs): Promise<CommandR
         },
       });
       const lockedData = args.beforeCreate ? await args.beforeCreate(tx) : undefined;
+      if (!args.updateId) {
+        await assertBusinessNumberAvailable(tx, args.listKey, (lockedData ?? args.data) as Record<string, unknown>, args.createsProject ? companyId : args.projectId);
+      }
       const created = args.updateId
         ? await requireUpdate(sudo, args.listKey)({ where: { id: args.updateId }, data: lockedData ?? args.data })
         : await requireCreate(sudo, args.listKey)({ data: lockedData ?? args.data });
@@ -411,7 +442,11 @@ export async function executeProjectCommand(args: ExecuteArgs): Promise<CommandR
     });
     await args.beforeReplay?.(args.context);
     return result;
-  } catch {
+  } catch (transactionError) {
+    // The callback itself refused (a business rule or a backstop index), so the
+    // interactive transaction rolled back: that outcome is known, not lost.
+    const refusal = commandRefusalMessage(transactionError);
+    if (refusal) throw new Error(refusal);
     // A rejected transaction Promise can also mean lost acknowledgement after
     // commit. A denied/unavailable recovery read proves nothing about rollback.
     let recovered: CommandResult | null = null;

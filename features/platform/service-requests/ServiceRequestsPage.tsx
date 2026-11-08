@@ -68,7 +68,9 @@ export async function ServiceRequestsPage({ searchParams }: { searchParams: Prom
                   )}
                   {request.status === "booked" && request.projectId && (
                     <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 rounded-[6px] border border-emerald-600/20 bg-emerald-500/5 p-3 text-sm">
-                      <p className="min-w-0 flex-1">Deposit paid. The job is booked as project <strong>{request.reference}</strong> with a won opportunity, and the customer can follow it in their portal.</p>
+                      {request.depositStatus === "reversed"
+                        ? <p className="min-w-0 flex-1">Deposit refunded. Project <strong>{request.reference}</strong> was booked from this request; review whether the job is still going ahead before work starts.</p>
+                        : <p className="min-w-0 flex-1">Deposit paid. The job is booked as project <strong>{request.reference}</strong> with a won opportunity, and the customer can follow it in their portal.</p>}
                       <Link className="font-medium underline underline-offset-4" href={`/dashboard/platform/projects/${encodeURIComponent(request.projectId)}`}>Open project</Link>
                       <Link className="font-medium underline underline-offset-4" href="/dashboard/platform/pipeline">Pipeline</Link>
                     </div>
