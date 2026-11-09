@@ -23,10 +23,10 @@ export default async function PortalLayout({ children }: { children: React.React
   return (
     <PublicShell site={site} account current="/account" dock={false}>
       {user && (
-        <div className="sf-util" style={{ background: "var(--sf-paper-2)", color: "var(--sf-ink-2)", borderBottom: "1px solid var(--sf-rule)" }}>
-          <div className="sf-wrap sf-util__row">
-            <span className="sf-util__area">Client portal · {user.name || user.email}</span>
-            <form action={customerSignOut}><button className="sf-pill sf-pill--sm" style={{ minHeight: "2rem" }}>Sign out</button></form>
+        <div className="sf-portalbar">
+          <div className="sf-wrap sf-portalbar__row">
+            <span className="sf-portalbar__who">Client portal · {user.name || user.email}</span>
+            <form action={customerSignOut}><button className="sf-pill sf-pill--sm">Sign out</button></form>
           </div>
         </div>
       )}
