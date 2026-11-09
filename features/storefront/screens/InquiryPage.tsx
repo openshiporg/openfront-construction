@@ -75,6 +75,16 @@ export async function InquiryPage({
             </div>
           </div>
         </section>
+        <section className="sf-fend" aria-label="Service area">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="sf-fend__img" src="/photos/backdrop.jpg" alt="" width={1536} height={1024} loading="lazy" />
+          <div className="sf-wrap">
+            <div className="sf-fend__note">
+              <p className="sf-fend__big">{site?.serviceArea ? `Serving ${site.serviceArea}.` : "Building better communities."}</p>
+              <p className="sf-small">Licensed, insured and bonded.</p>
+            </div>
+          </div>
+        </section>
       </main>
     </PublicShell>
   );

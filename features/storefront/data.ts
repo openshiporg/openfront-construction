@@ -20,7 +20,10 @@ export async function getPublicConstructionSite(): Promise<PublicConstructionSit
     }
   `);
   if (!response.success) throw new Error("The public contractor profile is temporarily unavailable");
-  return response.data.publicConstructionSite;
+  const site = response.data.publicConstructionSite;
+  // A placeholder 555 exchange is never a real line: show no phone rather than a fake one.
+  if (site && /\b555[-.\s]?\d{4}\b/.test(site.inquiryPhone ?? "")) return { ...site, inquiryPhone: "" };
+  return site;
 }
 
 /**

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Public_Sans, Source_Serif_4 } from "next/font/google";
+import { Cormorant_Garamond, Geist, Geist_Mono, Jost } from "next/font/google";
 import "./globals.css";
 import "@/features/storefront/catalog.css";
 import { getPublicStorefrontMetadata } from "@/features/storefront/data";
@@ -14,17 +14,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Storefront type, from the card catalog of the libraries and schools the firm builds: Public Sans
-// (a civic workhorse) for headings and everything read; Source Serif 4 for the typed card records.
-const publicSans = Public_Sans({
-  variable: "--font-public-sans",
-  subsets: ["latin"],
-});
-
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
-  subsets: ["latin"],
-});
+// Storefront type (Fomalhaut): Jost, a light refined sans, for everything; Cormorant Garamond italic for quotes.
+const jost = Jost({ variable: "--font-jost", subsets: ["latin"], weight: ["300", "400", "500"] });
+const cormorant = Cormorant_Garamond({ variable: "--font-cormorant", subsets: ["latin"], weight: ["400", "500"], style: ["italic"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getPublicStorefrontMetadata();
@@ -43,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${publicSans.variable} ${sourceSerif.variable} antialiased min-h-screen bg-background font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} ${jost.variable} ${cormorant.variable} antialiased min-h-screen bg-background font-sans`}
       >
         {children}
       </body>

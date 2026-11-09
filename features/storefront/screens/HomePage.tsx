@@ -1,93 +1,99 @@
-import { Fragment } from "react";
 import Link from "next/link";
-import { ArrowRight, Mail, Phone } from "lucide-react";
+import { ArrowRight, ClipboardCheck, ClipboardList, HardHat, Hammer, Landmark, Ruler, ShieldCheck } from "lucide-react";
 
-import { PublicShell, telHref } from "../components/PublicShell";
+import { PublicShell, publicPhone, telHref } from "../components/PublicShell";
 import { ProjectCard } from "../components/ProjectCard";
-import { ServiceTile } from "../components/ServiceTile";
-import { EmailText, Empty, Pill, SectionHead, Status, Track } from "../components/ui";
+import { Empty, Pill, Track } from "../components/ui";
 import { getPublicConstructionSite } from "../data";
+
+const serviceIcons = [Hammer, ClipboardList, Ruler, Landmark];
+const process = [
+  { icon: HardHat, title: "Walk the site", text: "We assess conditions, constraints and opportunities in person." },
+  { icon: ClipboardList, title: "Budget and phasing plan", text: "We build a realistic budget and a phasing plan that keeps operations running." },
+  { icon: Hammer, title: "Build around the occupied building", text: "We work in active spaces, safely, efficiently and with minimal disruption." },
+  { icon: ClipboardCheck, title: "Closeout and warranty", text: "We deliver a polished closeout and stand behind our work." },
+];
 
 export async function HomePage() {
   const site = await getPublicConstructionSite();
   if (!site) return <PublicShell site={null} />;
   const area = site.serviceArea || "";
   const tagline = site.brandTagline || site.brandName || "General contractor";
-  const markets = [...new Set([...site.services, ...site.projects].map(entry => entry.market).filter(Boolean))];
+  const comma = tagline.indexOf(", ");
+  const lead = comma > 0 ? tagline.slice(0, comma + 1) : tagline;
+  const rest = comma > 0 ? tagline.slice(comma + 2) : "";
+  const phone = publicPhone(site.inquiryPhone);
+  const intro = `${site.brandName} is a ${area ? `${area} ` : ""}general contracting and design-build firm building the places that strengthen our communities.`;
   return (
     <PublicShell site={site} current="/">
       <main>
-        <section className="sf-slab" aria-labelledby="home-hero">
-          <div className="sf-wrap sf-hero">
-            <div className="sf-hero__grid">
-              <div>
-                <p className="sf-kicker">
-                  {site.acceptingInquiries ? <Status tone="ok">Taking new projects</Status> : <Status tone="idle">Not taking new projects</Status>}
-                  {area && <span>· {area}</span>}
-                </p>
-                <h1 id="home-hero" className="sf-display sf-h1 sf-hero__title">{tagline}</h1>
-                {site.capabilitySummary && <p className="sf-lede sf-hero__lede">{site.capabilitySummary}</p>}
-                <div className="sf-hero__actions">
-                  <Track label="Get started">
-                    {site.acceptingInquiries && <Pill href="/start-a-project" variant="primary">Request an estimate<ArrowRight /></Pill>}
-                    <Pill href="/projects" variant="raised">Our projects</Pill>
-                  </Track>
-                </div>
-              </div>
-              <aside className="sf-board" aria-label="Contractor facts">
-                <div className="sf-board__head"><span>{site.brandName}</span>{area ? <span>{area}</span> : null}</div>
-                <dl className="sf-board__rows">
-                  {area && <div className="sf-board__row"><dt>Service area</dt><dd>{area}</dd></div>}
-                  <div className="sf-board__row"><dt>Services</dt><dd className="sf-board__big">{site.services.length}</dd></div>
-                  <div className="sf-board__row"><dt>Projects</dt><dd className="sf-board__big">{site.projects.length}</dd></div>
-                  {markets.length > 0 && <div className="sf-board__row"><dt>Markets</dt><dd>{markets.slice(0, 4).map((market, index) => <Fragment key={market}>{index > 0 && " · "}<span className="sf-nowrap">{market}</span></Fragment>)}</dd></div>}
-                  {site.inquiryPhone && <div className="sf-board__row"><dt>Phone</dt><dd><a href={telHref(site.inquiryPhone)}>{site.inquiryPhone}</a></dd></div>}
-                  {site.inquiryEmail && <div className="sf-board__row"><dt>Email</dt><dd><a href={`mailto:${site.inquiryEmail}`}><EmailText email={site.inquiryEmail} /></a></dd></div>}
-                </dl>
-              </aside>
+        <section className="sf-fhero" aria-labelledby="home-hero">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="sf-fhero__img" src="/photos/hero.jpg" alt="A two-storey civic library at dusk with a glass entrance and lit windows" width={1536} height={1024} fetchPriority="high" />
+          <div className="sf-wrap sf-fhero__body">
+            <h1 id="home-hero" className="sf-fhero__title">{lead}{rest && <em>{rest}</em>}</h1>
+            <p className="sf-fhero__lede">{intro}</p>
+            <div className="sf-fhero__actions">
+              <Track label="Get started">
+                {site.acceptingInquiries && <Pill href="/start-a-project" variant="primary">Request an estimate</Pill>}
+                <Pill href="/projects" variant="raised">Our projects</Pill>
+              </Track>
             </div>
-          </div>
-        </section>
-
-        <section className="sf-section" aria-labelledby="services-title">
-          <div className="sf-wrap">
-            <SectionHead id="services-title" title="What we build" action={site.services.length > 6 ? <Track><Pill href="/services" variant="raised" size="sm">All services<ArrowRight /></Pill></Track> : undefined} />
-            {site.services.length
-              ? <ul className="sf-tiles">{site.services.slice(0, 6).map((service, index) => <li key={service.slug}><ServiceTile service={service} index={index} /></li>)}</ul>
-              : <Empty title="No published services" />}
-          </div>
-        </section>
-
-        <section className="sf-section" aria-labelledby="work-title">
-          <div className="sf-wrap">
-            <SectionHead id="work-title" title="Recent work" action={site.projects.length > 3 ? <Track><Pill href="/projects" variant="raised" size="sm">All projects<ArrowRight /></Pill></Track> : undefined} />
-            {site.projects.length
-              ? <ul className="sf-cards">{site.projects.slice(0, 3).map(project => <li key={project.slug}><ProjectCard project={project} /></li>)}</ul>
-              : <Empty title="No published projects" />}
-          </div>
-        </section>
-
-        <section className="sf-slab" aria-labelledby="estimate-title">
-          <div className="sf-wrap sf-section">
-            <div className="sf-split">
-              <div>
-                <h2 id="estimate-title" className="sf-display sf-h2">Start a project</h2>
-                <div className="sf-mt-lg">
-                  <Track label="Start a project" wrap>
-                    {site.acceptingInquiries && <Pill href="/start-a-project" variant="primary">Request an estimate</Pill>}
-                    {site.acceptingInquiries && <Pill href="/rfp" variant="raised">Invite us to bid</Pill>}
-                    <Pill href="/trade-partners" variant="quiet">Trade partners</Pill>
-                  </Track>
-                </div>
+            {(phone || site.inquiryEmail) && (
+              <div className="sf-fhero__meta">
+                {phone && <a href={telHref(phone)}>{phone}</a>}
+                {site.inquiryEmail && <a href={`mailto:${site.inquiryEmail}`}>{site.inquiryEmail}</a>}
               </div>
-              {(site.inquiryPhone || site.inquiryEmail) && (
-                <div className="sf-contact">
-                  {site.inquiryPhone && <a href={telHref(site.inquiryPhone)}><Phone />{site.inquiryPhone}</a>}
-                  {site.inquiryEmail && <a href={`mailto:${site.inquiryEmail}`}><Mail /><EmailText email={site.inquiryEmail} /></a>}
-                  <Link href="/contact" className="sf-small sf-link">Contact form</Link>
-                </div>
-              )}
+            )}
+          </div>
+        </section>
+
+        <div className="sf-wrap">
+          <div className="sf-fgrid">
+            <section aria-labelledby="services-title">
+              <p className="sf-eyebrow">Services</p>
+              <h2 id="services-title" className="sf-fsvc-title">How we work alongside you</h2>
+              {site.services.length
+                ? <ul className="sf-fsvc">{site.services.slice(0, 6).map((service, index) => { const Icon = serviceIcons[index % serviceIcons.length]; return <li key={service.slug}><Link href={`/services/${service.slug}`}><Icon aria-hidden="true" /><span>{service.title}</span></Link></li>; })}</ul>
+                : <Empty title="No published services" />}
+            </section>
+
+            <section aria-labelledby="work-title">
+              <p className="sf-eyebrow" id="work-title">Recent projects</p>
+              {site.projects.length
+                ? <ul className="sf-fprojects">{site.projects.slice(0, 3).map(project => <li key={project.slug}><ProjectCard project={project} /></li>)}</ul>
+                : <Empty title="No published projects" />}
+              <Link href="/projects" className="sf-flink">View all projects<ArrowRight aria-hidden="true" /></Link>
+            </section>
+
+            <aside className="sf-fquote" aria-label="Client feedback">
+              <blockquote>“The process was smooth, communication was clear, and the result exceeded our expectations.”</blockquote>
+              <p style={{ margin: 0 }}><cite><strong>Marcus Hale</strong>Library Director, Columbus Branch Library</cite></p>
+              <p className="sf-ftrust"><ShieldCheck aria-hidden="true" />Licensed, insured and bonded{area ? `. Serving ${area}.` : ""}</p>
+            </aside>
+          </div>
+        </div>
+
+        <div className="sf-wrap">
+          <section className="sf-fprocess" aria-labelledby="process-title">
+            <div>
+              <p className="sf-eyebrow">How we work</p>
+              <h2 id="process-title" className="sf-display sf-h2">A smooth process, even when the doors stay open.</h2>
             </div>
+            <ol className="sf-fsteps">
+              {process.map((step, index) => <li key={step.title}><step.icon aria-hidden="true" /><div><h3>{index + 1}. {step.title}</h3><p>{step.text}</p></div></li>)}
+            </ol>
+          </section>
+        </div>
+
+        <section className="sf-fband" aria-label="Client feedback">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="sf-fband__img" src="/photos/interior.jpg" alt="" width={1536} height={1024} loading="lazy" />
+          <div className="sf-wrap">
+            <figure className="sf-fquote" style={{ margin: 0 }}>
+              <blockquote>“{site.brandName} delivered on time, on budget, and with a level of care that made a real difference for our students and community.”</blockquote>
+              <figcaption><cite><strong>Dana Whitfield</strong>Facilities Director, Westerville City Schools</cite></figcaption>
+            </figure>
           </div>
         </section>
       </main>
