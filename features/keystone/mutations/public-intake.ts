@@ -304,7 +304,7 @@ export async function submitPublicIntake(
           name: normalized.contactName,
           organization: normalized.organization,
           email: normalized.email,
-          phone: normalized.phone,
+          phone: normalized.phone ?? "",
           source: "public_opportunity",
           status: "new",
           notes: `Received through ${normalized.sourcePath}; source details remain in ${publicReference}.`,
