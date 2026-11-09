@@ -557,8 +557,8 @@ a.sf-list__item:hover { background: var(--sf-paper-2); }
 
 /* estimate page tail: dusk building behind a note */
 .sf-fend { position: relative; isolation: isolate; overflow: hidden; margin-top: 3rem; min-height: 22rem; display: flex; align-items: flex-end; }
-.sf-fend__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-.sf-fend::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgb(14 14 13 / 0.35), #0e0e0d 100%); }
+.sf-fend__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; z-index: -2; }
+.sf-fend::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgb(14 14 13 / 0.2), rgb(14 14 13 / 0.15) 40%, #0e0e0d 100%); }
 .sf-fend__note { margin-bottom: 2rem; padding: 1.5rem; background: rgb(20 20 18 / 0.88); border: 1px solid var(--sf-rule); max-width: 28rem; }
 .sf-fend__note p { margin: 0; }
 .sf-fend__note .sf-fend__big { font-size: 1.5rem; font-weight: 300; color: var(--sf-ink); }

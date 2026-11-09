@@ -96,7 +96,7 @@ export function PublicShell({
             </main>
           ) : children}
         </div>
-        {site && dock && (phone || site.acceptingInquiries) && (
+        {site && dock && current !== "/" && (phone || site.acceptingInquiries) && (
           <div className="sf-dock">
             <Track label="Quick actions">
               {phone && <a href={telHref(phone)} className="sf-pill sf-pill--raised"><Phone />Call</a>}

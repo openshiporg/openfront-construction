@@ -19,7 +19,7 @@ export async function HomePage() {
   if (!site) return <PublicShell site={null} />;
   const area = site.serviceArea || "";
   const tagline = site.brandTagline || site.brandName || "General contractor";
-  const comma = tagline.indexOf(", ");
+  const comma = tagline.lastIndexOf(", ");
   const lead = comma > 0 ? tagline.slice(0, comma + 1) : tagline;
   const rest = comma > 0 ? tagline.slice(comma + 2) : "";
   const phone = publicPhone(site.inquiryPhone);
