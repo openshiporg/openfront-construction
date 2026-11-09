@@ -569,3 +569,10 @@ a.sf-list__item:hover { background: var(--sf-paper-2); }
 .sf-foot__links a { font-weight: 300; }
 .sf-foot__cta { align-self: start; }
 @media (min-width: 48rem) { .sf-foot__grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) auto; } }
+
+/* Fomalhaut: portal bar, square photos */
+.sf-portalbar { background: #131311; color: var(--sf-ink-2); border-bottom: 1px solid var(--sf-rule); }
+.sf-portalbar__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 3rem; font-size: 0.875rem; }
+.sf-portalbar__who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sf-hero__photo, .sf-gallery a, .sf-gallery img, .sf-spec { border-radius: 0; box-shadow: none; }
+.sf-hero__photo { border: 1px solid var(--sf-rule); }
