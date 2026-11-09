@@ -250,8 +250,8 @@ export async function submitPublicIntake(
     const companies = await tx.prisma.$queryRawUnsafe<Array<{ id: string }>>('SELECT id FROM "Company" WHERE id = $1 AND status = \'active\' FOR SHARE', companyId);
     if (companies.length !== 1) throw new Error("Public project requests are not currently available");
     const [published] = await tx.prisma.$queryRawUnsafe<Array<{ status: string; acceptingInquiries: boolean; privacyNotice: string }>>(`SELECT profile.status::text, profile."acceptingInquiries", profile."privacyNotice"
-      FROM "PublicSiteProfile" profile JOIN "Company" company ON company.id = profile.company
-      WHERE profile.id = $1 AND profile.company = $2 AND profile."siteKey" = $3 AND company."publicSiteProfile" = profile.id
+      FROM "PublicSiteProfile" profile JOIN "Company" company ON company."publicSiteProfile" = profile.id
+      WHERE profile.id = $1 AND company.id = $2 AND profile."siteKey" = $3
       FOR SHARE OF profile`, String(site.id), companyId, getTrustedPublicSiteKey());
     if (!published || published.status !== "published" || published.acceptingInquiries !== true) throw new Error("Public project requests are not currently available");
     if (digest(requiredText(published.privacyNotice, "Published privacy notice", 10_000, 1)) !== privacyNoticeDigest) throw new Error("The privacy notice changed; review the current notice before submitting again");
