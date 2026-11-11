@@ -202,12 +202,6 @@ export async function requestConstructionApproval(
       company: { connect: { id: loaded.companyId } }, project: { connect: { id: loaded.projectId } },
       requestedBy: { connect: { id: session.itemId } }, actorUser: { connect: { id: session.itemId } },
     } });
-    const payload = JSON.stringify({ schemaVersion: 1, requestId: request.id, targetType: loaded.config.listKey, targetId, targetStatus, snapshotDigest, assigneeMembershipId });
-    await sudo.db.OutboxMessage.createOne({ data: {
-      messageKey: `ApprovalRequest:${request.id}:requested`, eventType: "ApprovalRequest.requested",
-      aggregateType: "ApprovalRequest", aggregateId: request.id, canonicalPayload: payload, payloadDigest: digest(payload), status: "pending",
-      company: { connect: { id: loaded.companyId } }, project: { connect: { id: loaded.projectId } }, agentAction: { connect: { id: action.id } },
-    } });
     return { success: true, requestId: request.id, actionId: action.id, replayed: false };
     }, { timeout: 30_000 });
   } catch (error) {
@@ -316,14 +310,6 @@ export async function decideConstructionApproval(
       requestedAt: new Date(), startedAt: new Date(), completedAt: new Date(),
       company: { connect: { id: request.company!.id! } }, project: { connect: { id: request.project!.id! } },
       requestedBy: { connect: { id: session.itemId } }, actorUser: { connect: { id: session.itemId } },
-    } });
-    const payload = JSON.stringify({ schemaVersion: 1, requestId: request.id, decision, decisionId: decisionRecord.id, targetType: request.targetType, targetId: request.targetId });
-    await sudo.db.OutboxMessage.createOne({ data: {
-      messageKey: `ApprovalRequest:${request.id}:${decisionRecord.id}`,
-      eventType: "ApprovalRequest.decided", aggregateType: "ApprovalRequest", aggregateId: String(request.id),
-      canonicalPayload: payload, payloadDigest: digest(payload), status: "pending",
-      company: { connect: { id: request.company!.id! } }, project: { connect: { id: request.project!.id! } },
-      agentAction: { connect: { id: action.id } },
     } });
     return { success: true, requestId: String(request.id), decisionId: decisionRecord.id, actionId: action.id };
   }, { timeout: 30_000 });

@@ -1292,8 +1292,6 @@ type Company {
   agentActionsCount(where: AgentActionWhereInput! = {}): Int
   idempotencyKeys(where: IdempotencyKeyWhereInput! = {}, orderBy: [IdempotencyKeyOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: IdempotencyKeyWhereUniqueInput): [IdempotencyKey!]
   idempotencyKeysCount(where: IdempotencyKeyWhereInput! = {}): Int
-  outboxMessages(where: OutboxMessageWhereInput! = {}, orderBy: [OutboxMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: OutboxMessageWhereUniqueInput): [OutboxMessage!]
-  outboxMessagesCount(where: OutboxMessageWhereInput! = {}): Int
   apiCredentials(where: ApiCredentialWhereInput! = {}, orderBy: [ApiCredentialOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ApiCredentialWhereUniqueInput): [ApiCredential!]
   apiCredentialsCount(where: ApiCredentialWhereInput! = {}): Int
   approvalPolicies(where: ApprovalPolicyWhereInput! = {}, orderBy: [ApprovalPolicyOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ApprovalPolicyWhereUniqueInput): [ApprovalPolicy!]
@@ -1360,7 +1358,6 @@ input CompanyWhereInput {
   scopeGrants: ScopeGrantManyRelationFilter
   agentActions: AgentActionManyRelationFilter
   idempotencyKeys: IdempotencyKeyManyRelationFilter
-  outboxMessages: OutboxMessageManyRelationFilter
   apiCredentials: ApiCredentialManyRelationFilter
   approvalPolicies: ApprovalPolicyManyRelationFilter
   createdByUser: UserWhereInput
@@ -1460,12 +1457,6 @@ input IdempotencyKeyManyRelationFilter {
   none: IdempotencyKeyWhereInput
 }
 
-input OutboxMessageManyRelationFilter {
-  every: OutboxMessageWhereInput
-  some: OutboxMessageWhereInput
-  none: OutboxMessageWhereInput
-}
-
 input ApiCredentialManyRelationFilter {
   every: ApiCredentialWhereInput
   some: ApiCredentialWhereInput
@@ -1544,7 +1535,6 @@ input CompanyUpdateInput {
   scopeGrants: ScopeGrantRelateToManyForUpdateInput
   agentActions: AgentActionRelateToManyForUpdateInput
   idempotencyKeys: IdempotencyKeyRelateToManyForUpdateInput
-  outboxMessages: OutboxMessageRelateToManyForUpdateInput
   apiCredentials: ApiCredentialRelateToManyForUpdateInput
   approvalPolicies: ApprovalPolicyRelateToManyForUpdateInput
   createdByUser: UserRelateToOneForUpdateInput
@@ -1652,12 +1642,6 @@ input IdempotencyKeyRelateToManyForUpdateInput {
   connect: [IdempotencyKeyWhereUniqueInput!]
 }
 
-input OutboxMessageRelateToManyForUpdateInput {
-  disconnect: [OutboxMessageWhereUniqueInput!]
-  set: [OutboxMessageWhereUniqueInput!]
-  connect: [OutboxMessageWhereUniqueInput!]
-}
-
 input ApiCredentialRelateToManyForUpdateInput {
   disconnect: [ApiCredentialWhereUniqueInput!]
   set: [ApiCredentialWhereUniqueInput!]
@@ -1717,7 +1701,6 @@ input CompanyCreateInput {
   scopeGrants: ScopeGrantRelateToManyForCreateInput
   agentActions: AgentActionRelateToManyForCreateInput
   idempotencyKeys: IdempotencyKeyRelateToManyForCreateInput
-  outboxMessages: OutboxMessageRelateToManyForCreateInput
   apiCredentials: ApiCredentialRelateToManyForCreateInput
   approvalPolicies: ApprovalPolicyRelateToManyForCreateInput
   createdByUser: UserRelateToOneForCreateInput
@@ -1794,10 +1777,6 @@ input ScopeGrantRelateToManyForCreateInput {
 
 input IdempotencyKeyRelateToManyForCreateInput {
   connect: [IdempotencyKeyWhereUniqueInput!]
-}
-
-input OutboxMessageRelateToManyForCreateInput {
-  connect: [OutboxMessageWhereUniqueInput!]
 }
 
 input ApiCredentialRelateToManyForCreateInput {
@@ -2048,8 +2027,6 @@ type Project {
   agentActionsCount(where: AgentActionWhereInput! = {}): Int
   idempotencyKeys(where: IdempotencyKeyWhereInput! = {}, orderBy: [IdempotencyKeyOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: IdempotencyKeyWhereUniqueInput): [IdempotencyKey!]
   idempotencyKeysCount(where: IdempotencyKeyWhereInput! = {}): Int
-  outboxMessages(where: OutboxMessageWhereInput! = {}, orderBy: [OutboxMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: OutboxMessageWhereUniqueInput): [OutboxMessage!]
-  outboxMessagesCount(where: OutboxMessageWhereInput! = {}): Int
   apiCredentials(where: ApiCredentialWhereInput! = {}, orderBy: [ApiCredentialOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: ApiCredentialWhereUniqueInput): [ApiCredential!]
   apiCredentialsCount(where: ApiCredentialWhereInput! = {}): Int
   accountInvitations(where: AccountInvitationWhereInput! = {}, orderBy: [AccountInvitationOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: AccountInvitationWhereUniqueInput): [AccountInvitation!]
@@ -2174,7 +2151,6 @@ input ProjectWhereInput {
   scopeGrants: ScopeGrantManyRelationFilter
   agentActions: AgentActionManyRelationFilter
   idempotencyKeys: IdempotencyKeyManyRelationFilter
-  outboxMessages: OutboxMessageManyRelationFilter
   apiCredentials: ApiCredentialManyRelationFilter
   accountInvitations: AccountInvitationManyRelationFilter
   publications: PublicProjectManyRelationFilter
@@ -2665,7 +2641,6 @@ input ProjectUpdateInput {
   scopeGrants: ScopeGrantRelateToManyForUpdateInput
   agentActions: AgentActionRelateToManyForUpdateInput
   idempotencyKeys: IdempotencyKeyRelateToManyForUpdateInput
-  outboxMessages: OutboxMessageRelateToManyForUpdateInput
   apiCredentials: ApiCredentialRelateToManyForUpdateInput
   accountInvitations: AccountInvitationRelateToManyForUpdateInput
   publications: PublicProjectRelateToManyForUpdateInput
@@ -3199,7 +3174,6 @@ input ProjectCreateInput {
   scopeGrants: ScopeGrantRelateToManyForCreateInput
   agentActions: AgentActionRelateToManyForCreateInput
   idempotencyKeys: IdempotencyKeyRelateToManyForCreateInput
-  outboxMessages: OutboxMessageRelateToManyForCreateInput
   apiCredentials: ApiCredentialRelateToManyForCreateInput
   accountInvitations: AccountInvitationRelateToManyForCreateInput
   publications: PublicProjectRelateToManyForCreateInput
@@ -13975,8 +13949,6 @@ type AgentAction {
   reviewedBy: User
   actorUser: User
   idempotencyKey: IdempotencyKey
-  outboxMessages(where: OutboxMessageWhereInput! = {}, orderBy: [OutboxMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: OutboxMessageWhereUniqueInput): [OutboxMessage!]
-  outboxMessagesCount(where: OutboxMessageWhereInput! = {}): Int
   createdByUser: User
   updatedByUser: User
   createdAt: DateTime
@@ -14037,7 +14009,6 @@ input AgentActionWhereInput {
   reviewedBy: UserWhereInput
   actorUser: UserWhereInput
   idempotencyKey: IdempotencyKeyWhereInput
-  outboxMessages: OutboxMessageManyRelationFilter
   createdByUser: UserWhereInput
   updatedByUser: UserWhereInput
   createdAt: DateTimeFilter
@@ -14166,102 +14137,6 @@ input IdempotencyKeyOrderByInput {
   errorCode: OrderDirection
   lockedAt: OrderDirection
   expiresAt: OrderDirection
-  createdAt: OrderDirection
-  updatedAt: OrderDirection
-}
-
-type OutboxMessage {
-  id: ID!
-  messageKey: String
-  eventType: String
-  aggregateType: String
-  aggregateId: String
-  schemaVersion: Int
-  canonicalPayload: String
-  payloadDigest: String
-  status: OutboxMessageStatusType
-  attempts: Int
-  availableAt: DateTime
-  lockedAt: DateTime
-  lockOwner: String
-  lastAttemptAt: DateTime
-  deliveredAt: DateTime
-  lastError: String
-  company: Company
-  project: Project
-  agentAction: AgentAction
-  createdByUser: User
-  updatedByUser: User
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
-enum OutboxMessageStatusType {
-  pending
-  processing
-  delivered
-  retry
-  dead_letter
-}
-
-input OutboxMessageWhereUniqueInput {
-  id: ID
-  messageKey: String
-}
-
-input OutboxMessageWhereInput {
-  AND: [OutboxMessageWhereInput!]
-  OR: [OutboxMessageWhereInput!]
-  NOT: [OutboxMessageWhereInput!]
-  id: IDFilter
-  messageKey: StringFilter
-  eventType: StringFilter
-  aggregateType: StringFilter
-  aggregateId: StringFilter
-  schemaVersion: IntFilter
-  canonicalPayload: StringFilter
-  payloadDigest: StringFilter
-  status: OutboxMessageStatusTypeNullableFilter
-  attempts: IntFilter
-  availableAt: DateTimeFilter
-  lockedAt: DateTimeNullableFilter
-  lockOwner: StringFilter
-  lastAttemptAt: DateTimeNullableFilter
-  deliveredAt: DateTimeNullableFilter
-  lastError: StringFilter
-  company: CompanyWhereInput
-  project: ProjectWhereInput
-  agentAction: AgentActionWhereInput
-  createdByUser: UserWhereInput
-  updatedByUser: UserWhereInput
-  createdAt: DateTimeFilter
-  updatedAt: DateTimeFilter
-}
-
-input OutboxMessageStatusTypeNullableFilter {
-  equals: OutboxMessageStatusType
-  in: [OutboxMessageStatusType!]
-  notIn: [OutboxMessageStatusType!]
-  not: OutboxMessageStatusTypeNullableFilter
-}
-
-input OutboxMessageOrderByInput {
-  id: OrderDirection
-  messageKey: OrderDirection
-  eventType: OrderDirection
-  aggregateType: OrderDirection
-  aggregateId: OrderDirection
-  schemaVersion: OrderDirection
-  canonicalPayload: OrderDirection
-  payloadDigest: OrderDirection
-  status: OrderDirection
-  attempts: OrderDirection
-  availableAt: OrderDirection
-  lockedAt: OrderDirection
-  lockOwner: OrderDirection
-  lastAttemptAt: OrderDirection
-  deliveredAt: OrderDirection
-  lastError: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
@@ -15165,9 +15040,6 @@ type Query {
   idempotencyKey(where: IdempotencyKeyWhereUniqueInput!): IdempotencyKey
   idempotencyKeys(where: IdempotencyKeyWhereInput! = {}, orderBy: [IdempotencyKeyOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: IdempotencyKeyWhereUniqueInput): [IdempotencyKey!]
   idempotencyKeysCount(where: IdempotencyKeyWhereInput! = {}): Int
-  outboxMessage(where: OutboxMessageWhereUniqueInput!): OutboxMessage
-  outboxMessages(where: OutboxMessageWhereInput! = {}, orderBy: [OutboxMessageOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: OutboxMessageWhereUniqueInput): [OutboxMessage!]
-  outboxMessagesCount(where: OutboxMessageWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
   validateUserPasswordResetToken(email: String!, token: String!): ValidateUserPasswordResetTokenResult
@@ -16195,6 +16067,8 @@ type ConstructionCustomerRequest {
   acceptedSnapshot: JSON
   createdAt: String!
   depositStatus: String
+  projectId: ID
+  opportunityId: ID
 }
 
 type ConstructionOperatorRequest {

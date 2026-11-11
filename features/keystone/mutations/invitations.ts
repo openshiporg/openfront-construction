@@ -201,7 +201,7 @@ export async function acceptProjectInvitation(
     await requireUpdate(sudo, "AccountInvitation")({ where: { id: locked.id }, data: {
       status: "accepted", acceptedAt: new Date(),
     } });
-    const action = await requireCreate(sudo, "AgentAction")({ data: {
+    await requireCreate(sudo, "AgentAction")({ data: {
       actionKey: randomUUID(), actorType: "human", action: "acceptProjectInvitation", status: "succeeded",
       targetType: "ProjectMembership", targetId: locked.membershipId, targetStatus: "active",
       reason: "Accept project invitation and activate the invited account",
@@ -209,14 +209,6 @@ export async function acceptProjectInvitation(
       requestedAt: new Date(), startedAt: new Date(), completedAt: new Date(),
       company: { connect: { id: locked.companyId } }, project: { connect: { id: locked.projectId } },
       requestedBy: { connect: { id: locked.userId } }, actorUser: { connect: { id: locked.userId } },
-    } });
-    const payload = JSON.stringify({ schemaVersion: 1, invitationId: locked.id, userId: locked.userId, membershipId: locked.membershipId });
-    await requireCreate(sudo, "OutboxMessage")({ data: {
-      messageKey: `acceptProjectInvitation:${locked.id}`,
-      eventType: "AccountInvitation.accepted", aggregateType: "AccountInvitation", aggregateId: locked.id,
-      canonicalPayload: payload, payloadDigest: createHash("sha256").update(payload).digest("hex"), status: "pending",
-      company: { connect: { id: locked.companyId } }, project: { connect: { id: locked.projectId } },
-      agentAction: { connect: { id: action.id } },
     } });
     return { success: true, userId: locked.userId, projectId: locked.projectId, portalType: String(membership.portalType) };
   }, { timeout: 30_000 });

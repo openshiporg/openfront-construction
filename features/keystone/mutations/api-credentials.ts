@@ -109,15 +109,6 @@ export async function issueApiCredential(
       ...(projectId ? { project: { connect: { id: projectId } } } : {}),
       requestedBy: { connect: { id: session.itemId } }, actorUser: { connect: { id: session.itemId } },
     } });
-    const payload = JSON.stringify({ schemaVersion: 1, credentialId: credential.id, companyId, projectId, scopes, tokenPrefix });
-    await sudo.db.OutboxMessage.createOne({ data: {
-      messageKey: `issueApiCredential:${credential.id}`,
-      eventType: "ApiCredential.issued", aggregateType: "ApiCredential", aggregateId: credential.id,
-      canonicalPayload: payload, payloadDigest: digest(payload), status: "pending",
-      company: { connect: { id: companyId } },
-      ...(projectId ? { project: { connect: { id: projectId } } } : {}),
-      agentAction: { connect: { id: action.id } },
-    } });
     return { credentialId: credential.id, actionId: action.id };
   }, { timeout: 30_000 });
   return { success: true, ...result, token, tokenPrefix, scopes };
@@ -162,15 +153,6 @@ export async function revokeApiCredential(
       company: { connect: { id: companyId } },
       ...(projectId ? { project: { connect: { id: projectId } } } : {}),
       requestedBy: { connect: { id: session.itemId } }, actorUser: { connect: { id: session.itemId } },
-    } });
-    const payload = JSON.stringify({ schemaVersion: 1, credentialId: credential.id, companyId, projectId, reason: normalizedReason });
-    await sudo.db.OutboxMessage.createOne({ data: {
-      messageKey: `revokeApiCredential:${credential.id}:${action.id}`,
-      eventType: "ApiCredential.revoked", aggregateType: "ApiCredential", aggregateId: String(credential.id),
-      canonicalPayload: payload, payloadDigest: digest(payload), status: "pending",
-      company: { connect: { id: companyId } },
-      ...(projectId ? { project: { connect: { id: projectId } } } : {}),
-      agentAction: { connect: { id: action.id } },
     } });
     return { success: true, credentialId: String(credential.id), actionId: action.id, replayed: false };
   }, { timeout: 30_000 });

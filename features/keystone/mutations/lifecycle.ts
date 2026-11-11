@@ -606,34 +606,6 @@ async function completeLifecycleTransition(args: {
         completedAt: new Date(),
       },
     });
-    const payload = JSON.stringify({
-      schemaVersion: 1,
-      eventType: `${args.config.listKey}.status_changed`,
-      aggregateType: args.config.listKey,
-      aggregateId: args.input.id,
-      fromStatus: args.resource.status,
-      toStatus: args.input.toStatus,
-      companyId: args.companyId,
-      projectId: args.projectId,
-      actionId: args.action.id,
-    });
-    const createOutbox = sudo.db.OutboxMessage?.createOne;
-    if (createOutbox) {
-      await createOutbox({
-        data: {
-          messageKey: `${args.mutationName}:${args.action.id}`,
-          eventType: `${args.config.listKey}.status_changed`,
-          aggregateType: args.config.listKey,
-          aggregateId: args.input.id,
-          canonicalPayload: payload,
-          payloadDigest: digest(payload),
-          status: "pending",
-          company: { connect: { id: args.companyId } },
-          project: { connect: { id: args.projectId } },
-          agentAction: { connect: { id: args.action.id } },
-        },
-      });
-    }
     if (args.idempotency.record?.id) {
       await requireUpdate(sudo, "IdempotencyKey")({
         where: { id: args.idempotency.record.id },

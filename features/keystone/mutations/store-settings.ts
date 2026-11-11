@@ -108,8 +108,6 @@ export async function updateConstructionStoreSettings(_root: unknown, { input: u
       requestedAt: new Date(), startedAt: new Date(), completedAt: new Date(), company: { connect: { id: input.companyId } }, requestedBy: { connect: { id: actorId } }, actorUser: { connect: { id: actorId } },
     } });
     await sudo.db.IdempotencyKey.createOne({ data: { fingerprint, key: input.idempotencyKey, operation: "updateConstructionStoreSettings", requestHash, status: "completed", resourceType: "Company", resourceId: input.companyId, toStatus: input.operation, expiresAt: new Date(Date.now() + 86400000), company: { connect: { id: input.companyId } }, agentAction: { connect: { id: action.id } } } });
-    const payload = JSON.stringify({ schemaVersion: 1, eventType: "StoreSettings.saved", companyId: input.companyId, section: input.operation, actorId });
-    await sudo.db.OutboxMessage.createOne({ data: { messageKey: `StoreSettings:${action.id}`, eventType: "StoreSettings.saved", aggregateType: "Company", aggregateId: input.companyId, canonicalPayload: payload, payloadDigest: createHash("sha256").update(payload).digest("hex"), status: "pending", company: { connect: { id: input.companyId } }, agentAction: { connect: { id: action.id } } } });
     return { success: true, operation: "updateConstructionStoreSettings", itemId: input.companyId, actionId: String(action.id), replayed: false };
   }, { timeout: 15000 });
 }

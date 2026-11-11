@@ -1,7 +1,6 @@
 import { list } from "@keystone-6/core";
 import { denyAll } from "@keystone-6/core/access";
 import {
-  integer,
   relationship,
   select,
   text,
@@ -254,57 +253,6 @@ export const AgentAction = list({
     reviewedBy: relationship({ ref: "User.reviewedAgentActions" }),
     actorUser: relationship({ ref: "User.performedAgentActions", access: { update: denyAll } }),
     idempotencyKey: relationship({ ref: "IdempotencyKey.agentAction", access: { update: denyAll } }),
-    outboxMessages: readOnlyRelationshipMany("OutboxMessage.agentAction"),
-    ...trackingFields,
-  },
-});
-
-export const OutboxMessage = list({
-  access: {
-    operation: {
-      query: permissions.canReadAudit,
-      create: deny,
-      update: deny,
-      delete: deny,
-    },
-    filter: { query: ({ session }) => projectEvidencePermissionFilter(session) },
-  },
-  graphql: { omit: { create: true, update: true, delete: true } },
-  ui: {
-    hideCreate: true,
-    hideDelete: true,
-    listView: { initialColumns: ["eventType", "aggregateType", "aggregateId", "status", "availableAt"] },
-  },
-  fields: {
-    messageKey: text({ isIndexed: "unique", validation: { isRequired: true }, access: { update: denyAll } }),
-    eventType: text({ validation: { isRequired: true, length: { min: 1, max: 160 } }, access: { update: denyAll } }),
-    aggregateType: text({ validation: { isRequired: true, length: { min: 1, max: 120 } }, access: { update: denyAll } }),
-    aggregateId: text({ validation: { isRequired: true, length: { min: 1, max: 200 } }, access: { update: denyAll } }),
-    schemaVersion: integer({ defaultValue: 1, validation: { isRequired: true, min: 1 }, access: { update: denyAll } }),
-    canonicalPayload: text({ validation: { isRequired: true }, access: { read: permissions.canReadAudit, update: denyAll }, ui: { displayMode: "textarea" } }),
-    payloadDigest: text({ validation: { isRequired: true, length: { min: 64, max: 64 } }, access: { update: denyAll } }),
-    status: select({
-      type: "enum",
-      options: [
-        { label: "Pending", value: "pending" },
-        { label: "Processing", value: "processing" },
-        { label: "Delivered", value: "delivered" },
-        { label: "Retry", value: "retry" },
-        { label: "Dead letter", value: "dead_letter" },
-      ],
-      defaultValue: "pending",
-      validation: { isRequired: true },
-    }),
-    attempts: integer({ defaultValue: 0, validation: { isRequired: true, min: 0 } }),
-    availableAt: timestamp({ defaultValue: { kind: "now" }, validation: { isRequired: true } }),
-    lockedAt: timestamp(),
-    lockOwner: text({ validation: { length: { max: 200 } } }),
-    lastAttemptAt: timestamp(),
-    deliveredAt: timestamp(),
-    lastError: text({ access: { read: permissions.canReadAudit } }),
-    company: relationship({ ref: "Company.outboxMessages", access: { update: denyAll } }),
-    project: relationship({ ref: "Project.outboxMessages", access: { update: denyAll } }),
-    agentAction: relationship({ ref: "AgentAction.outboxMessages", access: { update: denyAll } }),
     ...trackingFields,
   },
 });

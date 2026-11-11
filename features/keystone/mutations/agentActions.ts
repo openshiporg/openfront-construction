@@ -143,23 +143,13 @@ async function captureObservation(_root: unknown, { input }: { input: OutcomeInp
     observedActionStatus: locked.action.status, actorUserId: session.itemId,
     actorCredentialId: session.authType === "api_key" ? session.apiCredential?.id : null,
     resultSummary, errorCode, errorMessage });
-  const messageKey = `AgentAction.observation:${id}:${digest(canonicalPayload)}`;
+  const observationId = digest(canonicalPayload);
   const sudo = context.sudo();
-  const [existing] = await sudo.query.OutboxMessage.findMany!({ where: { messageKey: { equals: messageKey } }, take: 1, query: "id canonicalPayload" });
-  if (existing && existing.canonicalPayload !== canonicalPayload) throw new Error("Observation replay does not match its original payload");
-  const create = sudo.db.OutboxMessage?.createOne;
-  if (!existing && !create) throw new Error("Observation evidence persistence is unavailable");
-  const observation = existing ?? await create!({ data: {
-    messageKey, eventType: "AgentAction.external_observation", aggregateType: "AgentAction", aggregateId: id,
-    canonicalPayload, payloadDigest: digest(canonicalPayload), status: "pending",
-    company: { connect: { id: locked.action.companyId } }, project: { connect: { id: projectId } }, agentAction: { connect: { id } },
-  } });
-  if (!observation.id) throw new Error("Observation receipt is unavailable");
   const findAction = sudo.db.AgentAction?.findOne;
   if (!findAction) throw new Error("AgentAction receipt lookup is unavailable");
   const original = await findAction({ where: { id } });
   if (!original || original.id !== id || original.status !== locked.action.status) throw new Error("Action changed while capturing the observation");
-  return { receipt: { actionId: id, observationId: observation.id, authoritative: false, reportedOutcome: outcome, observedActionStatus: locked.action.status, replayed: Boolean(existing) }, action: original };
+  return { receipt: { actionId: id, observationId, authoritative: false, reportedOutcome: outcome, observedActionStatus: locked.action.status, replayed: false }, action: original };
 }
 
 /** Explicit observation receipt; no lifecycle or financial effect is claimed. */

@@ -75,7 +75,7 @@ import {
   ProgressClaimLineItem,
   RetainageRelease,
 } from "./billing";
-import { AgentAction, AgentIdentity, AuthSession, IdempotencyKey, OutboxMessage, ScopeGrant } from "./agents";
+import { AgentAction, AgentIdentity, AuthSession, IdempotencyKey, ScopeGrant } from "./agents";
 import {
   AccountInvitation,
   ApiCredential,
@@ -180,7 +180,6 @@ export const models = {
   ScopeGrant,
   AgentAction,
   IdempotencyKey,
-  OutboxMessage,
 };
 
 export default models;

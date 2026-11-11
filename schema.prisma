@@ -276,8 +276,6 @@ model User {
   from_AgentAction_updatedByUser              AgentAction[]             @relation("AgentAction_updatedByUser")
   from_IdempotencyKey_createdByUser           IdempotencyKey[]          @relation("IdempotencyKey_createdByUser")
   from_IdempotencyKey_updatedByUser           IdempotencyKey[]          @relation("IdempotencyKey_updatedByUser")
-  from_OutboxMessage_createdByUser            OutboxMessage[]           @relation("OutboxMessage_createdByUser")
-  from_OutboxMessage_updatedByUser            OutboxMessage[]           @relation("OutboxMessage_updatedByUser")
 
   @@index([roleId])
   @@index([createdByUserId])
@@ -529,7 +527,6 @@ model Company {
   scopeGrants                          ScopeGrant[]              @relation("ScopeGrant_company")
   agentActions                         AgentAction[]             @relation("AgentAction_company")
   idempotencyKeys                      IdempotencyKey[]          @relation("IdempotencyKey_company")
-  outboxMessages                       OutboxMessage[]           @relation("OutboxMessage_company")
   apiCredentials                       ApiCredential[]           @relation("ApiCredential_company")
   approvalPolicies                     ApprovalPolicy[]          @relation("ApprovalPolicy_company")
   createdByUser                        User?                     @relation("Company_createdByUser", fields: [createdByUserId], references: [id])
@@ -716,7 +713,6 @@ model Project {
   scopeGrants                 ScopeGrant[]              @relation("ScopeGrant_project")
   agentActions                AgentAction[]             @relation("AgentAction_project")
   idempotencyKeys             IdempotencyKey[]          @relation("IdempotencyKey_project")
-  outboxMessages              OutboxMessage[]           @relation("OutboxMessage_project")
   apiCredentials              ApiCredential[]           @relation("ApiCredential_project")
   accountInvitations          AccountInvitation[]       @relation("AccountInvitation_project")
   publications                PublicProject[]           @relation("PublicProject_sourceProject")
@@ -3581,7 +3577,6 @@ model AgentAction {
   actorUserId      String?                  @map("actorUser")
   idempotencyKey   IdempotencyKey?          @relation("AgentAction_idempotencyKey", fields: [idempotencyKeyId], references: [id])
   idempotencyKeyId String?                  @unique @map("idempotencyKey")
-  outboxMessages   OutboxMessage[]          @relation("OutboxMessage_agentAction")
   createdByUser    User?                    @relation("AgentAction_createdByUser", fields: [createdByUserId], references: [id])
   createdByUserId  String?                  @map("createdByUser")
   updatedByUser    User?                    @relation("AgentAction_updatedByUser", fields: [updatedByUserId], references: [id])
@@ -3628,43 +3623,6 @@ model IdempotencyKey {
 
   @@index([companyId])
   @@index([projectId])
-  @@index([createdByUserId])
-  @@index([updatedByUserId])
-}
-
-model OutboxMessage {
-  id               String                  @id @default(cuid())
-  messageKey       String                  @unique @default("")
-  eventType        String                  @default("")
-  aggregateType    String                  @default("")
-  aggregateId      String                  @default("")
-  schemaVersion    Int                     @default(1)
-  canonicalPayload String                  @default("")
-  payloadDigest    String                  @default("")
-  status           OutboxMessageStatusType @default(pending)
-  attempts         Int                     @default(0)
-  availableAt      DateTime                @default(now())
-  lockedAt         DateTime?
-  lockOwner        String                  @default("")
-  lastAttemptAt    DateTime?
-  deliveredAt      DateTime?
-  lastError        String                  @default("")
-  company          Company?                @relation("OutboxMessage_company", fields: [companyId], references: [id])
-  companyId        String?                 @map("company")
-  project          Project?                @relation("OutboxMessage_project", fields: [projectId], references: [id])
-  projectId        String?                 @map("project")
-  agentAction      AgentAction?            @relation("OutboxMessage_agentAction", fields: [agentActionId], references: [id])
-  agentActionId    String?                 @map("agentAction")
-  createdByUser    User?                   @relation("OutboxMessage_createdByUser", fields: [createdByUserId], references: [id])
-  createdByUserId  String?                 @map("createdByUser")
-  updatedByUser    User?                   @relation("OutboxMessage_updatedByUser", fields: [updatedByUserId], references: [id])
-  updatedByUserId  String?                 @map("updatedByUser")
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @default(now()) @updatedAt
-
-  @@index([companyId])
-  @@index([projectId])
-  @@index([agentActionId])
   @@index([createdByUserId])
   @@index([updatedByUserId])
 }
@@ -4387,12 +4345,4 @@ enum IdempotencyKeyStatusType {
   started
   completed
   failed
-}
-
-enum OutboxMessageStatusType {
-  pending
-  processing
-  delivered
-  retry
-  dead_letter
 }

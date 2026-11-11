@@ -393,25 +393,6 @@ export async function submitPublicIntake(
       status: "completed",
       agentAction: { connect: { id: action.id } },
     });
-    const payload = JSON.stringify({
-      schemaVersion: 1,
-      eventType: "PublicIntake.received",
-      companyId,
-      intakeSubmissionId: submission.id,
-      publicReference,
-      kind: normalized.kind,
-    });
-    await create(tx, "OutboxMessage", {
-      messageKey: `submitPublicIntake:${submission.id}`,
-      eventType: "PublicIntake.received",
-      aggregateType: "IntakeSubmission",
-      aggregateId: submission.id,
-      canonicalPayload: payload,
-      payloadDigest: digest(payload),
-      status: "pending",
-      company: { connect: { id: companyId } },
-      agentAction: { connect: { id: action.id } },
-    });
 
     return {
       success: true,

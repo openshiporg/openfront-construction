@@ -416,7 +416,6 @@ const specs: Record<string, readonly ToolSpec[]> = {
   ],
   audit: [
     { listKey: "AgentAction", kind: "Audit event", query: "id action status targetType targetId targetStatus reason requestedAt actorUser { name } requestedBy { name }", map: r => item({ kind: "Audit event", record: r, reference: `${text(r.targetType)}:${text(r.targetId)}`, title: text(r.action), status: r.status, dueAt: r.requestedAt, owner: r.actorUser || r.requestedBy }) },
-    { listKey: "OutboxMessage", kind: "Outbox", query: "id eventType aggregateType aggregateId status availableAt attempts", map: r => item({ kind: "Outbox", record: r, reference: `${text(r.aggregateType)}:${text(r.aggregateId)}`, title: r.eventType, status: r.status, dueAt: r.availableAt, owner: `${String(r.attempts ?? 0)} attempts` }) },
     { listKey: "IdempotencyKey", kind: "Idempotency", query: "id operation key status resourceType resourceId createdAt", map: r => item({ kind: "Idempotency", record: r, reference: r.key, title: r.operation, status: r.status, dueAt: r.createdAt, owner: r.resourceType }) },
   ],
 };

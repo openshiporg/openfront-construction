@@ -70,7 +70,7 @@ Organize project teams, schedules, preconstruction, contracts, financials, procu
 Manage documents, invitations, approval policies and decisions, project records, and participant portal workflows.
 
 ### Client Requests & Delivery
-Capture public intake and service requests, expose customer request status, and route workflow events through an outbox. Payment or webhook configuration must be supplied separately from the project record itself.
+Capture public intake and service requests, expose customer request status. Payment configuration must be supplied separately from the project record itself.
 
 ## Architecture
 
@@ -99,7 +99,7 @@ The [model registry](features/keystone/models/index.ts) and [Prisma schema](sche
 - Companies, memberships, projects, contacts, leads, and public service requests.
 - Preconstruction, contracts, financials, procurement, resources, and execution records.
 - Documents, field operations, quality and safety records, billing, and approvals.
-- Portal invitations, API credentials, agent actions, governance, and outbox records.
+- Portal invitations, API credentials, agent actions, and governance records.
 
 ## Getting Started
 
@@ -164,12 +164,11 @@ The [model registry](features/keystone/models/index.ts) and [Prisma schema](sche
 - `npm run lint` - Run the repository's ESLint script.
 - `npm run typecheck` - Run the configured TypeScript check.
 - `npm run test` - Run the repository's configured test suite.
-- `npm run outbox:work` - Drain a bounded batch of configured webhook deliveries.
 
 Use a disposable development database for migration generation. Review the script before running it against any existing data.
 
 ### Project Workflow Integration
-The [command registry](features/keystone/mutations/index.ts) exposes project lifecycle, documents, approvals, portal access, and credentials. Use `npm run outbox:work` for the repository's outbox entry point when delivery is configured.
+The [command registry](features/keystone/mutations/index.ts) exposes project lifecycle, documents, approvals, portal access, and credentials.
 
 ## Documentation
 
@@ -223,7 +222,7 @@ npm start
 The included [Railway configuration](railway.toml) defines this app's build and startup lifecycle. Provision services and secrets separately.
 
 ### Scaling Considerations
-Schedule `npm run outbox:work` to drain configured webhook delivery batches. Retain company/project scope and shared document storage across processes.
+There is no background worker, cron or timer loop: time-based state is computed on read or advanced by the request or staff button that touches it. Retain company/project scope and shared document storage across processes.
 
 ## Contributing
 

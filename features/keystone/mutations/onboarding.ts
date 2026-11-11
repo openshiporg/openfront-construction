@@ -459,27 +459,6 @@ export async function onboardConstructionWorkspace(
         agentAction: { connect: { id: action.id } },
       } });
       await sudo.db.User.updateOne({ where: { id: session.itemId }, data: { onboardingStatus: "completed" } });
-      const payload = JSON.stringify({
-        schemaVersion: 1,
-        eventType: "ConstructionWorkspace.onboarded",
-        companyId: company.id,
-        projectId: project.id,
-        publicSiteId: publicSite.id,
-        actorId: session.itemId,
-        sampleWorkspace,
-      });
-      await sudo.db.OutboxMessage.createOne({ data: {
-        messageKey: `onboardConstructionWorkspace:${company.id}:${normalized.idempotencyKey}`,
-        eventType: "ConstructionWorkspace.onboarded",
-        aggregateType: "Company",
-        aggregateId: company.id,
-        canonicalPayload: payload,
-        payloadDigest: digest(payload),
-        status: "pending",
-        company: { connect: { id: company.id } },
-        project: { connect: { id: project.id } },
-        agentAction: { connect: { id: action.id } },
-      } });
       void managerRole; void fieldRole; void externalRole;
       return { success: true, companyId: company.id, projectId: project.id, actionId: action.id, replayed: false };
     }, { timeout: 60_000 });

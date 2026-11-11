@@ -137,5 +137,4 @@ export const modelAudit = {
   ScopeGrant: identity("Identity, grantor, company, optional project, expiry, and revocation are cross-checked."),
   AgentAction: evidence("Action target and approval are bound to tenant, operation, status, and scope grant."),
   IdempotencyKey: evidence("Unique tenant/operation/key fingerprint binds one request and replay result."),
-  OutboxMessage: evidence("Digest-bound canonical payloads retain lease, retry, delivery, and dead-letter state."),
 } as const satisfies Record<string, ModelAuditDecision>;

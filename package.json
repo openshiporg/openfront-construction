@@ -15,7 +15,6 @@
     "proof:authorization": "tsx tests/integration/authorization-proof.ts",
     "proof:workflows": "tsx tests/integration/operational-workflow-proof.ts",
     "typecheck": "tsc --noEmit",
-    "outbox:work": "tsx features/keystone/outbox/run.ts",
     "migrate:gen": "keystone build --no-ui && tsx features/keystone/view-order/generate-view-order.ts && keystone prisma migrate dev",
     "migrate": "prisma migrate deploy"
   },

@@ -392,31 +392,6 @@ export async function executeProjectCommand(args: ExecuteArgs): Promise<CommandR
         ? await requireUpdate(sudo, args.listKey)({ where: { id: args.updateId }, data: lockedData ?? args.data })
         : await requireCreate(sudo, args.listKey)({ data: lockedData ?? args.data });
       if (args.afterCreate) await args.afterCreate(tx, created);
-      const eventType = `${args.listKey}.${args.updateId ? "updated" : "created"}`;
-      const payload = canonicalJson({
-        schemaVersion: 1,
-        eventType,
-        aggregateType: args.listKey,
-        aggregateId: created.id,
-        projectId: args.createsProject ? created.id : args.projectId,
-        companyId,
-        actorId,
-        requestHash,
-      });
-      await requireCreate(sudo, "OutboxMessage")({
-        data: {
-          messageKey: `${args.operation}:${created.id}:${key}`,
-          eventType,
-          aggregateType: args.listKey,
-          aggregateId: created.id,
-          canonicalPayload: payload,
-          payloadDigest: digest(payload),
-          status: "pending",
-          company: { connect: { id: companyId } },
-          project: { connect: { id: args.createsProject ? created.id : args.projectId } },
-          agentAction: { connect: { id: action.id } },
-        },
-      });
       await requireUpdate(sudo, "AgentAction")({
         where: { id: action.id },
         data: {

@@ -106,7 +106,6 @@ export const ONBOARDING_MANIFEST = {
   ScopeGrant: { coverage: "workflow", livePath: "Models › Scope grants (agent administrators)" },
   AgentAction: { coverage: "evidence", livePath: "written by every controlled command" },
   IdempotencyKey: { coverage: "evidence", livePath: "written by every controlled command" },
-  OutboxMessage: { coverage: "evidence", livePath: "written by every controlled command" },
 } as const satisfies Record<string, OnboardingManifestEntry>;
 
 export type ManifestListKey = keyof typeof ONBOARDING_MANIFEST;

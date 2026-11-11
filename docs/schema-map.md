@@ -10,7 +10,7 @@ Source: `features/keystone/models/**` (87 lists), `features/keystone/mutations/*
 - **Permissions:** permissions live on **Role** and are granted through **CompanyMembership** (company-wide) and **ProjectMembership** (per project, with an access level and an optional portal organization for external users).
 - **Writes:** most workflow writes go through custom mutations rather than plain CRUD.
   - Examples: `runConstructionCommand`, `runConstructionWorkflow`, `transitionConstructionRecord`, `createConstructionProject`.
-  - They are idempotent (**IdempotencyKey**), audited (**AgentAction**) and emit events (**OutboxMessage**).
+  - They are idempotent (**IdempotencyKey**), audited (**AgentAction**).
   - Status changes follow `lifecyclePolicies` (`domain/lifecycle.ts`).
 - **Money:** amounts are stored as BigInt minor units with a currency code. Budget, contract, claim and payment totals are recalculated by hooks and workflows, never typed in.
 - **External users:** clients and trade partners reach their records through `/portal` (`queries/portal.ts`, `mutations/portal.ts`). Website customers use `/account` (ServiceRequest).
@@ -34,7 +34,6 @@ Source: `features/keystone/models/**` (87 lists), `features/keystone/mutations/*
 | ScopeGrant | What an agent may do on a project | scopes, status | agentIdentity, project, grantedBy, revokedBy | M | active / inactive / revoked |
 | AgentAction | Audit row for every command, human or agent | action, status, targetType/Id, reason | project, agentIdentity, requestedBy, actorUser, idempotencyKey | S | proposed → approved / rejected → running → succeeded / failed |
 | IdempotencyKey | Replay protection for commands | key, operation, status, resource | project, agentAction | S | started → completed / failed |
-| OutboxMessage | Outgoing domain events (webhook drain) | eventType, aggregate, attempts | project, agentAction | S | pending → processing → delivered / retry / dead_letter |
 
 ### Projects and company master data
 
@@ -179,7 +178,7 @@ Source: `features/keystone/models/**` (87 lists), `features/keystone/mutations/*
     1. ProgressClaim (owner: from the prime contract; subcontractor: from a commitment, via the portal) → approval.
     2. Payment → PaymentAllocation; RetainageRelease; LienWaiver (portal upload, review).
     3. PaymentReversal when needed.
-11. **Close and audit:** reports export (CSV); the audit trail (AgentAction, OutboxMessage, IdempotencyKey); API keys and agents (ApiCredential, AgentIdentity, ScopeGrant).
+11. **Close and audit:** reports export (CSV); the audit trail (AgentAction, IdempotencyKey); API keys and agents (ApiCredential, AgentIdentity, ScopeGrant).
 
 ## Coverage
 
@@ -210,7 +209,7 @@ Routes are under `/dashboard/platform`. "Tool" means a project workspace tool at
 | Approvals (ApprovalPolicy, ApprovalRequest, ApprovalDecision) | Approval panel in the Financials, Contracts and Billing tools | Same |
 | Team (ProjectMembership, AccountInvitation) | Team tool | Same |
 | Reports | Reports tool (CSV export) | Same |
-| Audit and agents (AgentAction, OutboxMessage, IdempotencyKey, ApiCredential, AgentIdentity, ScopeGrant) | Audit tool (API keys) | Same |
+| Audit and agents (AgentAction, IdempotencyKey, ApiCredential, AgentIdentity, ScopeGrant) | Audit tool (API keys) | Same |
 | AuthSession | System list; no page needed (sessions end at sign-out or expiry) | Same |
 
 ## Storefront coverage
