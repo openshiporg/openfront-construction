@@ -26,7 +26,7 @@ const paths = [
   ...dash.map(p => `/dashboard/platform/${p}`),
   ...(pid ? proj.map(p => `/dashboard/platform/projects/${pid}${p}`) : []),
   ...(d.tradePartners[0] ? [`/dashboard/platform/trade-partners/${d.tradePartners[0].id}`] : []),
-  ...(d.constructionLeads[0] ? [`/dashboard/platform/pipeline/${d.constructionLeads[0].id}`] : []),
+  ...(d.constructionOpportunities[0] ? [`/dashboard/platform/pipeline/${d.constructionOpportunities[0].id}`] : []),
   ...(d.intakeSubmissions[0] ? [`/dashboard/platform/pipeline/requests/${d.intakeSubmissions[0].id}`] : []),
   ...['projects', 'trade-partners', 'service-requests', 'documents', 'agent-actions', 'idempotency-keys', 'users', 'companies'].map(l => `/dashboard/platform/${l}/nope123`),
   '/dashboard/platform/projects/nope123', '/dashboard/platform/trade-partners/nope123',
