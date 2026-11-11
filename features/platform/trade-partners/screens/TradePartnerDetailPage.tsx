@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import { notFound } from "next/navigation";
 import { Pencil, UsersRound } from "lucide-react";
 
-import { DisclosurePanel, EmptyState, Fact, NotFoundPage, PageHeader, Panel, PlatformPage, TitleStatus, formatDate, formatMinor } from "@/features/platform/components/kit";
+import { DisclosurePanel, EmptyState, Fact, PageHeader, Panel, PlatformPage, TitleStatus, formatDate, formatMinor } from "@/features/platform/components/kit";
 import { projectToolHref } from "@/features/platform/lib/navigation";
 import { PartnerStatusControl } from "../components/PartnerStatusControl";
 import { TradePartnerForm } from "../components/TradePartnerForm";
@@ -42,7 +43,7 @@ function Related({ title, count, rows }: { title: string; count: number | null; 
 export async function TradePartnerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const partner = await getTradePartnerDetail(id);
-  if (!partner) return <NotFoundPage title="Trade partner not found" backHref="/dashboard/platform/trade-partners" backLabel="Trade partners" />;
+  if (!partner) notFound();
   const address = [partner.addressLine1, partner.addressLine2, [partner.city, partner.stateProvince, partner.postalCode].filter(Boolean).join(", "), partner.countryCode].filter(Boolean);
   const facts: Array<[string, ReactNode]> = [
     ["Type", partnerTypeLabel[partner.partnerType] ?? partner.partnerType],

@@ -1,9 +1,10 @@
+import { notFound } from "next/navigation";
 import { ViewerTime } from '@/features/dashboard/components/ViewerTime';
 import Link from "next/link";
 import { ArrowLeft, History, Link2 } from "lucide-react";
 
 import { projectToolHref } from "@/features/platform/lib/navigation";
-import { EmptyState, NotFoundPage, PageHeader, Panel, PillLink, PlatformPage, TitleStatus, Track } from "@/features/platform/components/kit";
+import { EmptyState, PageHeader, Panel, PillLink, PlatformPage, TitleStatus, Track } from "@/features/platform/components/kit";
 import { TransitionControl } from "../components/TransitionControl";
 import { getConstructionRecordDetail, type ConstructionRecordEvidence } from "../data";
 import { transitionKindByListKey } from "../transition-kinds";
@@ -15,7 +16,7 @@ export async function ProjectRecordDetailPage({ projectId, recordType, recordId 
   try { detail = await getConstructionRecordDetail(projectId, recordType, recordId); }
   catch (error) {
     if (error instanceof Error && /not found|does not have/i.test(error.message)) {
-      return <NotFoundPage title="Record not found" backHref={projectToolHref(projectId, "")} backLabel="Project" />;
+      notFound();
     }
     throw error;
   }
