@@ -32,7 +32,7 @@ export function CustomerAuthForm({ signup, service = "", from = "" }: { signup?:
     <label className="sf-field">Password<input className="sf-input" name="password" type="password" autoComplete={signup ? "new-password" : "current-password"} required minLength={10} maxLength={1000} /></label>
     <div className="sf-row">
       <Submit pending={pending} label={signup ? "Create account" : "Sign in"} pendingLabel={signup ? "Creating…" : "Signing in…"} variant={signup ? "raised" : "primary"} />
-      {!signup && <Link href="/account/reset" className="sf-small sf-link">Forgot password</Link>}
+      {!signup && <Link href="/account/reset" className="sf-small sf-link sf-link--tap">Forgot password</Link>}
     </div>
     <Message message={state.message} />
   </form>;

@@ -641,7 +641,7 @@ export function createLifecycleResolver(mutationName: LifecycleMutationName) {
         if (!companyId || !projectId) throw new Error(`${config.listKey} not found`);
         const fresh = await lockCurrentAuthority(tx, companyId, projectId, config.permission);
         const current = tx.withSession ? tx.withSession(fresh) : tx;
-        // All key/action/status/ledger/outbox writes now share this native transaction.
+        // All key/action/status/ledger writes now share this native transaction.
         return resolveLifecycle(_root, { input }, { ...current, __constructionTransaction: true });
       }, { timeout: 30_000 });
     }

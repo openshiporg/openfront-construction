@@ -334,6 +334,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         generatedAt: String!
         tool: String!
         audience: String!
+        availableTools: [String!]!
         availableCommands: [String!]!
         project: ConstructionProjectSummary!
         metrics: [ConstructionMetric!]!

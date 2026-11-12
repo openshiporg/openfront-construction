@@ -170,6 +170,10 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
     }
     assertMachineMove("ServiceRequest", row.status, String(data.status));
     await tx.sudo().db.ServiceRequest.updateOne({ where: { id }, data });
+    // A cancelled booking's project is closed with it; one already under way is left to staff.
+    if (data.status === "cancelled" && row.projectId) {
+      await tx.sudo().prisma.project.updateMany({ where: { id: row.projectId, status: "planning" }, data: { status: "archived" } });
+    }
     await tx.sudo().db.ServiceRequestEvent.createOne({ data: {
       eventKey, commandDigest, action: operation, fromStatus: row.status, toStatus: String(data.status), version,
       snapshot: JSON.parse(JSON.stringify(data, (_key, value) => typeof value === "bigint" ? value.toString() : value)),

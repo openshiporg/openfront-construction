@@ -165,6 +165,18 @@ test('sidebar shows only lists and platform pages the session can see', () => {
   assert.equal(access.visibleSidebarLists(lists, customer).length, 0);
   assert.equal(access.visiblePlatformItems(items, lists, customer).length, 0);
   assert.equal(access.visibleSidebarLists(lists, null).length, 1);
+  // Permission-gated construction pages: a Field Lead sees none of the company admin links.
+  const platform = ['portfolio', 'projects', 'setup', 'store-settings', 'payment-providers', 'trade-partners', 'cost-codes', 'resources', 'pipeline', 'service-requests']
+    .map(slug => ({ href: `/dashboard/platform/${slug}` }));
+  const fieldLead = { role: { canAccessDashboard: true }, platformPermissions: ['canReadCompanies', 'canReadFieldOperations', 'canManageFieldOperations'] };
+  assert.deepEqual(plain(access.visiblePlatformItems(platform, [], fieldLead)).map(item => item.href.split('/').pop()),
+    ['portfolio', 'projects', 'trade-partners', 'resources']);
+  const manager = { role: { canAccessDashboard: true }, platformPermissions: ['canManageOnboarding', 'canReadBilling', 'canReadCompanies', 'canReadFinancials', 'canReadFieldOperations', 'canReadPreconstruction', 'canManagePreconstruction'] };
+  assert.deepEqual(plain(access.visiblePlatformItems(platform, [], manager)).map(item => item.href.split('/').pop()),
+    ['portfolio', 'projects', 'setup', 'payment-providers', 'trade-partners', 'cost-codes', 'resources', 'pipeline', 'service-requests']);
+  assert.equal(access.canOpenPlatformPage('store-settings', manager.platformPermissions), false);
+  assert.equal(access.canOpenPlatformPage('portfolio', []), true);
+  assert.equal(access.canOpenPlatformPage('pipeline', undefined), false, 'gated pages fail closed without permissions');
 });
 
 test('formatInZone: viewer zone by default, explicit zone when given, labelled', () => {

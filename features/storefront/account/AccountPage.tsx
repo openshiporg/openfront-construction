@@ -158,7 +158,8 @@ function ContractorContact({ site }: { site: PublicConstructionSite | null }) {
 export async function CustomerRequestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [site, user] = await Promise.all([getPublicConstructionSite(), getCustomerUser()]);
-  if (!user) return <PublicShell site={site} account current="/account"><main><PageHead title="Sign in" /><section className="sf-section"><div className="sf-wrap"><SignInChoices site={site} from={`/account/requests/${encodeURIComponent(id)}`} /></div></section></main></PublicShell>;
+  // Same as the payment page: signed out goes to the account sign-in and comes back.
+  if (!user) redirect(`/account?from=${encodeURIComponent(`/account/requests/${id}`)}`);
   const request = await getCustomerRequest(id);
   if (!request) notFound();
   const snapshot = request.acceptedSnapshot;

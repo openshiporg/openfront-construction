@@ -85,6 +85,21 @@ export async function bookPaidRequest(context: KeystoneContext, paymentId: strin
         project: { connect: { id: project.id } }, user: { connect: { id: request.customerId } },
       } });
       if (portalRole) await sudo.prisma.projectMembership.update({ where: { id: String(membership.id) }, data: { roleId: portalRole.id } });
+      // Staff who see this request on Quote requests (canManagePreconstruction) get the
+      // project too, with their company role, so "Open project" and the Billing
+      // refund path work for them and not only for all-projects administrators.
+      const staff = await sudo.prisma.companyMembership.findMany({
+        where: { companyId, status: "active", canAccessAllProjects: false, userId: { not: null }, role: { canManagePreconstruction: true } },
+        select: { userId: true, roleId: true },
+      });
+      for (const member of staff) {
+        if (!member.userId || member.userId === request.customerId) continue;
+        await sudo.db.ProjectMembership.createOne({ data: {
+          status: "active", accessLevel: "manager", portalType: "internal", joinedAt: new Date(),
+          ...(member.roleId ? { role: { connect: { id: member.roleId } } } : {}),
+          project: { connect: { id: project.id } }, user: { connect: { id: member.userId } },
+        } });
+      }
       await sudo.prisma.payment.update({ where: { id: payment.id }, data: { projectId: String(project.id) } });
     }
     const version = request.version + 1;

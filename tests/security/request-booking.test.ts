@@ -34,7 +34,11 @@ function fakeContext(initial: { requestStatus?: string; paymentStatus?: string }
   const prisma: any = {
     payment: { findUnique: async () => payment, update: async ({ data }: any) => Object.assign(payment, data) },
     serviceRequest: { findUnique: async () => request },
-    companyMembership: { findFirst: async () => ({ userId: "u_pm", roleId: "role_pm" }) },
+    companyMembership: {
+      findFirst: async () => ({ userId: "u_pm", roleId: "role_pm" }),
+      // Staff who see quote requests (canManagePreconstruction) without all-projects access.
+      findMany: async () => [{ userId: "u_pm", roleId: "role_pm" }, { userId: "u_admin", roleId: "role_admin" }],
+    },
     projectMembership: { update: async ({ where, data }: any) => Object.assign(created.ProjectMembership.find((m: any) => m.id === where.id), { role: { connect: { id: data.roleId } } }) },
     role: { findFirst: async ({ where }: any) => where.name === "External Collaborator" ? { id: "role_external" } : null },
     constructionLead: { findFirst: async () => null, update: async () => undefined },
@@ -63,8 +67,11 @@ test("a settled deposit books the job: won opportunity, project, owner portal, l
   assert.equal(project.projectNumber, "SR-ABC12345");
   assert.equal(project.status, "planning");
   assert.deepEqual(project.company, { connect: { id: "co_1" } });
-  const [membership] = created.ProjectMembership;
+  const [membership, ...staff] = created.ProjectMembership;
   assert.equal(membership.portalType, "owner");
+  assert.deepEqual(staff.map(entry => [entry.user.connect.id, entry.role.connect.id, entry.portalType, entry.accessLevel]),
+    [["u_pm", "role_pm", "internal", "manager"], ["u_admin", "role_admin", "internal", "manager"]],
+    "quote-request staff can open the booked project and refund from Billing");
   assert.deepEqual(membership.user, { connect: { id: "u_cust" } });
   assert.deepEqual(membership.role, { connect: { id: "role_external" } }, "portal reads are role-driven");
   assert.ok(membership.portalOrganization.connect.id);

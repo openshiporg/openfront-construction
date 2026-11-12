@@ -76,11 +76,11 @@ function detailHref(projectId: string, kind: string, recordId: string) {
 }
 
 /** Tool tabs: underline tabs on one ruled baseline; the three project phases are separated by a short rule. */
-function ProjectTools({ projectId, active }: { projectId: string; active: string }) {
+export function ProjectTools({ projectId, active, tools }: { projectId: string; active: string; tools: readonly string[] }) {
   return (
     <nav aria-label="Project tools" className="relative min-w-0 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="flex w-max items-center gap-5">
-        {projectToolNavigation.map((group, index) => (
+        {projectToolNavigation.map(group => ({ ...group, items: group.items.filter(entry => tools.includes(entry.slug || "overview")) })).filter(group => group.items.length > 0).map((group, index) => (
           <div key={group.title} role="group" aria-label={group.title} className="flex items-center gap-5">
             {index > 0 ? <span aria-hidden="true" className="h-4 w-px bg-border" /> : null}
             {group.items.map(entry => {
@@ -174,7 +174,7 @@ export function ProjectWorkspace({ resourceRegister, resourceUnavailable, worksp
         </>}
       />
 
-      <ProjectTools projectId={project.id} active={activeSlug} />
+      <ProjectTools projectId={project.id} active={activeSlug} tools={workspace.availableTools} />
 
       {tool === "overview" && <MetricList metrics={workspace.metrics} label="Project summary" />}
       {tool === "overview" && workspace.availableCommands.includes("transitionProjectStatus") && (

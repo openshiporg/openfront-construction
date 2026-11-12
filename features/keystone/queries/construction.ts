@@ -100,6 +100,37 @@ function audienceForProject(session: Session, companyId: string, projectId: stri
   ) ? "internal" : "external";
 }
 
+/**
+ * Read permission each internal project tool needs (read or manage of the pair).
+ * The tool nav shows only these, and a tool the role cannot read is a 404.
+ * Overview and Reports carry mixed rows that are already scoped per list.
+ */
+export const projectToolPermissions: Record<string, readonly [Permission, Permission] | null> = {
+  overview: null,
+  preconstruction: ["canReadPreconstruction", "canManagePreconstruction"],
+  financials: ["canReadFinancials", "canManageFinancials"],
+  structure: ["canReadFinancials", "canManageFinancials"],
+  contracts: ["canReadContracts", "canManageContracts"],
+  procurement: ["canReadContracts", "canManageContracts"],
+  execution: ["canReadProjectExecution", "canManageProjectExecution"],
+  field: ["canReadFieldOperations", "canManageFieldOperations"],
+  schedule: ["canReadProjectExecution", "canManageProjectExecution"],
+  "quality-safety": ["canReadSafety", "canManageSafety"],
+  documents: ["canReadDocuments", "canManageDocuments"],
+  billing: ["canReadBilling", "canManageBilling"],
+  reports: null,
+  team: null,
+  audit: ["canReadAudit", "canReadAudit"],
+};
+
+function availableProjectTools(session: Session, companyId: string, projectId: string, audience: Audience): string[] {
+  return Object.entries(projectToolPermissions)
+    .filter(([tool, pair]) => audience === "external"
+      ? !internalOnlyTools.has(tool) && tool !== "structure"
+      : !pair || hasEitherProjectPermission(session, companyId, projectId, ...pair))
+    .map(([tool]) => tool);
+}
+
 function canWriteProjectFromSession(session: Session, companyId: string, projectId: string): boolean {
   const explicitMembership = session.data.projectMemberships?.find(
     membership => membership.status === "active" && membership.project?.id === projectId,
@@ -1317,6 +1348,9 @@ export async function constructionProjectWorkspace(
   if (!project) throw new Error("Project not found");
   const companyId = idOf(project.company);
   const audience = audienceForProject(session, companyId, projectId);
+  const availableTools = availableProjectTools(session, companyId, projectId, audience);
+  // Same message as a missing project: a tool this role cannot read is a 404.
+  if (audience === "internal" && !availableTools.includes(selectedTool)) throw new Error("Project tool not found");
   const canViewInternalFinancials = audience === "internal" && hasEitherProjectPermission(
     session,
     companyId,
@@ -1351,6 +1385,7 @@ export async function constructionProjectWorkspace(
     generatedAt: new Date().toISOString(),
     tool: selectedTool,
     audience,
+    availableTools,
     availableCommands: availableCommands(session, selectedTool, audience, companyId, projectId, canWriteProject),
     project: summary,
     metrics,
@@ -1426,7 +1461,7 @@ const optionSpecs: readonly OptionSpec[] = [
   { kind: "procurementRequestLine", listKey: "ProcurementRequestLine", read: "canReadContracts", manage: "canManageContracts", query: "id lineNumber description request { id requestNumber }", label: row => `${text((row.request as Record<string, unknown> | null)?.requestNumber)} · ${text(row.description)}`, parent: row => idOf(row.request), search: ["description", "request.requestNumber"] },
   { kind: "progressClaim", listKey: "ProgressClaim", read: "canReadBilling", manage: "canManageBilling", query: "id claimNumber status currentPaymentDueMinor tradePartner { name }", label: row => `${text(row.claimNumber)} · ${nameOf(row.tradePartner)}`, detail: row => text(row.status), status: row => text(row.status), search: ["claimNumber", "tradePartner.name"] },
   { kind: "retainageRelease", listKey: "RetainageRelease", read: "canReadBilling", manage: "canManageBilling", query: "id releaseNumber status amountMinor", label: row => text(row.releaseNumber), detail: row => text(row.status), status: row => text(row.status), search: ["releaseNumber"] },
-  { kind: "approvalPolicy", listKey: "ApprovalPolicy", read: "canReadAudit", manage: "canManageRoles", query: "id name domain minimumAmountMinor currencyCode isActive approverRole { name }", label: row => `${text(row.name)} · ${text(row.domain)}`, detail: row => `${row.isActive ? "active" : "inactive"} · ${currencyAmount(row.minimumAmountMinor, row.currencyCode)}+ · ${nameOf(row.approverRole)}`, status: row => (row.isActive ? "active" : "inactive"), search: ["name"] },
+  { kind: "approvalPolicy", listKey: "ApprovalPolicy", read: "canReadAudit", manage: "canManageRoles", query: "id name domain minimumAmountMinor currencyCode isActive approverRole { name }", label: row => text(row.name) || text(row.domain).replaceAll("_", " "), detail: row => [row.isActive ? "Active" : "Inactive", `from ${currencyAmount(row.minimumAmountMinor, row.currencyCode)}`, nameOf(row.approverRole)].filter(Boolean).join(" · "), status: row => (row.isActive ? "active" : "inactive"), search: ["name"] },
   { kind: "approvalRequest", listKey: "ApprovalRequest", read: "canReadAudit", manage: "canReadAudit", query: "id requestNumber status targetType targetStatus", label: row => `${text(row.requestNumber)} · ${text(row.targetType)}`, detail: row => `${text(row.status)} → ${text(row.targetStatus)}`, status: row => text(row.status), search: ["requestNumber"] },
   { kind: "payment", listKey: "Payment", read: "canReadBilling", manage: "canManageBilling", query: "id paymentNumber status amountMinor reference", label: row => `${text(row.paymentNumber)} · ${text(row.reference)}`, detail: row => text(row.status), status: row => text(row.status), search: ["paymentNumber", "reference"] },
 ];

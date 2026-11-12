@@ -3,6 +3,7 @@ import { Hash, MapPin, Plus, Ruler } from "lucide-react";
 
 import { DisclosurePanel, EmptyState, PageHeader, Panel, PillLink, PlatformPage, TitleStatus, Track, readable } from "@/features/platform/components/kit";
 import { projectToolHref } from "@/features/platform/lib/navigation";
+import { getConstructionProjectWorkspace } from "@/features/platform/projects/data";
 import { BudgetCodeActiveToggle, BudgetCodeForm, LocationForm, RenameLocationForm } from "../components/StructureForms";
 import { getProjectStructure, type LocationRow } from "../data";
 
@@ -27,6 +28,12 @@ function flatten(locations: LocationRow[]) {
 }
 
 export async function ProjectStructurePage({ projectId }: { projectId: string }) {
+  // Same tool check as the project tool nav: a role without financials gets a 404, not an empty ledger.
+  const workspace = await getConstructionProjectWorkspace(projectId, "overview").catch(error => {
+    if (error instanceof Error && /not found/i.test(error.message)) return null;
+    throw error;
+  });
+  if (!workspace || workspace.audience !== "internal" || !workspace.availableTools.includes("structure")) notFound();
   const structure = await getProjectStructure(projectId);
   if (!structure) notFound();
   const { project, budgetCodes, costCodes } = structure;

@@ -13,6 +13,15 @@ async function loadWorkspace(projectId: string, tool: string, queuePage: number)
   }
 }
 
+async function loadBidComparison(projectId: string) {
+  try {
+    return await getConstructionBidComparison(projectId);
+  } catch (error) {
+    if (error instanceof Error && /not (found|available)/i.test(error.message)) notFound();
+    throw error;
+  }
+}
+
 async function loadMaterialReceiptRegister(projectId: string, page: number, status: string) {
   try {
     return await getConstructionMaterialReceiptRegister(projectId, page, status);
@@ -177,7 +186,7 @@ export async function ProjectWorkspacePage({
   const externalExecution = tool === "execution" && workspace.audience === "external";
   const [options, bidComparison, procurementRegister, materialReceiptRegister, procurementCommitmentRegister, procurementBidInvitationRegister, procurementLienWaiverRegister, inspectionRegister, incidentRegister, observationRegister, submittalRegister, rfiRegister] = await Promise.all([
     externalExecution ? Promise.resolve([]) : getConstructionProjectOptions(projectId),
-    tool === "preconstruction" ? getConstructionBidComparison(projectId) : Promise.resolve([]),
+    tool === "preconstruction" && workspace.audience === "internal" ? loadBidComparison(projectId) : Promise.resolve([]),
     tool === "procurement"
       ? loadProcurementRegister(projectId, procurementPage, procurementStatus)
       : Promise.resolve(undefined),

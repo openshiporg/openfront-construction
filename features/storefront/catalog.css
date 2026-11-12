@@ -350,6 +350,9 @@ a.sf-list__item:hover { background: var(--sf-paper-2); }
 .sf-date:focus-visible { outline: none; border-color: var(--sf-accent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--sf-accent) 22%, transparent); }
 .sf-check { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.92rem; line-height: 1.55; color: var(--sf-ink-2); font-weight: 400; }
 .sf-check input { width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; accent-color: var(--sf-accent); flex-shrink: 0; }
+/* 44px tap target: the visible box stays small, an invisible ring around it takes the tap. */
+.sf-check input[type="checkbox"] { box-sizing: content-box; padding: 0; margin: -0.55rem -0.45rem -0.7rem -0.7rem; border: 0.7rem solid transparent; background-clip: content-box; width: 1.4rem; height: 1.4rem; }
+.sf-link--tap { display: inline-flex; align-items: center; min-height: 2.75rem; }
 .sf-error { display: flex; align-items: flex-start; gap: 0.55rem; color: var(--sf-error); font-size: 0.92rem; }
 .sf-error .sf-dot { margin-top: 0.4rem; }
 .sf-ok { display: flex; align-items: flex-start; gap: 0.55rem; color: oklch(0.42 0.12 155); font-size: 0.92rem; }
@@ -385,7 +388,7 @@ a.sf-list__item:hover { background: var(--sf-paper-2); }
 .sf-foot__tag { margin-top: 0.75rem; max-width: 36ch; line-height: 1.6; }
 .sf-foot__title { font-size: 0.9rem; font-weight: 700; color: var(--sf-slab-ink); margin-bottom: 0.6rem; }
 .sf-foot__links { list-style: none; margin: 0; padding: 0; display: grid; }
-.sf-foot__links a { display: inline-flex; align-items: center; min-height: 2.5rem; color: var(--sf-slab-ink); text-decoration: none; }
+.sf-foot__links a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--sf-slab-ink); text-decoration: none; }
 .sf-foot__links a:hover { color: var(--sf-accent-on-slab); }
 .sf-foot__meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1.5rem; padding-block: 1.1rem; border-top: 1px solid var(--sf-slab-rule); font-size: 0.82rem; }
 

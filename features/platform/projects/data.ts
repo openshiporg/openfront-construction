@@ -97,6 +97,7 @@ export type Workspace = {
   generatedAt: string;
   tool: string;
   audience: "internal" | "external";
+  availableTools: string[];
   availableCommands: string[];
   project: ProjectSummary;
   metrics: Metric[];
@@ -485,7 +486,7 @@ export async function getConstructionProjectWorkspace(projectId: string, tool: s
   const response = await platformClient<{ constructionProjectWorkspace: Workspace }>(`
     query ConstructionProjectWorkspace($projectId: ID!, $tool: String!, $page: Int) {
       constructionProjectWorkspace(projectId: $projectId, tool: $tool, page: $page) {
-        generatedAt tool audience availableCommands queuePage queueTotalPages
+        generatedAt tool audience availableTools availableCommands queuePage queueTotalPages
         queueGroups { kind totalCount }
         project { ${projectFields} }
         metrics { key label value unit tone }

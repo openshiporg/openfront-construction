@@ -13,7 +13,7 @@ export async function executeAdapterFunction({ provider, functionName, args }: {
     return response.json();
   }
   if (!REGISTRY.has(key)) throw new Error("Unknown registered payment adapter");
-  try { const module = await paymentProviderAdapters[key as keyof typeof paymentProviderAdapters](); return (module as any)[functionName](input); }
+  try { const adapter = await paymentProviderAdapters[key as keyof typeof paymentProviderAdapters](); return (adapter as any)[functionName](input); }
   catch { throw new Error("Payment adapter failed; reconcile before retrying"); }
 }
 export const createPayment = (provider: any, args: any) => executeAdapterFunction({ provider, functionName: "createPaymentFunction", args });

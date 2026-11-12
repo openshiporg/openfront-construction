@@ -54,6 +54,7 @@ interface User {
     canAccessDashboard?: boolean;
     canManageOnboarding?: boolean;
   };
+  platformPermissions?: string[];
 }
 
 interface SidebarProps {
