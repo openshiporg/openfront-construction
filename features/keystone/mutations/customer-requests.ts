@@ -43,27 +43,33 @@ export async function registerConstructionCustomer(_root: unknown, { name, email
   return { success: true };
 }
 
+// The scope is the caller's own id (owner) or own active membership (operator), resolved
+// with the database directly: a Keystone where through customer/memberships needs read access
+// to the people lists, which a customer does not have. Rows are still read through the
+// session's own list access below, so nothing beyond what the session can read is returned.
 function customerRequestScope(context: KeystoneContext, operator: boolean) {
   const actorId = context.session?.itemId;
   if (!actorId || context.session?.authType !== "session") throw new Error("Sign in to continue");
-  // Normal Keystone access composes owner OR current tenant membership. An
-  // operator queue additionally excludes rows visible only by customer ownership.
   return operator
-    ? { company: { status: { equals: "active" }, memberships: { some: { user: { id: { equals: actorId } }, status: { equals: "active" }, role: { canManagePreconstruction: { equals: true } } } } } }
-    : { customer: { id: { equals: actorId } } };
+    ? { company: { status: "active", memberships: { some: { userId: String(actorId), status: "active", role: { canManagePreconstruction: true } } } } }
+    : { customerId: String(actorId) };
 }
 
-export async function constructionCustomerRequests(_root: unknown, { operator = false, skip = 0, take = 100 }: { operator?: boolean | null; skip?: number | null; take?: number | null }, context: KeystoneContext) {
+export async function constructionCustomerRequests(_root: unknown, { operator = false, skip = 0, take = 100 }: { operator?: boolean | null; skip?: number | null; take?: number | null }, context: KeystoneContext): Promise<Array<Record<string, any>>> {
   const offset = Number.isSafeInteger(skip) && Number(skip) > 0 ? Number(skip) : 0;
   const limit = Number.isSafeInteger(take) && Number(take) > 0 ? Math.min(Number(take), 100) : 100;
-  return context.query.ServiceRequest.findMany({
+  const ids = await context.sudo().prisma.serviceRequest.findMany({
     where: customerRequestScope(context, Boolean(operator)),
-    skip: offset, take: limit, orderBy: [{ createdAt: "desc" }, { id: "desc" }], query: selection,
+    skip: offset, take: limit, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { id: true },
   });
+  if (!ids.length) return [];
+  const rows = await context.query.ServiceRequest.findMany({ where: { id: { in: ids.map((row: { id: string }) => row.id) } }, query: selection });
+  const byId = new Map<string, Record<string, any>>(rows.map((row: any) => [String(row.id), row] as [string, Record<string, any>]));
+  return ids.map((row: { id: string }) => byId.get(String(row.id))).filter((row: Record<string, any> | undefined): row is Record<string, any> => Boolean(row));
 }
 
 export async function constructionCustomerRequestCount(_root: unknown, { operator = false }: { operator?: boolean | null }, context: KeystoneContext) {
-  return context.query.ServiceRequest.count({ where: customerRequestScope(context, Boolean(operator)) });
+  return context.sudo().prisma.serviceRequest.count({ where: customerRequestScope(context, Boolean(operator)) });
 }
 
 export async function constructionCustomerRequest(_root: unknown, { id }: { id: string }, context: KeystoneContext) {

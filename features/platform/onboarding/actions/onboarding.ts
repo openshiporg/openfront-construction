@@ -42,7 +42,7 @@ function value(formData: FormData, key: string) {
  * exact same server-authoritative `onboardConstructionWorkspace` mutation the
  * custom setup path uses. There is no separate seed mutation or unrestricted
  * database path: session, tenant, project, and financial boundaries are the
- * mutation's own. The result is explicitly labeled as demo/mock data.
+ * mutation's own.
  */
 export async function loadDemoFixtureAction(
   _previous: CommandState,
