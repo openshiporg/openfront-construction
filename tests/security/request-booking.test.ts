@@ -29,7 +29,10 @@ function fakeContext(initial: { requestStatus?: string; paymentStatus?: string }
   };
   const payment: any = { id: "pay_1", status: initial.paymentStatus ?? "settled", idempotencyKey: requestPaymentKey("req_1", "u_cust"), amountMinor: BigInt(1250000), currencyCode: "USD", companyId: "co_1", projectId: "proj_other" };
   let n = 0;
-  const createOne = (list: string) => async ({ data }: { data: any }) => { const row = { id: `${list}_${++n}`, ...data }; (created[list] ||= []).push(row); return row; };
+  const createOne = (list: string) => async ({ data }: { data: any }) => {
+    // Mirrors the ProjectMembership list rule: role assignment needs role administration, which the paying customer lacks.
+    if (list === "ProjectMembership" && data.role) throw new Error("Changing a project membership role requires role administration permission in that project");
+    const row = { id: `${list}_${++n}`, ...data }; (created[list] ||= []).push(row); return row; };
   const db = new Proxy({}, { get: (_t, list: string) => ({ createOne: createOne(list) }) });
   const prisma: any = {
     payment: { findUnique: async () => payment, update: async ({ data }: any) => Object.assign(payment, data) },

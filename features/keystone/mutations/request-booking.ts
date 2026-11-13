@@ -94,11 +94,12 @@ export async function bookPaidRequest(context: KeystoneContext, paymentId: strin
       });
       for (const member of staff) {
         if (!member.userId || member.userId === request.customerId) continue;
-        await sudo.db.ProjectMembership.createOne({ data: {
+        // Role attached after create, as for the owner membership above.
+        const grant = await sudo.db.ProjectMembership.createOne({ data: {
           status: "active", accessLevel: "manager", portalType: "internal", joinedAt: new Date(),
-          ...(member.roleId ? { role: { connect: { id: member.roleId } } } : {}),
           project: { connect: { id: project.id } }, user: { connect: { id: member.userId } },
         } });
+        if (member.roleId) await sudo.prisma.projectMembership.update({ where: { id: String(grant.id) }, data: { roleId: member.roleId } });
       }
       await sudo.prisma.payment.update({ where: { id: payment.id }, data: { projectId: String(project.id) } });
     }
