@@ -13,18 +13,7 @@ import { parseBoundedObjectJson } from "../../features/lib/bounded-json";
 import { maskConstructionError } from "../../features/lib/graphql-error-mask";
 
 const yoga = createYoga({
-  graphiql: process.env.NODE_ENV !== "production",
-  renderGraphiQL: () => `
-    <!DOCTYPE html>
-    <html lang="en">
-      <body style="margin: 0; overflow-x: hidden; overflow-y: hidden">
-        <div id="sandbox" style="height:100vh; width:100vw"></div>
-        <script src="https://embeddable-sandbox.cdn.apollographql.com/_latest/embeddable-sandbox.umd.production.min.js"></script>
-        <script>
-          new window.EmbeddedSandbox({ target: "#sandbox", initialEndpoint: window.location.href, hideCookieToggle: false, initialState: { includeCookies: true } });
-        </script>
-      </body>
-    </html>`,
+  graphiql: false,
   graphqlEndpoint: "/api/graphql",
   schema: keystoneContext.graphql.schema,
   context: ({ req, res }: { req: NextApiRequest; res: NextApiResponse }) =>
