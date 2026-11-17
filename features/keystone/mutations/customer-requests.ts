@@ -4,12 +4,23 @@ import { lockCustomerActor } from "../domain/customer-authority";
 import { getTrustedPublicSiteKey } from "../domain/public-site";
 import { requestPaymentKey } from "../domain/payment-settlement";
 import { assertMachineMove } from "../domain/state-machines";
+import { getPaymentStatus } from "../utils/paymentProviderAdapter";
 
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const clean = (value: unknown, label: string, max: number, min = 1) => {
   if (typeof value !== "string" || value.trim().length < min || value.trim().length > max) throw new Error(`${label} is invalid`);
   return value.trim();
 };
+/** True when the provider says this checkout can no longer be paid; the attempt is then retired as failed. */
+async function checkoutExpired(tx: KeystoneContext, deposit: { id: string; reference: string; paymentProviderId: string | null }) {
+  if (!deposit.paymentProviderId) return false;
+  const provider = await tx.sudo().query.PaymentProvider.findOne({ where: { id: deposit.paymentProviderId }, query: "id code getPaymentStatusFunction credentials" });
+  if (!provider) return false;
+  const raw: any = await getPaymentStatus(provider, deposit.reference);
+  if (raw?.status !== "expired") return false;
+  await tx.sudo().prisma.payment.updateMany({ where: { id: deposit.id, status: "pending" }, data: { status: "failed" } });
+  return true;
+}
 const selection = "id reference serviceTitle serviceSlug scope status version currencyCode quoteMinor quoteTerms expiresAt acceptedAt acceptedSnapshot createdAt customer { id } company { id name }";
 
 export type ServiceRequestInput = {
@@ -168,7 +179,11 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
       } };
     } else {
       if (row.status === "cancelled") throw new Error("Request is already cancelled");
-      const deposit = row.customerId ? await tx.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, row.customerId) }, select: { status: true } }) : null;
+      const deposit = row.customerId ? await tx.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, row.customerId) }, select: { id: true, status: true, reference: true, paymentProviderId: true } }) : null;
+      // A checkout already opened may still be paid (a bank payment clears in days); cancelling now would take the money and book nothing.
+      if (deposit?.status === "pending" && deposit.reference && deposit.reference !== "awaiting-provider" && !(await checkoutExpired(tx, deposit))) throw new Error(row.customerId === actorId
+        ? "A deposit payment is in progress. If you paid by bank account it can take a few days to clear; contact the contractor to cancel."
+        : "A deposit payment is in progress for this request. Wait for it to clear or expire, then refund or cancel.");
       if (deposit?.status === "settled") throw new Error(row.customerId === actorId
         ? "Your deposit has been received. Contact the contractor to cancel."
         : "Refund the deposit first from the booked project's Billing tab (Reverse payment), then cancel.");
