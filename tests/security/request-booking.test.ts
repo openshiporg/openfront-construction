@@ -82,6 +82,7 @@ test("a settled deposit books the job: won opportunity, project, owner portal, l
   assert.equal(created.Budget.length, 1);
   assert.equal(created.ApprovalPolicy.length, 5);
   assert.equal(payment.projectId, result!.projectId, "deposit moves onto the booked project's ledger");
+  assert.equal(payment.tradePartnerId, membership.portalOrganization.connect.id, "deposit is the owner's receipt, so it can be applied to owner claims");
   assert.equal(created.ServiceRequestEvent[0].action, "book");
 });
 

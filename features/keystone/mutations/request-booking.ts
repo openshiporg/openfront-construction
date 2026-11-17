@@ -101,7 +101,8 @@ export async function bookPaidRequest(context: KeystoneContext, paymentId: strin
         } });
         if (member.roleId) await sudo.prisma.projectMembership.update({ where: { id: String(grant.id) }, data: { roleId: member.roleId } });
       }
-      await sudo.prisma.payment.update({ where: { id: payment.id }, data: { projectId: String(project.id) } });
+      // The deposit is the customer's (the project owner's) receipt, so it can be applied to their owner claims.
+      await sudo.prisma.payment.update({ where: { id: payment.id }, data: { projectId: String(project.id), tradePartnerId: String(client.id) } });
     }
     const version = request.version + 1;
     await sudo.prisma.$executeRawUnsafe(
