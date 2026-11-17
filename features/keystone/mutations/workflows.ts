@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import { hasCompanyPermission } from "../access";
+import { hasCompanyPermission, hasProjectPermission } from "../access";
 import { refundPayment } from "../utils/paymentProviderAdapter";
 import { queryById } from "../domain/tenancy";
 import { calendarDayKey } from "../domain/calendar-dates";
@@ -1367,6 +1367,14 @@ export async function reverseSettledPayment(_root: unknown, { input }: { input: 
   if (online?.projectId === id && online.status === "settled" && online.paymentProvider?.code?.startsWith("pp_stripe") && String(online.providerPaymentId || "").startsWith("pi_")) {
     const session = requireCommandSession(context);
     if (!online.companyId || !hasCompanyPermission(session as any, online.companyId, "canManageBilling")) throw new Error("Not authorized to refund this payment");
+    // The project-level permission, project currency and reversal fields the ledger command checks after the refund.
+    if (!hasProjectPermission(session as any, online.companyId, id, "canManageBilling", true)) throw new Error("Not authorized for this project operation");
+    const refundProject = await (context.sudo() as any).prisma.project.findUnique({ where: { id }, select: { currencyCode: true } });
+    if (refundProject?.currencyCode !== "USD") throw new Error("Monetary operations are disabled for non-USD projects until currency propagation is complete");
+    requiredText(input.reference, "Reversal number", 100);
+    requiredText(input.description, "Reversal reason", 2000);
+    optionalDate(input.occurredAt, "Reversal effective date");
+    requiredText(input.idempotencyKey, "Idempotency key", 200);
     // Same guards the ledger reversal applies, checked BEFORE Stripe moves money so a refusal never leaves a refund without a reversal.
     const guard = (context.sudo() as unknown as { prisma: { retainageRelease: { count(a: unknown): Promise<number> }; paymentAllocation: { count(a: unknown): Promise<number> } } }).prisma;
     const released = await guard.retainageRelease.count({ where: { paymentId: online.id, status: "released" } });
