@@ -14,6 +14,7 @@ const digest = (value: string) => createHash("sha256").update(value).digest("hex
 const PROVIDER_QUERY = "id code isInstalled company { id } credentials createPaymentFunction capturePaymentFunction refundPaymentFunction getPaymentStatusFunction generatePaymentLinkFunction handleWebhookFunction";
 const WEBHOOK_SETTLE = new Set(["checkout.session.completed", "checkout.session.async_payment_succeeded"]);
 const WEBHOOK_FAIL = new Set(["checkout.session.async_payment_failed", "checkout.session.expired"]);
+const CLAIM_NO_LONGER_FITS = /^(Claim is not eligible for allocation|Allocation exceeds )/;
 
 function humanSession(context: KeystoneContext) {
   const session = context.session as Session | undefined;
@@ -44,6 +45,25 @@ async function startProviderCheckout(context: KeystoneContext, args: {
   return { url: String(session.url), paymentId: args.payment.id };
 }
 
+/** A pending attempt that already opened a provider session: ask the provider before starting another,
+ * so a bank payment that is still clearing is never paid twice or orphaned. Returns the open session to
+ * reuse, "expired" when the attempt was retired as failed, or null when there is no session yet. */
+async function existingCheckout(context: KeystoneContext, provider: any, payment: { id: string; status: string; reference: string } | null) {
+  if (!payment || payment.status !== "pending" || !payment.reference || payment.reference === "awaiting-provider") return null;
+  const raw: any = await getPaymentStatus(provider, payment.reference);
+  if (raw.status === "succeeded") {
+    await settlePayment(context, payment.id);
+    throw new Error("Payment already received");
+  }
+  if (raw.status === "complete") throw new Error("Your payment is processing. Bank payments can take a few days to clear.");
+  if (raw.status === "open" && raw.data?.url) return { url: String(raw.data.url), paymentId: payment.id };
+  if (raw.status === "expired") {
+    await context.sudo().prisma.payment.updateMany({ where: { id: payment.id, status: "pending" }, data: { status: "failed" } });
+    return "expired" as const;
+  }
+  return null;
+}
+
 /** Customer pays the deposit on their own accepted quote. */
 export async function createCustomerPayment(_root: unknown, { requestId }: { requestId: string }, context: KeystoneContext) {
   const session = humanSession(context); const actorId = session.itemId;
@@ -61,6 +81,9 @@ export async function createCustomerPayment(_root: unknown, { requestId }: { req
   let payment = await prisma.payment.findUnique({ where: { idempotencyKey: key } });
   if (payment?.status === "settled") throw new Error("Deposit already received");
   if (payment?.status === "reversed") throw new Error("This deposit was refunded. Contact the contractor to rebook.");
+  const open = await existingCheckout(context, provider, payment);
+  if (open === "expired") payment = await prisma.payment.findUnique({ where: { idempotencyKey: key } });
+  else if (open) return open;
   // An expired/failed checkout is a finished attempt: retire it (keeps its history, frees the key)
   // and start a new one with its own provider idempotency key, or Stripe replays the expired session.
   let providerKey = key;
@@ -106,7 +129,14 @@ export async function settlePayment(context: KeystoneContext, paymentId: string)
       const done = await prisma.payment.updateMany({ where: { id: payment.id, status: { in: ["pending", "authorized"] } }, data: { status: "settled", settledAt: new Date(), paidAt: new Date(), paymentMethod: raw.data?.payment_method_types?.includes("us_bank_account") && !raw.data?.payment_method_types?.includes("card") ? "ach" : "card", ...(result.paymentIntentId ? { providerPaymentId: result.paymentIntentId } : {}) } });
       return done.count === 1;
     },
-    allocateOnce: () => allocateProviderSettlement(context.sudo() as any, { projectId: payment.projectId!, paymentId: payment.id, claimId: claimId!, amountMinor: payment.amountMinor.toString() }),
+    // The receipt is settled either way. If the claim no longer takes it (paid another way, or closed),
+    // it stays an unallocated receipt for staff to apply or reverse, instead of failing every webhook retry.
+    allocateOnce: () => allocateProviderSettlement(context.sudo() as any, { projectId: payment.projectId!, paymentId: payment.id, claimId: claimId!, amountMinor: payment.amountMinor.toString() })
+      .catch((error: Error) => {
+        if (!CLAIM_NO_LONGER_FITS.test(String(error?.message))) throw error;
+        console.warn(`[payments] settled payment ${payment.id} left unallocated: ${error.message}`);
+        return false;
+      }),
   }, claimId);
   // A paid quote deposit books the job: won opportunity + project + owner portal.
   if (!claimId) await bookPaidRequest(context, payment.id);
@@ -131,7 +161,13 @@ async function startClaimPayment(context: KeystoneContext, actorId: string, proj
   const prisma = context.sudo().prisma;
   const base = claimPaymentKey(claimId, remaining);
   let attempt = 0; let payment = await prisma.payment.findUnique({ where: { idempotencyKey: `${base}:${attempt}` } });
-  while (payment && ["failed", "voided", "reversed"].includes(payment.status)) payment = await prisma.payment.findUnique({ where: { idempotencyKey: `${base}:${++attempt}` } });
+  for (;;) {
+    while (payment && ["failed", "voided", "reversed"].includes(payment.status)) payment = await prisma.payment.findUnique({ where: { idempotencyKey: `${base}:${++attempt}` } });
+    const open = await existingCheckout(context, provider, payment);
+    if (open === "expired") { payment = await prisma.payment.findUnique({ where: { idempotencyKey: `${base}:${attempt}` } }); continue; }
+    if (open) return open;
+    break;
+  }
   const key = `${base}:${attempt}`;
   if (!payment) payment = await prisma.payment.create({ data: { paymentNumber: `RCPT-${claimId.slice(-8)}-${attempt}`, direction: "receipt", status: "pending", amountMinor: remaining, currencyCode: claim.currencyCode, paymentMethod: "ach", idempotencyKey: key, companyId: claim.companyId, projectId, tradePartnerId: claim.tradePartnerId, paymentProviderId: provider.id, recordedById: actorId, reference: "awaiting-provider" } });
   return startProviderCheckout(context, { payment, provider, amount, currency: claim.currencyCode, key, projectId, claimId, description: `Progress claim ${claim.claimNumber}`, returnPath: `/portal/projects/${encodeURIComponent(projectId)}/billing?paymentId=${encodeURIComponent(payment.id)}` });
