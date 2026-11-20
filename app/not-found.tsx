@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 
 import { PublicShell } from "@/features/storefront/components/PublicShell";
 import { Empty, Pill, Track } from "@/features/storefront/components/ui";
-import { getPublicConstructionSite } from "@/features/storefront/data";
+import { getPublicConstructionSite, getPublicStorefrontMetadata } from "@/features/storefront/data";
 
-export const metadata: Metadata = { title: "Page not found", robots: { index: false, follow: false } };
+// Rendered per request: a build-time prerender has no database, so it lost the contractor name.
+export async function generateMetadata(): Promise<Metadata> {
+  await connection();
+  const { title } = await getPublicStorefrontMetadata("Page not found");
+  return { title, robots: { index: false, follow: false } };
+}
 
 /** Unmatched URLs and missing projects, services and requests, inside the branded shell. */
 export default async function NotFound() {
+  await connection();
   const site = await getPublicConstructionSite().catch(() => null);
   return (
     <PublicShell site={site} account dock={false}>
