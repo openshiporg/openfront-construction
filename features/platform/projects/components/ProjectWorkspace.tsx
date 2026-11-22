@@ -1,4 +1,6 @@
 import { ViewerTime } from '@/features/dashboard/components/ViewerTime';
+import { LineSheets } from "./LineSheets";
+import type { LineSheet } from "@/features/platform/projects/data";
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Database, ListChecks } from "lucide-react";
 
@@ -118,7 +120,8 @@ function DueDate({ value, status, timeZone }: { value: string | null; status: st
   return <span className={`inline-flex items-center gap-1 tabular-nums ${late ? "font-medium text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}><CalendarDays className="size-3.5" aria-hidden="true" />{formatDate(value)}</span>;
 }
 
-export function ProjectWorkspace({ resourceRegister, resourceUnavailable, workspace, options, bidComparison = [], procurementRegister, materialReceiptRegister, procurementCommitmentRegister, procurementBidInvitationRegister, procurementLienWaiverRegister, inspectionRegister, incidentRegister, observationRegister, submittalRegister, rfiRegister, registerNavigation, searchParams = {} }: {
+export function ProjectWorkspace({ lineSheets, resourceRegister, resourceUnavailable, workspace, options, bidComparison = [], procurementRegister, materialReceiptRegister, procurementCommitmentRegister, procurementBidInvitationRegister, procurementLienWaiverRegister, inspectionRegister, incidentRegister, observationRegister, submittalRegister, rfiRegister, registerNavigation, searchParams = {} }: {
+  lineSheets?: LineSheet[];
   resourceRegister?: ResourceLogRegisterPage;
   resourceUnavailable?: boolean;
   workspace: Workspace;
@@ -192,6 +195,8 @@ export function ProjectWorkspace({ resourceRegister, resourceUnavailable, worksp
 
       {tool === "field" && resourceUnavailable && <p role="status" className="flex items-center gap-2 rounded-[6px] border px-4 py-3 text-sm text-muted-foreground"><StatusDot tone="zinc" />Equipment and material activity is not available for your project role</p>}
       {tool === "field" && resourceRegister && <ResourceLogRegister projectId={project.id} register={resourceRegister} searchParams={searchParams} />}
+      {tool === "preconstruction" && lineSheets && <LineSheets id="estimates" title="Estimates" empty="No estimates yet. Create one under Record below." projectId={project.id} sheets={lineSheets} />}
+      {tool === "contracts" && lineSheets && <LineSheets id="contracts" title="Contracts and schedules of values" empty="No contracts yet. Create one under Record below." projectId={project.id} sheets={lineSheets} />}
       {tool === "preconstruction" && <BidComparison rows={bidComparison} />}
       {tool === "documents" && internal && <ControlledFilesPanel projectId={project.id} options={options} canManage={workspace.availableCommands.includes("registerDocument")} />}
       {["financials", "contracts", "billing"].includes(tool) && <ApprovalPanel projectId={project.id} options={options} canConfigure={workspace.availableCommands.includes("configureConstructionApprovalPolicy")} />}

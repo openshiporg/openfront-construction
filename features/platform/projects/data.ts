@@ -497,3 +497,68 @@ export async function getConstructionProjectWorkspace(projectId: string, tool: s
   if (!response.success) throw new Error(response.error);
   return response.data.constructionProjectWorkspace;
 }
+
+/** A priced document shown line by line: an estimate, or a contract with its schedule of values. */
+export type LineSheet = {
+  id: string; kind: "Estimate" | "Prime contract" | "Subcontract" | "Purchase order"; detailKind: string;
+  number: string; title: string; status: string; party: string; currencyCode: string;
+  totalMinor: string; totalLabel: string;
+  lines: Array<{ id: string; lineNumber: number; description: string; code: string; quantity: string; amountMinor: string }>;
+  moreLines: number;
+};
+
+const SHEET_LINES = 100;
+type SheetRow = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+/** Estimates of a project with their current version's lines. Empty when the role may not read them. */
+export async function getConstructionEstimateSheets(projectId: string): Promise<LineSheet[]> {
+  const response = await platformClient<{ estimates: SheetRow[] }>(`
+    query EstimateSheets($projectId: ID!, $take: Int!) {
+      estimates(where: { project: { id: { equals: $projectId } } }, orderBy: [{ createdAt: desc }], take: 10) {
+        id number title status
+        currentVersion { versionNumber totalMinor currencyCode lineItemsCount
+          lineItems(orderBy: [{ lineNumber: asc }], take: $take) { id lineNumber description quantity unit totalCostMinor budgetCode { code } } }
+      }
+    }
+  `, { projectId, take: SHEET_LINES });
+  if (!response.success) return [];
+  return (response.data.estimates ?? []).map(row => {
+    const version = row.currentVersion ?? {}; const lines: SheetRow[] = version.lineItems ?? [];
+    return {
+      id: row.id, kind: "Estimate" as const, detailKind: "estimate", number: row.number ?? "", title: row.title ?? "", status: row.status ?? "draft",
+      party: version.versionNumber ? `Version ${version.versionNumber}` : "", currencyCode: version.currencyCode || "USD",
+      totalMinor: String(version.totalMinor ?? "0"), totalLabel: "Estimate total",
+      lines: lines.map(line => ({ id: line.id, lineNumber: line.lineNumber ?? 0, description: line.description ?? "", code: line.budgetCode?.code ?? "", quantity: [Number(line.quantity ?? 1) === 1 && (line.unit || "LS") === "LS" ? "" : String(Number(line.quantity ?? 1)), line.unit && line.unit !== "LS" ? line.unit : ""].filter(Boolean).join(" "), amountMinor: String(line.totalCostMinor ?? "0") })),
+      moreLines: Math.max(0, Number(version.lineItemsCount ?? lines.length) - lines.length),
+    };
+  });
+}
+
+/** Prime contracts, subcontracts and purchase orders of a project with their schedules of values. */
+export async function getConstructionContractSheets(projectId: string): Promise<LineSheet[]> {
+  const lines = "lineItemsCount lineItems(orderBy: [{ lineNumber: asc }], take: $take) { id lineNumber description revisedValueMinor scheduledValueMinor budgetCode { code } }";
+  const response = await platformClient<{ primeContracts: SheetRow[]; commitments: SheetRow[] }>(`
+    query ContractSheets($projectId: ID!, $take: Int!) {
+      primeContracts(where: { project: { id: { equals: $projectId } } }, orderBy: [{ createdAt: desc }], take: 10) {
+        id number title status revisedContractMinor currencyCode client { name } ${lines}
+      }
+      commitments(where: { project: { id: { equals: $projectId } } }, orderBy: [{ createdAt: desc }], take: 20) {
+        id number title status commitmentType revisedContractMinor currencyCode tradePartner { name } ${lines}
+      }
+    }
+  `, { projectId, take: SHEET_LINES });
+  if (!response.success) return [];
+  const sheet = (row: SheetRow, kind: LineSheet["kind"], detailKind: string, party: string): LineSheet => {
+    const items: SheetRow[] = row.lineItems ?? [];
+    return {
+      id: row.id, kind, detailKind, number: row.number ?? "", title: row.title ?? "", status: row.status ?? "draft", party,
+      currencyCode: row.currencyCode || "USD", totalMinor: String(row.revisedContractMinor ?? "0"), totalLabel: "Contract value",
+      lines: items.map(line => ({ id: line.id, lineNumber: line.lineNumber ?? 0, description: line.description ?? "", code: line.budgetCode?.code ?? "", quantity: "", amountMinor: String(line.revisedValueMinor ?? line.scheduledValueMinor ?? "0") })),
+      moreLines: Math.max(0, Number(row.lineItemsCount ?? items.length) - items.length),
+    };
+  };
+  return [
+    ...(response.data.primeContracts ?? []).map(row => sheet(row, "Prime contract", "prime-contract", row.client?.name ?? "")),
+    ...(response.data.commitments ?? []).map(row => sheet(row, row.commitmentType === "purchase_order" ? "Purchase order" : "Subcontract", "commitment", row.tradePartner?.name ?? "")),
+  ];
+}

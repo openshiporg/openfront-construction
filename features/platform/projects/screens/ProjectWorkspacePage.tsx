@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ProjectWorkspace } from "../components/ProjectWorkspace";
-import { getConstructionResourceLogRegister } from "../data";
+import { getConstructionContractSheets, getConstructionEstimateSheets, getConstructionResourceLogRegister } from "../data";
 import { getConstructionBidComparison, getConstructionInspectionRegister, getConstructionMaterialReceiptRegister, getConstructionProjectOptions, getConstructionProcurementRequestRegister, getConstructionProcurementCommitmentRegister, getConstructionProcurementBidInvitationRegister, getConstructionProcurementLienWaiverRegister, getConstructionProjectWorkspace, getConstructionRfiRegister, getConstructionSafetyIncidentRegister, getConstructionSafetyObservationRegister, getConstructionSubmittalRegister } from "../data";
 
 async function loadWorkspace(projectId: string, tool: string, queuePage: number) {
@@ -218,5 +218,10 @@ export async function ProjectWorkspacePage({
       ? loadRfiRegister(projectId, rfiPage, rfiStatus)
       : Promise.resolve(undefined),
   ]);
-  return <ProjectWorkspace resourceRegister={resourceRegister} resourceUnavailable={resourceUnavailable} workspace={workspace} options={options} bidComparison={bidComparison} procurementRegister={procurementRegister} materialReceiptRegister={materialReceiptRegister} procurementCommitmentRegister={procurementCommitmentRegister} procurementBidInvitationRegister={procurementBidInvitationRegister} procurementLienWaiverRegister={procurementLienWaiverRegister} inspectionRegister={inspectionRegister} incidentRegister={incidentRegister} observationRegister={observationRegister} submittalRegister={submittalRegister} rfiRegister={rfiRegister} searchParams={searchParams} registerNavigation={{ rfiPage, rfiStatus, submittalPage, submittalStatus, inspectionPage, inspectionStatus, incidentPage, incidentStatus, observationPage, observationStatus }} />;
+  // Estimates and contracts are read as documents with their lines, not as rows of a generic queue.
+  const lineSheets = workspace.audience !== "internal" ? undefined
+    : tool === "preconstruction" ? await getConstructionEstimateSheets(projectId)
+    : tool === "contracts" ? await getConstructionContractSheets(projectId)
+    : undefined;
+  return <ProjectWorkspace lineSheets={lineSheets} resourceRegister={resourceRegister} resourceUnavailable={resourceUnavailable} workspace={workspace} options={options} bidComparison={bidComparison} procurementRegister={procurementRegister} materialReceiptRegister={materialReceiptRegister} procurementCommitmentRegister={procurementCommitmentRegister} procurementBidInvitationRegister={procurementBidInvitationRegister} procurementLienWaiverRegister={procurementLienWaiverRegister} inspectionRegister={inspectionRegister} incidentRegister={incidentRegister} observationRegister={observationRegister} submittalRegister={submittalRegister} rfiRegister={rfiRegister} searchParams={searchParams} registerNavigation={{ rfiPage, rfiStatus, submittalPage, submittalStatus, inspectionPage, inspectionStatus, incidentPage, incidentStatus, observationPage, observationStatus }} />;
 }
