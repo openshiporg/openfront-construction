@@ -105,3 +105,21 @@ export function RequestDecision({ request, operation, label }: { request: Custom
     <Message message={state.message} />
   </form>;
 }
+
+/** Cancelling sits apart from the quote and its payment button, and asks once before it acts. */
+export function CancelRequest({ request }: { request: CustomerRequest }) {
+  const [state, action, pending] = useActionState(customerRequestAction, { message: "" });
+  const [key] = useState(() => crypto.randomUUID());
+  const [asking, setAsking] = useState(false);
+  if (!asking && !state.message) return <p className="sf-small sf-auth__switch">No longer need this? <button type="button" onClick={() => setAsking(true)}>Cancel this request</button></p>;
+  return <form action={action} onReset={keepUnlessSaved(false)} className="sf-panel sf-stack" style={{ gap: "0.75rem" }}>
+    <input type="hidden" name="operation" value="cancel" /><input type="hidden" name="id" value={request.id} />
+    <input type="hidden" name="version" value={request.version} /><input type="hidden" name="idempotencyKey" value={key} />
+    <p className="sf-small">Cancel {request.reference}? The contractor is told and the quote can no longer be accepted.</p>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.625rem" }}>
+      <Submit pending={pending} label="Yes, cancel request" pendingLabel="Cancelling…" variant="danger" />
+      <button type="button" className="sf-pill sf-pill--raised" onClick={() => setAsking(false)} disabled={pending}>Keep request</button>
+    </div>
+    <Message message={state.message} />
+  </form>;
+}

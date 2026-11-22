@@ -636,3 +636,15 @@ a.sf-list__item:hover { background: var(--sf-paper-2); }
 /* Children of a stack may never widen it: one long row was pushing the portal project page to twice the phone's width. */
 .sf-stack { grid-template-columns: minmax(0, 1fr); }
 .sf-stack > * { min-width: 0; }
+
+/* Account: one form at a time on a phone, both side by side from tablet up. */
+.sf-auth__pane { display: grid; gap: 0.875rem; min-width: 0; }
+.sf-auth__switch { margin: 0; }
+.sf-auth__switch button { background: none; border: 0; padding: 0.625rem 0.25rem; font: inherit; color: var(--sf-accent, inherit); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+@media (max-width: 47.99rem) {
+  .sf-auth[data-mode="signin"] [data-pane="signup"],
+  .sf-auth[data-mode="signup"] [data-pane="signin"] { display: none; }
+}
+@media (min-width: 48rem) { .sf-auth__switch { display: none; } }
+/* A page title takes the full row on a phone; its status or actions sit under it instead of squeezing it onto two lines. */
+@media (max-width: 47.99rem) { .sf-pagehead__row > .sf-h1 { flex-basis: 100%; } }

@@ -7,11 +7,12 @@ import { getPublicConstructionService, getPublicConstructionSite } from "../data
 import type { PublicConstructionSite } from "../types";
 import { CUSTOMER_REQUEST_PAGE_SIZE, getCustomerRequest, getCustomerRequestCount, getCustomerRequests, getCustomerUser, type CustomerRequest } from "./data";
 import { ViewerTime } from "@/features/dashboard/components/ViewerTime";
-import { CustomerAuthForm, ProfileForm, RequestDecision, RequestForm, ResetPasswordForm, ResetRequestForm } from "./AccountForms";
+import { CancelRequest, ProfileForm, RequestDecision, RequestForm, ResetPasswordForm, ResetRequestForm } from "./AccountForms";
 import { customerSignOut } from "./actions";
 import { customerContinuation } from "./continuation";
 import { formatUsdMinor } from "@/features/lib/money";
 import { depositDueMinor } from "@/features/lib/deposit";
+import { AuthChoices } from "./AuthChoices";
 
 const STATUS: Record<string, { label: string; tone: DotTone }> = {
   requested: { label: "Awaiting quote", tone: "warn" },
@@ -53,10 +54,7 @@ function DepositLine({ request }: { request: CustomerRequest }) {
 
 function SignInChoices({ site, service, from }: { site: PublicConstructionSite | null; service?: string; from?: string }) {
   // New accounts are offered only on a published website; existing customers can always sign in.
-  return <div className="sf-split" style={{ alignItems: "start" }}>
-    <CustomerAuthForm service={service} from={from} />
-    {site && <CustomerAuthForm signup service={service} from={from} />}
-  </div>;
+  return <AuthChoices signupAllowed={Boolean(site)} service={service} from={from} />;
 }
 
 function PageHead({ kicker, title, actions, back }: { kicker?: string; title: string; actions?: React.ReactNode; back?: React.ReactNode }) {
@@ -197,7 +195,6 @@ export async function CustomerRequestPage({ params }: { params: Promise<{ id: st
                 {request.expiresAt && !snapshot && <p className="sf-small">{expired ? "Expired" : "Valid until"} <ViewerTime value={request.expiresAt} style="datetime" /></p>}
               </> : <p className="sf-small">{request.status === "cancelled" ? "Cancelled before a quote was issued" : "Not quoted yet"}</p>}
               {request.status === "quoted" && !expired && <RequestDecision request={request} operation="accept" label="Accept quote" />}
-              {request.status !== "cancelled" && !depositPaid && <RequestDecision request={request} operation="cancel" label="Cancel request" />}
             </section>
             {request.status === "booked" && <section className={`sf-notice ${request.depositStatus === "reversed" ? "" : "sf-notice--ok"}`.trim()} role="status">
               <span aria-hidden="true" className={`sf-dot sf-dot--${request.depositStatus === "reversed" ? "idle" : "ok"}`} />
@@ -227,6 +224,7 @@ export async function CustomerRequestPage({ params }: { params: Promise<{ id: st
                 {request.serviceSlug && site && <Track><Pill href={`/account?service=${encodeURIComponent(request.serviceSlug)}`} variant="raised" size="sm">Request an updated quote</Pill></Track>}
               </div>
             </section>}
+          {request.status !== "cancelled" && !depositPaid && <CancelRequest request={request} />}
           </aside>
         </div>
       </section>

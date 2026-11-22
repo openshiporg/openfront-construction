@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 import { getConstructionPortfolio } from "@/features/platform/projects/data";
 import { MerchantMark } from "@/features/portal/components/MerchantMark";
-import { Empty, Status, readableStatus, statusDot } from "@/features/storefront/components/ui";
+import { Empty, Pill, Status, Track, readableStatus, statusDot } from "@/features/storefront/components/ui";
 
 export async function PortalPage() {
   const portfolio = await getConstructionPortfolio();
@@ -17,7 +17,7 @@ export async function PortalPage() {
       </header>
       <section className="sf-section" aria-label="Projects">
         <div className="sf-wrap">
-          {portfolio.projects.length === 0 ? <Empty title="No projects yet" /> : (
+          {portfolio.projects.length === 0 ? <Empty title="No projects yet. A project appears here once a quote is accepted and paid." action={<Track><Pill href="/account" variant="raised" size="sm">See your quote requests</Pill></Track>} /> : (
             <ul className="sf-list">
               {portfolio.projects.map(project => (
                 <li key={project.id}>
