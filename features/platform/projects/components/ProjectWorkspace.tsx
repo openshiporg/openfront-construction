@@ -28,6 +28,7 @@ import { CommandPanel } from "./CommandPanel";
 import { WorkflowPanel } from "./WorkflowPanel";
 import { ClaimPaymentLinksPanel } from "@/features/platform/payment-providers/ClaimPaymentLinksPanel";
 import { TransitionControl } from "./TransitionControl";
+import { ProjectToolMenu } from "./ProjectToolMenu";
 import { MetricList } from "./MetricList";
 import { ListPager } from "./ListPager";
 import { TeamMemberPanel } from "./TeamMemberPanel";
@@ -77,10 +78,13 @@ function detailHref(projectId: string, kind: string, recordId: string) {
 
 /** Tool tabs: underline tabs on one ruled baseline; the three project phases are separated by a short rule. */
 export function ProjectTools({ projectId, active, tools }: { projectId: string; active: string; tools: readonly string[] }) {
+  const groups = projectToolNavigation.map(group => ({ ...group, items: group.items.filter(entry => tools.includes(entry.slug || "overview")) })).filter(group => group.items.length > 0);
   return (
-    <nav aria-label="Project tools" className="relative min-w-0 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <>
+    <ProjectToolMenu groups={groups.map(group => ({ title: group.title, items: group.items.map(entry => ({ title: entry.title, href: projectToolHref(projectId, entry.slug), current: entry.slug === active })) }))} />
+    <nav aria-label="Project tools" className="relative min-w-0 overflow-x-auto max-sm:hidden border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="flex w-max items-center gap-5">
-        {projectToolNavigation.map(group => ({ ...group, items: group.items.filter(entry => tools.includes(entry.slug || "overview")) })).filter(group => group.items.length > 0).map((group, index) => (
+        {groups.map((group, index) => (
           <div key={group.title} role="group" aria-label={group.title} className="flex items-center gap-5">
             {index > 0 ? <span aria-hidden="true" className="h-4 w-px bg-border" /> : null}
             {group.items.map(entry => {
@@ -91,6 +95,7 @@ export function ProjectTools({ projectId, active, tools }: { projectId: string; 
         ))}
       </div>
     </nav>
+    </>
   );
 }
 

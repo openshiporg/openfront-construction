@@ -9,7 +9,7 @@ export type PillVariant = "raised" | "primary" | "danger" | "quiet";
 export function pillClass(variant: PillVariant = "raised", size: "sm" | "md" = "md") {
   return cn(
     "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[5px] border font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:size-3.5 [&_svg]:shrink-0",
-    size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-[13px] max-sm:h-10",
+    size === "sm" ? "h-7 px-2.5 text-xs max-sm:h-10 max-sm:px-3 max-sm:text-[13px]" : "h-8 px-3 text-[13px] max-sm:h-10",
     variant === "quiet" && "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
     variant === "raised" && "border-border bg-background text-foreground shadow-xs hover:bg-muted",
     variant === "primary" && "border-orange-700 bg-orange-700 text-white hover:bg-orange-800 dark:border-orange-500 dark:bg-orange-600 dark:hover:bg-orange-500",
@@ -19,5 +19,5 @@ export function pillClass(variant: PillVariant = "raised", size: "sm" | "md" = "
 
 export const fieldLabelClass = "grid min-w-0 gap-1 text-xs font-medium text-muted-foreground";
 export const inputClass = "h-9 w-full min-w-0 rounded-[5px] border border-input bg-background px-2.5 text-[13px] text-foreground shadow-xs outline-none transition-shadow focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:opacity-60 max-sm:h-10 max-sm:text-base";
-export const selectClass = "h-9 w-full min-w-0 rounded-[5px] border border-input bg-background px-2.5 text-[13px] text-foreground shadow-xs max-sm:h-10";
+export const selectClass = "h-9 w-full min-w-0 rounded-[5px] border border-input bg-background px-2.5 text-[13px] text-foreground shadow-xs max-sm:h-10 max-sm:text-base";
 export const textareaClass = "min-h-24 w-full min-w-0 rounded-[5px] border border-input bg-background px-2.5 py-2 text-[13px] text-foreground shadow-xs outline-none transition-shadow focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 max-sm:text-base";

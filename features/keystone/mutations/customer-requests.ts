@@ -58,19 +58,23 @@ export async function registerConstructionCustomer(_root: unknown, { name, email
 // with the database directly: a Keystone where through customer/memberships needs read access
 // to the people lists, which a customer does not have. Rows are still read through the
 // session's own list access below, so nothing beyond what the session can read is returned.
-function customerRequestScope(context: KeystoneContext, operator: boolean) {
+const REQUEST_STATUSES = ["requested", "quoted", "payment_pending", "booked", "cancelled"];
+
+function customerRequestScope(context: KeystoneContext, operator: boolean, statuses?: string[] | null) {
   const actorId = context.session?.itemId;
   if (!actorId || context.session?.authType !== "session") throw new Error("Sign in to continue");
+  const wanted = (statuses ?? []).filter(status => REQUEST_STATUSES.includes(status));
+  const status = wanted.length ? { status: { in: wanted } } : {};
   return operator
-    ? { company: { status: "active", memberships: { some: { userId: String(actorId), status: "active", role: { canManagePreconstruction: true } } } } }
-    : { customerId: String(actorId) };
+    ? { ...status, company: { status: "active", memberships: { some: { userId: String(actorId), status: "active", role: { canManagePreconstruction: true } } } } }
+    : { ...status, customerId: String(actorId) };
 }
 
-export async function constructionCustomerRequests(_root: unknown, { operator = false, skip = 0, take = 100 }: { operator?: boolean | null; skip?: number | null; take?: number | null }, context: KeystoneContext): Promise<Array<Record<string, any>>> {
+export async function constructionCustomerRequests(_root: unknown, { operator = false, skip = 0, take = 100, statuses }: { operator?: boolean | null; skip?: number | null; take?: number | null; statuses?: string[] | null }, context: KeystoneContext): Promise<Array<Record<string, any>>> {
   const offset = Number.isSafeInteger(skip) && Number(skip) > 0 ? Number(skip) : 0;
   const limit = Number.isSafeInteger(take) && Number(take) > 0 ? Math.min(Number(take), 100) : 100;
   const ids = await context.sudo().prisma.serviceRequest.findMany({
-    where: customerRequestScope(context, Boolean(operator)),
+    where: customerRequestScope(context, Boolean(operator), statuses),
     skip: offset, take: limit, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { id: true },
   });
   if (!ids.length) return [];
@@ -79,8 +83,8 @@ export async function constructionCustomerRequests(_root: unknown, { operator = 
   return ids.map((row: { id: string }) => byId.get(String(row.id))).filter((row: Record<string, any> | undefined): row is Record<string, any> => Boolean(row));
 }
 
-export async function constructionCustomerRequestCount(_root: unknown, { operator = false }: { operator?: boolean | null }, context: KeystoneContext) {
-  return context.sudo().prisma.serviceRequest.count({ where: customerRequestScope(context, Boolean(operator)) });
+export async function constructionCustomerRequestCount(_root: unknown, { operator = false, statuses }: { operator?: boolean | null; statuses?: string[] | null }, context: KeystoneContext) {
+  return context.sudo().prisma.serviceRequest.count({ where: customerRequestScope(context, Boolean(operator), statuses) });
 }
 
 export async function constructionCustomerRequest(_root: unknown, { id }: { id: string }, context: KeystoneContext) {
@@ -207,8 +211,8 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
 /** Operator queue rows with the customer's contact details. Rows come from the
  * operator-scoped query; contact is read only for those rows and is never part
  * of the customer projection. */
-export async function constructionOperatorRequests(_root: unknown, { skip = 0, take = 25 }: { skip?: number | null; take?: number | null }, context: KeystoneContext) {
-  const rows = await constructionCustomerRequests(_root, { operator: true, skip, take }, context);
+export async function constructionOperatorRequests(_root: unknown, { skip = 0, take = 25, statuses }: { skip?: number | null; take?: number | null; statuses?: string[] | null }, context: KeystoneContext) {
+  const rows = await constructionCustomerRequests(_root, { operator: true, skip, take, statuses }, context);
   // User read access hides other users from staff, so `customer { id }` resolves to null under the
   // operator session. Resolve owners with sudo, but only for requests this operator can already read.
   const owners: Array<{ id: string; customerId: string | null; projectId: string | null; opportunityId: string | null }> = rows.length

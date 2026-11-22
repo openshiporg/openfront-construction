@@ -1041,8 +1041,8 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         publicIntakeReceipt(reference: String!): PublicIntakeReceipt
         constructionStoreSettings(companyId: ID): JSON
         constructionCustomerRequests(operator: Boolean, skip: Int, take: Int): [ConstructionCustomerRequest!]!
-        constructionCustomerRequestCount(operator: Boolean): Int!
-        constructionOperatorRequests(skip: Int, take: Int): [ConstructionOperatorRequest!]!
+        constructionCustomerRequestCount(operator: Boolean, statuses: [String!]): Int!
+        constructionOperatorRequests(skip: Int, take: Int, statuses: [String!]): [ConstructionOperatorRequest!]!
         constructionCustomerRequest(id: ID!): ConstructionCustomerRequest
         constructionPayableClaims(projectId: ID!): [PayableClaim!]!
       }

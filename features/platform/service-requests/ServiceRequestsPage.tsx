@@ -3,9 +3,9 @@ import { FileSignature, Mail, Phone } from "lucide-react";
 
 import { formatUsdMinor } from "@/features/lib/money";
 import { ListPager, listHref, pageParam } from "@/features/platform/projects/components/ListPager";
-import { EmptyState, PageHeader, PlatformPage, TitleStatus, formatDate, type Tone } from "@/features/platform/components/kit";
+import { EmptyState, PageHeader, PlatformPage, SegmentTabs, TitleStatus, formatDate, type Tone } from "@/features/platform/components/kit";
 import { CancelRequestForm, QuoteForm } from "./QuoteForm";
-import { getOperatorRequests, OPERATOR_REQUEST_PAGE_SIZE } from "./data";
+import { getOperatorRequests, OPERATOR_REQUEST_PAGE_SIZE, REQUEST_VIEWS, REQUEST_VIEW_KEYS, type RequestView } from "./data";
 
 const requestStatus: Record<string, { label: string; tone: Tone }> = {
   requested: { label: "Awaiting quote", tone: "amber" },
@@ -16,19 +16,29 @@ const requestStatus: Record<string, { label: string; tone: Tone }> = {
 };
 
 export async function ServiceRequestsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const page = pageParam((await searchParams).page);
-  const { rows, totalCount } = await getOperatorRequests(page);
-  const totalPages = Math.max(1, Math.ceil(totalCount / OPERATOR_REQUEST_PAGE_SIZE));
-  const awaiting = rows.filter(row => row.request.status === "requested").length;
+  const params = await searchParams;
+  const page = pageParam(params.page);
+  const asked = typeof params.view === "string" ? params.view : "";
+  const explicit = (REQUEST_VIEW_KEYS as string[]).includes(asked) ? asked as RequestView : null;
+  let view: RequestView = explicit ?? "quote";
+  let { rows, counts } = await getOperatorRequests(view, page);
+  // With nothing to quote, open on the quotes that are out with customers instead of an empty list.
+  if (!explicit && !counts.quote && counts.customer) {
+    view = "customer";
+    ({ rows, counts } = await getOperatorRequests(view, page));
+  }
+  const totalPages = Math.max(1, Math.ceil(counts[view] / OPERATOR_REQUEST_PAGE_SIZE));
+  const base = "/dashboard/platform/service-requests";
   return (
     <PlatformPage breadcrumbs={[{ type: "link", label: "Portfolio", href: "/platform/portfolio" }, { type: "page", label: "Quote requests" }]}>
       <PageHeader
         icon={FileSignature}
         title="Quote requests"
-        meta={<><span className="tabular-nums">{totalCount} requests</span>{awaiting ? <TitleStatus tone="amber" label={`${awaiting} awaiting quote on this page`} /> : null}</>}
-        actions={<ListPager label="Quote request pages" page={page} totalPages={totalPages} hrefFor={next => listHref("/dashboard/platform/service-requests", { page: next })} />}
+        meta={counts.quote ? <TitleStatus tone="amber" label={`${counts.quote} to quote`} /> : <span>Nothing waiting for a quote</span>}
+        actions={totalPages > 1 ? <ListPager label="Quote request pages" page={page} totalPages={totalPages} hrefFor={next => listHref(base, { view, page: next })} /> : undefined}
       />
-      {!rows.length && <EmptyState icon={FileSignature} title="No quote requests" />}
+      <SegmentTabs label="Quote request status" tabs={REQUEST_VIEW_KEYS.map(key => ({ key, label: REQUEST_VIEWS[key].label, href: listHref(base, { view: key }), active: key === view, count: counts[key] }))} />
+      {!rows.length && <EmptyState icon={FileSignature} title={REQUEST_VIEWS[view].empty} />}
       <ul className="grid gap-4">
         {rows.map(({ request, customerName, customerEmail, customerPhone }) => {
           const depositPaid = request.depositStatus === "settled";
@@ -57,7 +67,7 @@ export async function ServiceRequestsPage({ searchParams }: { searchParams: Prom
                   </dl>
                   <div>
                     <h3 className="text-xs font-medium text-muted-foreground">Scope</h3>
-                    <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6">{request.scope}</p>
+                    <p className={`mt-1 whitespace-pre-wrap break-words text-sm leading-6 ${open ? "" : "line-clamp-3"}`}>{request.scope}</p>
                   </div>
                   {!open && request.acceptedSnapshot && (
                     <div className="rounded-[6px] border p-3">
@@ -67,16 +77,16 @@ export async function ServiceRequestsPage({ searchParams }: { searchParams: Prom
                     </div>
                   )}
                   {request.status === "booked" && request.projectId && (
-                    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 rounded-[6px] border border-emerald-600/20 bg-emerald-500/5 p-3 text-sm">
+                    <div className="grid min-w-0 gap-2 rounded-[6px] border border-emerald-600/20 bg-emerald-500/5 p-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-x-4">
                       {request.depositStatus === "reversed"
-                        ? <p className="min-w-0 flex-1">Deposit refunded. Project <strong>{request.reference}</strong> was booked from this request; review whether the job is still going ahead before work starts.</p>
-                        : <p className="min-w-0 flex-1">Deposit paid. The job is booked as project <strong>{request.reference}</strong> with a won opportunity, and the customer can follow it in their portal.</p>}
+                        ? <p className="min-w-0">Deposit refunded. Project <strong>{request.reference}</strong> was booked from this request; review whether the job is still going ahead before work starts.</p>
+                        : <p className="min-w-0">Deposit paid. The job is booked as project <strong>{request.reference}</strong> with a won opportunity, and the customer can follow it in their portal.</p>}
                       <Link className="font-medium underline underline-offset-4" href={`/dashboard/platform/projects/${encodeURIComponent(request.projectId)}`}>Open project</Link>
                       <Link className="font-medium underline underline-offset-4" href="/dashboard/platform/pipeline">Pipeline</Link>
                     </div>
                   )}
                   {depositPaid
-                    ? <p className="text-sm text-muted-foreground">Deposit received online. To cancel, refund it first from the project's Billing tab (Reverse payment).</p>
+                    ? <p className="text-sm text-muted-foreground">Deposit received online. To cancel, refund it first from the project&apos;s Billing tab (Reverse payment).</p>
                     : request.status !== "cancelled" && <CancelRequestForm key={`cancel:${request.version}`} request={request} />}
                 </article>
                 {open && (
