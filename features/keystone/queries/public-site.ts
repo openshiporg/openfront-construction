@@ -1,3 +1,5 @@
+import type { KeystoneContext } from "@keystone-6/core/types";
+import { sweepOpenRequestPayments } from "../mutations/payments";
 import { getTrustedPublicSiteKey } from "../domain/public-site";
 import { queryOne, type KeystoneContextLike, type KeystoneQueryRecord } from "../domain/tenancy";
 
@@ -83,6 +85,8 @@ function serviceProjection(record: PublicRecord) {
 }
 
 export async function publicConstructionSite(_root: unknown, _args: unknown, context: PublicQueryContext) {
+  // Storefront home and every customer page read this: settle closed-tab deposits (throttled, non-blocking).
+  sweepOpenRequestPayments(context as unknown as KeystoneContext);
   const site = await publishedSite(context);
   if (!site?.id || !site.company?.id) return null;
   const [services, projects] = await Promise.all([

@@ -9,6 +9,7 @@ import {
 } from "../domain/payment-settlement";
 import { allocateProviderSettlement } from "./workflows";
 import { bookPaidRequest } from "./request-booking";
+import { sendDepositConfirmationOnce } from "../lib/deposit-email";
 
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 const PROVIDER_QUERY = "id code isInstalled company { id } credentials createPaymentFunction capturePaymentFunction refundPaymentFunction getPaymentStatusFunction generatePaymentLinkFunction handleWebhookFunction";
@@ -142,7 +143,11 @@ export async function settlePayment(context: KeystoneContext, paymentId: string)
       }),
   }, claimId);
   // A paid quote deposit books the job: won opportunity + project + owner portal.
-  if (!claimId) await bookPaidRequest(context, payment.id);
+  // Then the customer's receipt, once per request, whichever path got here first.
+  if (!claimId) {
+    await bookPaidRequest(context, payment.id);
+    await sendDepositConfirmationOnce(context, payment.id);
+  }
   return "settled";
 }
 
@@ -310,4 +315,22 @@ export async function reconcileOpenRequestPayments(context: KeystoneContext, req
   await Promise.all(open.map((payment: { id: string }) => settlePayment(context, payment.id).catch((error: Error) => {
     console.warn(`[payments] open deposit ${payment.id} not reconciled: ${error.message}`);
   })));
+}
+
+let lastSweepAt = 0;
+/** Any public or customer page view settles deposits Stripe already took (closed-tab payments), at most once a
+ *  minute per server and never blocking the page. Checkout sessions live 24 hours, so only those are asked about. */
+export function sweepOpenRequestPayments(context: KeystoneContext): void {
+  const now = Date.now();
+  if (now - lastSweepAt < 60_000) return;
+  lastSweepAt = now;
+  void (async () => {
+    const open = await context.sudo().prisma.payment.findMany({
+      where: { status: { in: ["pending", "authorized"] }, reference: { startsWith: "cs_" }, idempotencyKey: { startsWith: "construction-request:" }, createdAt: { gte: new Date(now - 25 * 3600_000) } },
+      select: { id: true }, orderBy: { createdAt: "desc" }, take: 20,
+    });
+    for (const payment of open) {
+      await settlePayment(context, payment.id).catch((error: Error) => console.warn(`[payments] sweep ${payment.id}: ${error.message}`));
+    }
+  })().catch((error: Error) => console.warn(`[payments] sweep failed: ${error.message}`));
 }
