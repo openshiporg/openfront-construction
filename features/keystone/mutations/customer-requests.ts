@@ -68,7 +68,7 @@ function customerRequestScope(context: KeystoneContext, operator: boolean, statu
   const wanted = (statuses ?? []).filter(status => REQUEST_STATUSES.includes(status));
   const status = wanted.length ? { status: { in: wanted } } : {};
   return operator
-    ? { ...status, company: { status: "active", memberships: { some: { userId: String(actorId), status: "active", role: { canManagePreconstruction: true } } } } }
+    ? { ...status, isTestRecord: false, company: { status: "active", memberships: { some: { userId: String(actorId), status: "active", role: { canManagePreconstruction: true } } } } }
     : { ...status, customerId: String(actorId) };
 }
 

@@ -32,7 +32,7 @@ export async function PipelinePage({ searchParams }: { searchParams: Promise<Rec
   const view = views.find(entry => entry.value === params.view) ?? views[0];
   const page = pageParam(params.page);
   const requestPage = pageParam(params.requestPage);
-  const stageCountFields = activeStages.map(stage => `${stage}: constructionOpportunitiesCount(where: { stage: { equals: ${stage} } })`).join("\n");
+  const stageCountFields = activeStages.map(stage => `${stage}: constructionOpportunitiesCount(where: { stage: { equals: ${stage} }, isTestRecord: { equals: false } })`).join("\n");
   const response = await keystoneClient<{
     constructionOpportunities: Opportunity[];
     opportunityCount: number;
@@ -42,19 +42,19 @@ export async function PipelinePage({ searchParams }: { searchParams: Promise<Rec
     leadCount: number;
   } & Record<string, number>>(`
     query ConstructionPipeline($stages: [ConstructionOpportunityStageType!], $take: Int!, $skip: Int!, $requestSkip: Int!) {
-      constructionOpportunities(where: { stage: { in: $stages } }, take: $take, skip: $skip, orderBy: [{ nextActionAt: asc }, { updatedAt: desc }, { id: asc }]) {
+      constructionOpportunities(where: { stage: { in: $stages }, isTestRecord: { equals: false } }, take: $take, skip: $skip, orderBy: [{ nextActionAt: asc }, { updatedAt: desc }, { id: asc }]) {
         id number name organization stage estimatedValueMinor currencyCode probabilityBps targetBidDate nextActionAt owner { name }
       }
-      opportunityCount: constructionOpportunitiesCount(where: { stage: { in: $stages } })
+      opportunityCount: constructionOpportunitiesCount(where: { stage: { in: $stages }, isTestRecord: { equals: false } })
       ${stageCountFields}
-      intakeSubmissions(take: $take, skip: $requestSkip, orderBy: [{ submittedAt: desc }, { id: asc }]) {
+      intakeSubmissions(where: { isTestRecord: { equals: false } }, take: $take, skip: $requestSkip, orderBy: [{ submittedAt: desc }, { id: asc }]) {
         id publicReference kind contactName organization projectName status submittedAt
       }
-      intakeCount: intakeSubmissionsCount
-      constructionLeads(where: { status: { in: [new, qualified, nurturing] } }, take: 25, orderBy: [{ nextActionAt: asc }, { updatedAt: desc }]) {
+      intakeCount: intakeSubmissionsCount(where: { isTestRecord: { equals: false } })
+      constructionLeads(where: { status: { in: [new, qualified, nurturing] }, isTestRecord: { equals: false } }, take: 25, orderBy: [{ nextActionAt: asc }, { updatedAt: desc }]) {
         id name organization email status source nextActionAt
       }
-      leadCount: constructionLeadsCount(where: { status: { in: [new, qualified, nurturing] } })
+      leadCount: constructionLeadsCount(where: { status: { in: [new, qualified, nurturing] }, isTestRecord: { equals: false } })
     }
   `, { stages: [...view.stages], take: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE, requestSkip: (requestPage - 1) * PAGE_SIZE });
   if (!response.success) throw new Error(response.error);

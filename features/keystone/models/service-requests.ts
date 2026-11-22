@@ -1,6 +1,6 @@
 import { list } from "@keystone-6/core";
 import { denyAll } from "@keystone-6/core/access";
-import { bigInt, integer, json, relationship, select, text, timestamp } from "@keystone-6/core/fields";
+import { bigInt, checkbox, integer, json, relationship, select, text, timestamp } from "@keystone-6/core/fields";
 import { isHumanSession } from "../access";
 import { readOnlyRelationshipMany } from "./fields";
 import { trackingFields } from "./trackingFields";
@@ -21,6 +21,8 @@ export const ServiceRequest = list({
   },
   ui: { listView: { initialColumns: ["reference", "serviceTitle", "status", "quoteMinor"] } },
   fields: {
+    // Check-run records: kept for the audit trail, hidden from staff lists, visible under All records. Set only by markConstructionTestRecords.
+    isTestRecord: checkbox({ defaultValue: false, access: { create: denyAll, update: denyAll }, graphql: { omit: { create: true, update: true } } }),
     reference: text({ isIndexed: "unique" }),
     requestKey: text({ isIndexed: "unique", access: { read: denyAll } }),
     requestDigest: text({ access: { read: denyAll } }),

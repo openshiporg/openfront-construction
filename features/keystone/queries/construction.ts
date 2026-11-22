@@ -255,7 +255,8 @@ export async function constructionPortfolio(
   const page = Math.max(1, Math.floor(Number(args?.page) || 1));
   const externalOnly = !hasInternalPortfolio && externalProjectIds.length > 0 && Boolean(context.sudo);
   const projectApi = externalOnly ? context.sudo!().query.Project : context.query.Project;
-  const projectWhere = externalOnly ? { AND: [{ id: { in: externalProjectIds } }, searchFilter] } : searchFilter;
+  // Check-run projects stay out of the staff portfolio (Administration > All records still lists them); a portal user still sees their own.
+  const projectWhere = externalOnly ? { AND: [{ id: { in: externalProjectIds } }, searchFilter] } : { AND: [{ isTestRecord: { equals: false } }, searchFilter] };
   const [companies, records, totalCount] = await Promise.all([
     hasPermission(session, "canReadCompanies") || hasPermission(session, "canManageCompanies")
       ? context.query.Company.findMany({

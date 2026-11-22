@@ -103,6 +103,8 @@ export const IntakeSubmission = list({
   graphql: { omit: { create: true, update: true, delete: true } },
   ui: { hideCreate: true, hideDelete: true, listView: { initialColumns: ["publicReference", "kind", "contactName", "organization", "status", "submittedAt"] } },
   fields: {
+    // Check-run records: kept for the audit trail, hidden from staff lists, visible under All records. Set only by markConstructionTestRecords.
+    isTestRecord: checkbox({ defaultValue: false, access: { create: denyAll, update: denyAll }, graphql: { omit: { create: true, update: true } } }),
     submissionKey: text({ isIndexed: "unique", validation: { isRequired: true }, access: immutable }),
     deduplicationKey: text({ isIndexed: "unique", validation: { isRequired: true }, access: immutable }),
     publicReference: text({ isIndexed: "unique", validation: { isRequired: true, length: { min: 10, max: 80 } }, access: immutable }),

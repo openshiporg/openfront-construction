@@ -284,6 +284,7 @@ model User {
 
 model ServiceRequest {
   id               String                   @id @default(cuid())
+  isTestRecord     Boolean                  @default(false)
   reference        String                   @unique @default("")
   requestKey       String                   @unique @default("")
   requestDigest    String                   @default("")
@@ -634,6 +635,7 @@ model CompanyMembership {
 
 model Project {
   id                          String                    @id @default(cuid())
+  isTestRecord                Boolean                   @default(false)
   projectKey                  String                    @unique @default("")
   projectNumber               String                    @default("")
   name                        String                    @default("")
@@ -931,6 +933,7 @@ model BudgetCode {
 
 model ConstructionLead {
   id                         String                     @id @default(cuid())
+  isTestRecord               Boolean                    @default(false)
   leadKey                    String                     @unique @default("")
   name                       String                     @default("")
   organization               String                     @default("")
@@ -961,6 +964,7 @@ model ConstructionLead {
 
 model ConstructionOpportunity {
   id                                String                           @id @default(cuid())
+  isTestRecord                      Boolean                          @default(false)
   number                            String                           @default("")
   name                              String                           @default("")
   organization                      String                           @default("")
@@ -1092,6 +1096,7 @@ model PublicProject {
 
 model IntakeSubmission {
   id                    String                     @id @default(cuid())
+  isTestRecord          Boolean                    @default(false)
   submissionKey         String                     @unique @default("")
   deduplicationKey      String                     @unique @default("")
   publicReference       String                     @unique @default("")

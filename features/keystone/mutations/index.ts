@@ -54,6 +54,7 @@ import {
 } from "./construction";
 import { lifecycleResolvers } from "./lifecycle";
 import { constructionStoreSettings, updateConstructionStoreSettings } from "./store-settings";
+import { markConstructionTestRecords } from "./test-records";
 import { commandConstructionRequest, constructionCustomerRequest, constructionCustomerRequestCount, constructionCustomerRequests, constructionOperatorRequests, registerConstructionCustomer } from "./customer-requests";
 import { installStripePaymentProvider, setPaymentProviderInstalled, constructionPayableClaims, checkPaymentStatus, createClaimPayment, createClaimPaymentLink, createCustomerPayment, reconcileCustomerPayment } from "./payments";
 import { onboardConstructionWorkspace } from "./onboarding";
@@ -1168,6 +1169,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         recordAgentActionOutcome(input: AgentActionOutcomeInput!): AgentAction! @deprecated(reason: "Records a non-authoritative observation only; returns the unchanged action. Use recordAgentActionObservation for its explicit receipt. Execute through the authorized domain transition.")
         submitPublicIntake(input: PublicIntakeInput!): PublicIntakeResult!
         updateConstructionStoreSettings(input: JSON!): ConstructionCommandResult!
+        markConstructionTestRecords(input: JSON!): String!
         registerConstructionCustomer(name: String!, email: String!, password: String!): CustomerRegistrationResult!
         commandConstructionRequest(input: ServiceRequestInput!): ConstructionCustomerRequest!
         createCustomerPayment(requestId: ID!): CustomerPaymentResult!
@@ -1221,6 +1223,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
       Mutation: {
         ...lifecycleResolvers,
         updateConstructionStoreSettings,
+        markConstructionTestRecords,
         commandConstructionRequest,
         registerConstructionCustomer,
         createCustomerPayment,

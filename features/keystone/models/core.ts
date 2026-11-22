@@ -249,6 +249,8 @@ export const Project = list({
   },
   ui: { listView: { initialColumns: ["projectNumber", "name", "company", "status"] } },
   fields: {
+    // Check-run records: kept for the audit trail, hidden from staff lists, visible under All records. Set only by markConstructionTestRecords.
+    isTestRecord: checkbox({ defaultValue: false, access: { create: denyAll, update: denyAll }, graphql: { omit: { create: true, update: true } } }),
     projectKey: text({
       isIndexed: "unique",
       access: { create: denyAll, update: denyAll },

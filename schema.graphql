@@ -411,6 +411,7 @@ input UserRelateToOneForCreateInput {
 
 type ServiceRequest {
   id: ID!
+  isTestRecord: Boolean
   reference: String
   requestKey: String
   requestDigest: String
@@ -460,6 +461,7 @@ input ServiceRequestWhereInput {
   OR: [ServiceRequestWhereInput!]
   NOT: [ServiceRequestWhereInput!]
   id: IDFilter
+  isTestRecord: BooleanFilter
   reference: StringFilter
   requestKey: StringFilter
   requestDigest: StringFilter
@@ -517,6 +519,7 @@ input BigIntFilter {
 
 input ServiceRequestOrderByInput {
   id: OrderDirection
+  isTestRecord: OrderDirection
   reference: OrderDirection
   requestKey: OrderDirection
   requestDigest: OrderDirection
@@ -1900,6 +1903,7 @@ input CompanyMembershipCreateInput {
 
 type Project {
   id: ID!
+  isTestRecord: Boolean
   projectKey: String
   projectNumber: String
   name: String
@@ -2080,6 +2084,7 @@ input ProjectWhereInput {
   OR: [ProjectWhereInput!]
   NOT: [ProjectWhereInput!]
   id: IDFilter
+  isTestRecord: BooleanFilter
   projectKey: StringFilter
   projectNumber: StringFilter
   name: StringFilter
@@ -2549,6 +2554,7 @@ input MaterialReceiptLineManyRelationFilter {
 
 input ProjectOrderByInput {
   id: OrderDirection
+  isTestRecord: OrderDirection
   projectKey: OrderDirection
   projectNumber: OrderDirection
   name: OrderDirection
@@ -4230,6 +4236,7 @@ input CostCodeRelateToOneForCreateInput {
 
 type ConstructionLead {
   id: ID!
+  isTestRecord: Boolean
   leadKey: String
   name: String
   organization: String
@@ -4276,6 +4283,7 @@ input ConstructionLeadWhereInput {
   OR: [ConstructionLeadWhereInput!]
   NOT: [ConstructionLeadWhereInput!]
   id: IDFilter
+  isTestRecord: BooleanFilter
   leadKey: StringFilter
   name: StringFilter
   organization: StringFilter
@@ -4310,6 +4318,7 @@ input ConstructionLeadStatusTypeNullableFilter {
 
 input ConstructionLeadOrderByInput {
   id: OrderDirection
+  isTestRecord: OrderDirection
   leadKey: OrderDirection
   name: OrderDirection
   organization: OrderDirection
@@ -4368,6 +4377,7 @@ input ConstructionLeadCreateInput {
 
 type ConstructionOpportunity {
   id: ID!
+  isTestRecord: Boolean
   number: String
   name: String
   organization: String
@@ -4411,6 +4421,7 @@ input ConstructionOpportunityWhereInput {
   OR: [ConstructionOpportunityWhereInput!]
   NOT: [ConstructionOpportunityWhereInput!]
   id: IDFilter
+  isTestRecord: BooleanFilter
   number: StringFilter
   name: StringFilter
   organization: StringFilter
@@ -4454,6 +4465,7 @@ input BigIntNullableFilter {
 
 input ConstructionOpportunityOrderByInput {
   id: OrderDirection
+  isTestRecord: OrderDirection
   number: OrderDirection
   name: OrderDirection
   organization: OrderDirection
@@ -4787,6 +4799,7 @@ input PublicProjectOrderByInput {
 
 type IntakeSubmission {
   id: ID!
+  isTestRecord: Boolean
   submissionKey: String
   deduplicationKey: String
   publicReference: String
@@ -4849,6 +4862,7 @@ input IntakeSubmissionWhereInput {
   OR: [IntakeSubmissionWhereInput!]
   NOT: [IntakeSubmissionWhereInput!]
   id: IDFilter
+  isTestRecord: BooleanFilter
   submissionKey: StringFilter
   deduplicationKey: StringFilter
   publicReference: StringFilter
@@ -4903,6 +4917,7 @@ input IntakeSubmissionStatusTypeNullableFilter {
 
 input IntakeSubmissionOrderByInput {
   id: OrderDirection
+  isTestRecord: OrderDirection
   submissionKey: OrderDirection
   deduplicationKey: OrderDirection
   publicReference: OrderDirection
@@ -14711,6 +14726,7 @@ type Mutation {
   createEstimateWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   addEstimateLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   addContractLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
+  addChangeOrderLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   reviseEstimate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   registerSpecificationSection(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   registerInspectionTemplate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
@@ -14758,6 +14774,7 @@ type Mutation {
   recordAgentActionOutcome(input: AgentActionOutcomeInput!): AgentAction! @deprecated(reason: "Records a non-authoritative observation only; returns the unchanged action. Use recordAgentActionObservation for its explicit receipt. Execute through the authorized domain transition.")
   submitPublicIntake(input: PublicIntakeInput!): PublicIntakeResult!
   updateConstructionStoreSettings(input: JSON!): ConstructionCommandResult!
+  markConstructionTestRecords(input: JSON!): String!
   registerConstructionCustomer(name: String!, email: String!, password: String!): CustomerRegistrationResult!
   commandConstructionRequest(input: ServiceRequestInput!): ConstructionCustomerRequest!
   createCustomerPayment(requestId: ID!): CustomerPaymentResult!

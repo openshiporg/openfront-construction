@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import { list } from "@keystone-6/core";
 import { denyAll } from "@keystone-6/core/access";
-import { integer, relationship, select, text, timestamp } from "@keystone-6/core/fields";
+import { checkbox, integer, relationship, select, text, timestamp } from "@keystone-6/core/fields";
 
 import { companyModelAccess } from "../access";
 import { getConnectedId, queryById, type KeystoneContextLike } from "../domain/tenancy";
@@ -68,6 +68,8 @@ export const ConstructionLead = list({
   },
   ui: { listView: { initialColumns: ["name", "organization", "status", "owner", "nextActionAt"] } },
   fields: {
+    // Check-run records: kept for the audit trail, hidden from staff lists, visible under All records. Set only by markConstructionTestRecords.
+    isTestRecord: checkbox({ defaultValue: false, access: { create: denyAll, update: denyAll }, graphql: { omit: { create: true, update: true } } }),
     leadKey: text({ isIndexed: "unique", access: { create: denyAll, update: denyAll }, ui: { createView: { fieldMode: "hidden" }, itemView: { fieldMode: "read" } } }),
     name: text({ validation: { isRequired: true, length: { min: 1, max: 240 } } }),
     organization: text({ validation: { length: { max: 240 } } }),
@@ -113,6 +115,8 @@ export const ConstructionOpportunity = list({
   hooks: { validate: { create: validateOpportunityTenant, update: validateOpportunityTenant } },
   ui: { listView: { initialColumns: ["number", "name", "stage", "estimatedValueMinor", "targetBidDate", "owner"] } },
   fields: {
+    // Check-run records: kept for the audit trail, hidden from staff lists, visible under All records. Set only by markConstructionTestRecords.
+    isTestRecord: checkbox({ defaultValue: false, access: { create: denyAll, update: denyAll }, graphql: { omit: { create: true, update: true } } }),
     number: text({ validation: { isRequired: true, length: { min: 1, max: 80 } } }),
     name: text({ validation: { isRequired: true, length: { min: 1, max: 240 } } }),
     organization: text({ validation: { length: { max: 240 } } }),
