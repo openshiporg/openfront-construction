@@ -256,7 +256,7 @@ export async function constructionOperatorRequests(_root: unknown, { skip = 0, t
 /** The store's deposit percentage for quotes. 30% when the store has not set one. */
 async function depositPercentFor(tx: KeystoneContext, companyId: string | null): Promise<number> {
   if (!companyId) return 30;
-  const site = await tx.sudo().prisma.publicSiteProfile.findFirst({ where: { companyId }, select: { depositPercent: true } });
+  const site = await tx.sudo().prisma.publicSiteProfile.findFirst({ where: { company: { id: companyId } }, select: { depositPercent: true } });
   const percent = Number(site?.depositPercent ?? 30);
   return Number.isInteger(percent) && percent >= 1 && percent <= 100 ? percent : 30;
 }
