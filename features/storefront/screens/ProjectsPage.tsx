@@ -23,7 +23,7 @@ export async function ProjectsPage({ searchParams }: { searchParams?: Promise<Re
           <div className="sf-wrap">
             {markets.length > 1 && (
               <nav aria-label="Filter by market" className="sf-segments">
-                <Track scroll>
+                <Track>
                   <Pill href="/projects" variant="quiet" size="sm" current={!market}>All</Pill>
                   {markets.map(entry => <Pill key={entry} href={`/projects?market=${encodeURIComponent(entry)}`} variant="quiet" size="sm" current={entry === market}>{entry}</Pill>)}
                 </Track>

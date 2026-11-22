@@ -623,3 +623,16 @@ a.sf-list__item:hover { background: var(--sf-paper-2); }
 .sf-fabout__text { margin: 0; font-size: 1.05rem; font-weight: 300; line-height: 1.6; color: var(--sf-ink-2); }
 .sf-fband__call { display: grid; gap: 1.5rem; justify-items: start; padding-block: clamp(3rem, 7vw, 5rem); max-width: 40rem; }
 .sf-fband__call h2 { margin: 0; font-weight: 300; font-size: clamp(1.6rem, 1.6vw + 1.1rem, 2.2rem); line-height: 1.2; text-wrap: balance; }
+
+/* Portal project sections: every section visible in a two-column grid on a phone, one row from tablet up. */
+.sf-toolgrid .sf-track { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; width: 100%; border: 1px solid var(--sf-rule-2); }
+.sf-toolgrid .sf-pill { min-height: 2.75rem; justify-content: flex-start; border-radius: 0; font-size: 0.95rem; text-decoration: none; }
+.sf-toolgrid .sf-pill[aria-current="page"] { background: color-mix(in oklch, var(--sf-brass) 16%, transparent); color: var(--sf-ink); }
+@media (min-width: 48rem) {
+  .sf-toolgrid .sf-track { display: inline-flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; border: 0; }
+  .sf-toolgrid .sf-pill { border-radius: 4px; }
+}
+
+/* Children of a stack may never widen it: one long row was pushing the portal project page to twice the phone's width. */
+.sf-stack { grid-template-columns: minmax(0, 1fr); }
+.sf-stack > * { min-width: 0; }

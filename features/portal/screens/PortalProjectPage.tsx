@@ -58,8 +58,8 @@ export async function PortalProjectPage({ projectId, tool = "overview", paymentI
       </header>
       <section className="sf-section">
         <div className="sf-wrap sf-stack sf-stack--lg">
-          <nav aria-label="Portal project tools">
-            <Track scroll>
+          <nav aria-label="Portal project tools" className="sf-toolgrid">
+            <Track>
               {portalTools.map(entry => <Pill key={entry.slug} href={`/portal/projects/${encodeURIComponent(projectId)}/${entry.slug}`} variant="quiet" size="sm" current={entry.slug === selectedTool}>{entry.label}</Pill>)}
             </Track>
           </nav>
