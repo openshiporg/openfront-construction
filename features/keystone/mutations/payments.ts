@@ -213,8 +213,13 @@ export async function handlePaymentProviderWebhook(context: KeystoneContext, pro
   const sudo = context.sudo();
   const provider = await sudo.query.PaymentProvider.findOne({ where: { id: providerId }, query: PROVIDER_QUERY });
   if (!provider?.isInstalled || !provider.company?.id) throw Object.assign(new Error("Provider unavailable"), { status: 404 });
-  const verified: any = await handleWebhook(provider, { event: undefined, rawBody, headers });
-  if (!verified?.isValid) throw Object.assign(new Error("Invalid signature"), { status: 400 });
+  // Settlement never depends on webhooks (open sessions are reconciled on read), and the Stripe account is shared
+  // with other sites: an event this server cannot verify is acknowledged with 200 and never acted on.
+  const verified: any = await handleWebhook(provider, { event: undefined, rawBody, headers }).catch((error: unknown) => {
+    console.warn("[payment-webhook] unverified event ignored:", (error as Error)?.message);
+    return null;
+  });
+  if (!verified?.isValid) return "ignored";
   const eventId = String(verified.event?.id || ""); const type = String(verified.type || "");
   if (!eventId) throw Object.assign(new Error("Event id missing"), { status: 400 });
   const settle = WEBHOOK_SETTLE.has(type); const fail = WEBHOOK_FAIL.has(type);
