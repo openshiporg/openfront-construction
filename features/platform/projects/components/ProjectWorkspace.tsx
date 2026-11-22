@@ -122,8 +122,9 @@ function DueDate({ value, status, timeZone }: { value: string | null; status: st
   return <span className={`inline-flex items-center gap-1 tabular-nums ${late ? "font-medium text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}><CalendarDays className="size-3.5" aria-hidden="true" />{formatDate(value)}</span>;
 }
 
-export function ProjectWorkspace({ scheduleTimeline, payApplications, lineSheets, resourceRegister, resourceUnavailable, workspace, options, bidComparison = [], procurementRegister, materialReceiptRegister, procurementCommitmentRegister, procurementBidInvitationRegister, procurementLienWaiverRegister, inspectionRegister, incidentRegister, observationRegister, submittalRegister, rfiRegister, registerNavigation, searchParams = {} }: {
+export function ProjectWorkspace({ canSeeRecords = false, scheduleTimeline, payApplications, lineSheets, resourceRegister, resourceUnavailable, workspace, options, bidComparison = [], procurementRegister, materialReceiptRegister, procurementCommitmentRegister, procurementBidInvitationRegister, procurementLienWaiverRegister, inspectionRegister, incidentRegister, observationRegister, submittalRegister, rfiRegister, registerNavigation, searchParams = {} }: {
   lineSheets?: LineSheet[];
+  canSeeRecords?: boolean;
   scheduleTimeline?: ScheduleTimelineData | null;
   payApplications?: PayApplication[];
   resourceRegister?: ResourceLogRegisterPage;
@@ -182,7 +183,7 @@ export function ProjectWorkspace({ scheduleTimeline, payApplications, lineSheets
         meta={<>{dates ? <span className="tabular-nums">{dates}</span> : null}<span className="tabular-nums">As of <ViewerTime value={workspace.generatedAt} style="datetime" /></span></>}
         actions={<>
           {tool === "reports" && internal ? <ReportExportButton projectName={project.name} generatedAt={workspace.generatedAt} currencyCode={project.currencyCode} items={items} groups={workspace.queueGroups} /> : null}
-          {internal ? <Track><PillLink href="/dashboard/projects" size="sm"><Database />Data</PillLink></Track> : null}
+          {internal && canSeeRecords ? <Track><PillLink href="/dashboard/projects" size="sm"><Database />Data</PillLink></Track> : null}
         </>}
       />
 

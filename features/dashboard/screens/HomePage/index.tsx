@@ -9,7 +9,9 @@ import { PlusIcon, Database } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PageContainer } from '../../components/PageContainer'
+import { redirect } from 'next/navigation'
 import { getAdminMetaAction, getListCounts } from '../../actions'
+import { getPlatformPermissions } from '@/features/platform/lib/platform-access'
 import { cn } from '@/lib/utils'
 
 interface ListCardProps {
@@ -75,6 +77,8 @@ function EmptyState() {
 }
 
 export async function HomePage() {
+  // The record-count grid is an administrator's view; everyone else starts on their portfolio.
+  if (!(await getPlatformPermissions()).includes('canManageSettings')) redirect('/dashboard/platform/portfolio')
   // Fetch admin meta server-side
   const adminMetaResponse = await getAdminMetaAction()
   

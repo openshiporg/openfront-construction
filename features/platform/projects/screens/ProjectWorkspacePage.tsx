@@ -1,3 +1,4 @@
+import { getPlatformPermissions } from "@/features/platform/lib/platform-access";
 import { notFound } from "next/navigation";
 
 import { ProjectWorkspace } from "../components/ProjectWorkspace";
@@ -228,5 +229,6 @@ export async function ProjectWorkspacePage({
     tool === "schedule" && internalView ? getConstructionScheduleTimeline(projectId) : Promise.resolve(null),
     tool === "billing" && internalView ? getConstructionPayApplications(projectId) : Promise.resolve(undefined),
   ]);
-  return <ProjectWorkspace scheduleTimeline={scheduleTimeline} payApplications={payApplications} lineSheets={lineSheets} resourceRegister={resourceRegister} resourceUnavailable={resourceUnavailable} workspace={workspace} options={options} bidComparison={bidComparison} procurementRegister={procurementRegister} materialReceiptRegister={materialReceiptRegister} procurementCommitmentRegister={procurementCommitmentRegister} procurementBidInvitationRegister={procurementBidInvitationRegister} procurementLienWaiverRegister={procurementLienWaiverRegister} inspectionRegister={inspectionRegister} incidentRegister={incidentRegister} observationRegister={observationRegister} submittalRegister={submittalRegister} rfiRegister={rfiRegister} searchParams={searchParams} registerNavigation={{ rfiPage, rfiStatus, submittalPage, submittalStatus, inspectionPage, inspectionStatus, incidentPage, incidentStatus, observationPage, observationStatus }} />;
+  const canSeeRecords = (await getPlatformPermissions()).includes("canManageSettings");
+  return <ProjectWorkspace canSeeRecords={canSeeRecords} scheduleTimeline={scheduleTimeline} payApplications={payApplications} lineSheets={lineSheets} resourceRegister={resourceRegister} resourceUnavailable={resourceUnavailable} workspace={workspace} options={options} bidComparison={bidComparison} procurementRegister={procurementRegister} materialReceiptRegister={materialReceiptRegister} procurementCommitmentRegister={procurementCommitmentRegister} procurementBidInvitationRegister={procurementBidInvitationRegister} procurementLienWaiverRegister={procurementLienWaiverRegister} inspectionRegister={inspectionRegister} incidentRegister={incidentRegister} observationRegister={observationRegister} submittalRegister={submittalRegister} rfiRegister={rfiRegister} searchParams={searchParams} registerNavigation={{ rfiPage, rfiStatus, submittalPage, submittalStatus, inspectionPage, inspectionStatus, incidentPage, incidentStatus, observationPage, observationStatus }} />;
 }
