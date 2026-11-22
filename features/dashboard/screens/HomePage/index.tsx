@@ -50,7 +50,7 @@ function ListCard({ list, count, hideCreate = false }: ListCardProps) {
           <Button
             variant="outline" 
             size="icon"
-            className="h-7 w-7"
+            className="h-7 w-7 max-md:h-11 max-md:w-11"
             title={`Add ${list.singular?.toLowerCase() || 'item'}`}
           >
             <PlusIcon className="h-4 w-4" />

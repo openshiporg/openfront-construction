@@ -85,10 +85,11 @@ export function ProjectTools({ projectId, active, tools }: { projectId: string; 
   return (
     <>
     <ProjectToolMenu groups={groups.map(group => ({ title: group.title, items: group.items.map(entry => ({ title: entry.title, href: projectToolHref(projectId, entry.slug), current: entry.slug === active })) }))} />
-    <nav aria-label="Project tools" className="relative min-w-0 overflow-x-auto max-sm:hidden border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="flex w-max items-center gap-5">
+    <nav aria-label="Project tools" className="relative min-w-0 max-sm:hidden border-b border-border">
+      {/* Wraps rather than scrolls: every tool stays visible at any width. */}
+      <div className="flex flex-wrap items-center gap-x-5">
         {groups.map((group, index) => (
-          <div key={group.title} role="group" aria-label={group.title} className="flex items-center gap-5">
+          <div key={group.title} role="group" aria-label={group.title} className="flex flex-wrap items-center gap-x-5">
             {index > 0 ? <span aria-hidden="true" className="h-4 w-px bg-border" /> : null}
             {group.items.map(entry => {
               const current = entry.slug === active;

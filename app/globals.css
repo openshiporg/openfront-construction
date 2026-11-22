@@ -128,9 +128,6 @@
       min-width: 44px;
       min-height: 44px;
     }
-    :where(.construction-touch) :where(input:not([type="hidden"]), select, textarea) {
-      font-size: 16px;
-    }
   }
 }
 
@@ -144,5 +141,13 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Phones: every text field at 16px so iOS never zooms on focus. Unlayered on purpose,
+   so it outranks text-sm/text-xs utilities on inputs anywhere in the app. */
+@media (max-width: 767px) {
+  input:not([type="hidden"], [type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea {
+    font-size: 16px;
   }
 }
