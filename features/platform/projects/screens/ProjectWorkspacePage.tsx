@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ProjectWorkspace } from "../components/ProjectWorkspace";
-import { getConstructionContractSheets, getConstructionEstimateSheets, getConstructionResourceLogRegister } from "../data";
+import { getConstructionContractSheets, getConstructionEstimateSheets, getConstructionPayApplications, getConstructionScheduleTimeline, getConstructionResourceLogRegister } from "../data";
 import { getConstructionBidComparison, getConstructionInspectionRegister, getConstructionMaterialReceiptRegister, getConstructionProjectOptions, getConstructionProcurementRequestRegister, getConstructionProcurementCommitmentRegister, getConstructionProcurementBidInvitationRegister, getConstructionProcurementLienWaiverRegister, getConstructionProjectWorkspace, getConstructionRfiRegister, getConstructionSafetyIncidentRegister, getConstructionSafetyObservationRegister, getConstructionSubmittalRegister } from "../data";
 
 async function loadWorkspace(projectId: string, tool: string, queuePage: number) {
@@ -223,5 +223,10 @@ export async function ProjectWorkspacePage({
     : tool === "preconstruction" ? await getConstructionEstimateSheets(projectId)
     : tool === "contracts" ? await getConstructionContractSheets(projectId)
     : undefined;
-  return <ProjectWorkspace lineSheets={lineSheets} resourceRegister={resourceRegister} resourceUnavailable={resourceUnavailable} workspace={workspace} options={options} bidComparison={bidComparison} procurementRegister={procurementRegister} materialReceiptRegister={materialReceiptRegister} procurementCommitmentRegister={procurementCommitmentRegister} procurementBidInvitationRegister={procurementBidInvitationRegister} procurementLienWaiverRegister={procurementLienWaiverRegister} inspectionRegister={inspectionRegister} incidentRegister={incidentRegister} observationRegister={observationRegister} submittalRegister={submittalRegister} rfiRegister={rfiRegister} searchParams={searchParams} registerNavigation={{ rfiPage, rfiStatus, submittalPage, submittalStatus, inspectionPage, inspectionStatus, incidentPage, incidentStatus, observationPage, observationStatus }} />;
+  const internalView = workspace.audience === "internal";
+  const [scheduleTimeline, payApplications] = await Promise.all([
+    tool === "schedule" && internalView ? getConstructionScheduleTimeline(projectId) : Promise.resolve(null),
+    tool === "billing" && internalView ? getConstructionPayApplications(projectId) : Promise.resolve(undefined),
+  ]);
+  return <ProjectWorkspace scheduleTimeline={scheduleTimeline} payApplications={payApplications} lineSheets={lineSheets} resourceRegister={resourceRegister} resourceUnavailable={resourceUnavailable} workspace={workspace} options={options} bidComparison={bidComparison} procurementRegister={procurementRegister} materialReceiptRegister={materialReceiptRegister} procurementCommitmentRegister={procurementCommitmentRegister} procurementBidInvitationRegister={procurementBidInvitationRegister} procurementLienWaiverRegister={procurementLienWaiverRegister} inspectionRegister={inspectionRegister} incidentRegister={incidentRegister} observationRegister={observationRegister} submittalRegister={submittalRegister} rfiRegister={rfiRegister} searchParams={searchParams} registerNavigation={{ rfiPage, rfiStatus, submittalPage, submittalStatus, inspectionPage, inspectionStatus, incidentPage, incidentStatus, observationPage, observationStatus }} />;
 }

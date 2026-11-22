@@ -562,3 +562,61 @@ export async function getConstructionContractSheets(projectId: string): Promise<
     ...(response.data.commitments ?? []).map(row => sheet(row, row.commitmentType === "purchase_order" ? "Purchase order" : "Subcontract", "commitment", row.tradePartner?.name ?? "")),
   ];
 }
+
+export type TimelineTask = {
+  id: string; code: string; name: string; status: string; start: string | null; finish: string | null;
+  percentComplete: number; isMilestone: boolean; who: string;
+};
+export type ScheduleTimeline = { scheduleName: string; tasks: TimelineTask[]; moreTasks: number };
+
+/** Tasks of the project's schedules in date order, for the timeline. */
+export async function getConstructionScheduleTimeline(projectId: string): Promise<ScheduleTimeline | null> {
+  const response = await platformClient<{ scheduleTasks: SheetRow[]; scheduleTasksCount: number }>(`
+    query ScheduleTimeline($projectId: ID!) {
+      scheduleTasksCount(where: { project: { id: { equals: $projectId } } })
+      scheduleTasks(where: { project: { id: { equals: $projectId } } }, orderBy: [{ plannedStart: asc }, { taskCode: asc }], take: 120) {
+        id taskCode name status plannedStart plannedFinish actualStart actualFinish percentComplete isMilestone
+        schedule { name } responsiblePartner { name } assignedTo { name }
+      }
+    }
+  `, { projectId });
+  if (!response.success) return null;
+  const rows = response.data.scheduleTasks ?? [];
+  return {
+    scheduleName: rows[0]?.schedule?.name ?? "",
+    tasks: rows.map(row => ({
+      id: row.id, code: row.taskCode ?? "", name: row.name ?? "", status: row.status ?? "", start: row.actualStart ?? row.plannedStart ?? null,
+      finish: row.actualFinish ?? row.plannedFinish ?? null, percentComplete: Math.max(0, Math.min(100, Number(row.percentComplete ?? 0))),
+      isMilestone: Boolean(row.isMilestone), who: row.responsiblePartner?.name ?? row.assignedTo?.name ?? "",
+    })),
+    moreTasks: Math.max(0, Number(response.data.scheduleTasksCount ?? rows.length) - rows.length),
+  };
+}
+
+export type PayApplication = {
+  id: string; number: string; status: string; party: string; contract: string; periodEnd: string | null; dueAt: string | null; currencyCode: string;
+  completedMinor: string; retainageMinor: string; previousMinor: string; dueMinor: string; paidMinor: string; outgoing: boolean;
+};
+
+/** Progress claims (pay applications) with the figures an AIA G702 summary carries. */
+export async function getConstructionPayApplications(projectId: string): Promise<PayApplication[]> {
+  const response = await platformClient<{ progressClaims: SheetRow[] }>(`
+    query PayApplications($projectId: ID!) {
+      progressClaims(where: { project: { id: { equals: $projectId } } }, orderBy: [{ createdAt: desc }], take: 30) {
+        id claimNumber status periodEnd dueAt currencyCode workCompletedToDateMinor storedMaterialsMinor retainageMinor previousPaymentsMinor currentPaymentDueMinor
+        primeContract { number client { name } } commitment { number tradePartner { name } }
+        allocations(where: { payment: { status: { equals: settled } } }, take: 100) { amountMinor }
+      }
+    }
+  `, { projectId });
+  if (!response.success) return [];
+  const sum = (values: unknown[]) => values.reduce<bigint>((total, value) => { try { return total + BigInt(String(value ?? "0")); } catch { return total; } }, BigInt(0)).toString();
+  return (response.data.progressClaims ?? []).map(row => ({
+    id: row.id, number: row.claimNumber ?? "", status: row.status ?? "", outgoing: Boolean(row.commitment),
+    party: row.primeContract?.client?.name ?? row.commitment?.tradePartner?.name ?? "", contract: row.primeContract?.number ?? row.commitment?.number ?? "",
+    periodEnd: row.periodEnd ?? null, dueAt: row.dueAt ?? null, currencyCode: row.currencyCode || "USD",
+    completedMinor: sum([row.workCompletedToDateMinor, row.storedMaterialsMinor]), retainageMinor: String(row.retainageMinor ?? "0"),
+    previousMinor: String(row.previousPaymentsMinor ?? "0"), dueMinor: String(row.currentPaymentDueMinor ?? "0"),
+    paidMinor: sum((row.allocations ?? []).map((entry: SheetRow) => entry.amountMinor)),
+  }));
+}
