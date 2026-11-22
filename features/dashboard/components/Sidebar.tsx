@@ -92,7 +92,9 @@ export function Sidebar({ adminMeta, user, onOpenDialog }: SidebarProps) {
   )
 
   // Convert lists to sidebar links format
-  const modelLinks = visibleSidebarLists(listsArray as any[], user).map((list: any) => ({
+  // The raw record lists are an administrator's tool: everyone else works from the platform pages.
+  const canSeeRecords = Boolean(user?.platformPermissions?.includes('canManageSettings'))
+  const modelLinks = (canSeeRecords ? visibleSidebarLists(listsArray as any[], user) : []).map((list: any) => ({
     title: list.label,
     href: `/dashboard/${list.path}`
   }))
@@ -270,8 +272,8 @@ export function Sidebar({ adminMeta, user, onOpenDialog }: SidebarProps) {
         </SidebarGroup>
 
         {/* Models */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Models</SidebarGroupLabel>
+        {modelLinks.length > 0 && <SidebarGroup>
+          <SidebarGroupLabel>Administration</SidebarGroupLabel>
           <SidebarMenu className="group-has-[[data-collapsible=icon]]/sidebar-wrapper:hidden">
             <Collapsible
               asChild
@@ -282,7 +284,7 @@ export function Sidebar({ adminMeta, user, onOpenDialog }: SidebarProps) {
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton>
                     <Package className="h-4 w-4" />
-                    <span>Models</span>
+                    <span>All records</span>
                     <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
@@ -356,7 +358,7 @@ export function Sidebar({ adminMeta, user, onOpenDialog }: SidebarProps) {
               </SidebarMenuItem>
             </DropdownMenu>
           </SidebarMenu>
-        </SidebarGroup>
+        </SidebarGroup>}
       </SidebarContent>
       
       <SidebarFooter>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BriefcaseBusiness, Inbox, Plus, Target } from "lucide-react";
+import { BriefcaseBusiness, Inbox, Plus, Target, UserRound } from "lucide-react";
 
 import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 import { ListPager, listHref, pageParam } from "@/features/platform/projects/components/ListPager";
@@ -15,6 +15,7 @@ const views = [
 const PAGE_SIZE = 50;
 
 type Opportunity = { id: string; number: string; name: string; organization: string | null; stage: string; estimatedValueMinor: string; currencyCode: string; probabilityBps: number; targetBidDate: string | null; nextActionAt: string | null; owner: { name: string } | null };
+type Lead = { id: string; name: string; organization: string; email: string; status: string; source: string; nextActionAt: string | null };
 type IntakeSubmission = { id: string; publicReference: string; kind: string; contactName: string; organization: string | null; projectName: string | null; status: string; submittedAt: string };
 
 function isOverdue(item: Opportunity) {
@@ -37,6 +38,8 @@ export async function PipelinePage({ searchParams }: { searchParams: Promise<Rec
     opportunityCount: number;
     intakeSubmissions: IntakeSubmission[];
     intakeCount: number;
+    constructionLeads: Lead[];
+    leadCount: number;
   } & Record<string, number>>(`
     query ConstructionPipeline($stages: [ConstructionOpportunityStageType!], $take: Int!, $skip: Int!, $requestSkip: Int!) {
       constructionOpportunities(where: { stage: { in: $stages } }, take: $take, skip: $skip, orderBy: [{ nextActionAt: asc }, { updatedAt: desc }, { id: asc }]) {
@@ -48,10 +51,14 @@ export async function PipelinePage({ searchParams }: { searchParams: Promise<Rec
         id publicReference kind contactName organization projectName status submittedAt
       }
       intakeCount: intakeSubmissionsCount
+      constructionLeads(where: { status: { in: [new, qualified, nurturing] } }, take: 25, orderBy: [{ nextActionAt: asc }, { updatedAt: desc }]) {
+        id name organization email status source nextActionAt
+      }
+      leadCount: constructionLeadsCount(where: { status: { in: [new, qualified, nurturing] } })
     }
   `, { stages: [...view.stages], take: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE, requestSkip: (requestPage - 1) * PAGE_SIZE });
   if (!response.success) throw new Error(response.error);
-  const { constructionOpportunities: opportunities, opportunityCount, intakeSubmissions: intake, intakeCount } = response.data;
+  const { constructionOpportunities: opportunities, opportunityCount, intakeSubmissions: intake, intakeCount, constructionLeads: leads, leadCount } = response.data;
   const hrefFor = (updates: { view?: string; page?: number; requestPage?: number }) => listHref("/dashboard/platform/pipeline", {
     view: (updates.view ?? view.value) === "active" ? undefined : updates.view ?? view.value,
     page: updates.page ?? page,
@@ -94,6 +101,16 @@ export async function PipelinePage({ searchParams }: { searchParams: Promise<Rec
           return <tr key={item.id} className="transition-colors hover:bg-muted/30"><td className="px-4 py-3"><p className="text-xs text-muted-foreground">{item.number}{item.organization ? ` · ${item.organization}` : ""}</p><div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1"><Link href={`/dashboard/platform/pipeline/${item.id}`} className="font-medium underline-offset-4 hover:underline">{item.name}</Link><TitleStatus status={item.stage} label={stageLabel(item.stage)} /></div></td><td className="px-4 py-3 text-muted-foreground">{item.owner?.name ?? "Unassigned"}</td><td className={`px-4 py-3 tabular-nums ${overdue ? "font-medium text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}>{item.nextActionAt ? `${formatDate(item.nextActionAt)}${overdue ? " · Overdue" : ""}` : "—"}</td><td className="px-4 py-3 tabular-nums text-muted-foreground">{formatDate(item.targetBidDate)}</td><td className="px-4 py-3 text-right font-medium tabular-nums">{formatMinor(item.estimatedValueMinor, item.currencyCode, { whole: true })}</td><td className="px-4 py-3 text-right tabular-nums">{(item.probabilityBps / 100).toFixed(0)}%</td></tr>;
         })}</tbody></table></div>
       </>}
+    </Panel>
+
+    <Panel id="leads" icon={UserRound} title="Open leads" meta={`${leadCount} new, qualified or nurturing${leadCount > leads.length ? `, first ${leads.length} shown` : ""}`} padded={false}>
+      {leads.length === 0 ? <div className="p-4 md:p-5"><EmptyState compact title="No open leads" /></div> : <ul className="divide-y">{leads.map(lead => <li key={lead.id} className="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center md:px-5">
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground">{readable(lead.source)}{lead.organization ? ` · ${lead.organization}` : ""}</p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1"><Link href={`/dashboard/platform/pipeline/leads/${lead.id}`} className="text-sm font-medium underline-offset-4 hover:underline">{lead.name || lead.email}</Link><TitleStatus status={lead.status} /></div>
+        </div>
+        <span className="text-xs tabular-nums text-muted-foreground">{lead.nextActionAt ? `Next ${formatDate(lead.nextActionAt)}` : ""}</span>
+      </li>)}</ul>}
     </Panel>
 
     <Panel id="public-intake" icon={Inbox} title="Website inquiries" meta={`${intakeCount} received`} padded={false}
