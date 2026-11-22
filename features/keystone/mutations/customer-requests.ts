@@ -21,7 +21,7 @@ async function checkoutExpired(tx: KeystoneContext, deposit: { id: string; refer
   await tx.sudo().prisma.payment.updateMany({ where: { id: deposit.id, status: "pending" }, data: { status: "failed" } });
   return true;
 }
-const selection = "id reference serviceTitle serviceSlug scope status version currencyCode quoteMinor quoteTerms expiresAt acceptedAt acceptedSnapshot createdAt customer { id } company { id name }";
+const selection = "id reference serviceTitle serviceSlug scope status version currencyCode quoteMinor depositMinor quoteTerms expiresAt acceptedAt acceptedSnapshot createdAt customer { id } company { id name }";
 
 export type ServiceRequestInput = {
   operation: string;
@@ -30,6 +30,7 @@ export type ServiceRequestInput = {
   scope?: string | null;
   expectedVersion?: number | null;
   amountMinor?: string | null;
+  depositMinor?: string | null;
   terms?: string | null;
   expiresAt?: string | null;
   idempotencyKey: string;
@@ -104,7 +105,7 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
   const key = clean(input.idempotencyKey, "Request key", 200);
   if (!context.session?.itemId || context.session.authType !== "session") throw new Error("Sign in to continue");
   const actorId = context.session.itemId;
-  const commandDigest = hash([operation, input.id || "", input.serviceSlug || "", input.scope || "", input.expectedVersion ?? null, input.amountMinor || "", input.terms || "", input.expiresAt || ""]);
+  const commandDigest = hash([operation, input.id || "", input.serviceSlug || "", input.scope || "", input.expectedVersion ?? null, input.amountMinor || "", input.terms || "", input.expiresAt || "", ...(input.depositMinor ? [input.depositMinor] : [])]);
   return context.transaction(async tx => {
     await lockCustomerActor(tx);
     if (operation === "request") {
@@ -172,13 +173,17 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
       const terms = clean(input.terms, "Quote terms", 4000, 20);
       const expiresAt = new Date(clean(input.expiresAt, "Quote expiry", 40));
       if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() <= Date.now() || expiresAt.getTime() > Date.now() + 90 * 86400000) throw new Error("Quote expiry must be within the next 90 days");
-      data = { quoteMinor: BigInt(amount), quoteTerms: terms, expiresAt, status: "quoted", version };
+      // The deposit is what the customer pays online to book. Left out, the whole quote is due.
+      const deposit = input.depositMinor ? clean(input.depositMinor, "Deposit amount", 16) : amount;
+      if (!/^[1-9]\d*$/.test(deposit) || BigInt(deposit) > BigInt(amount)) throw new Error("Deposit must be more than zero and no more than the quote");
+      data = { quoteMinor: BigInt(amount), depositMinor: BigInt(deposit), quoteTerms: terms, expiresAt, status: "quoted", version };
     } else if (operation === "accept") {
       if (row.status !== "quoted" || !row.expiresAt || row.expiresAt <= new Date() || row.quoteMinor <= BigInt(0)) throw new Error("Quote is no longer available");
       // C13: frozen accepted commercial terms, never re-read live service text.
       data = { status: "payment_pending", version, acceptedAt: new Date(), acceptedSnapshot: {
         serviceTitle: row.serviceTitle, serviceSlug: row.serviceSlug, scope: row.scope,
         quantity: 1, unit: "project scope", unitPriceMinor: row.quoteMinor.toString(), totalMinor: row.quoteMinor.toString(),
+        depositMinor: (row.depositMinor > BigInt(0) && row.depositMinor <= row.quoteMinor ? row.depositMinor : row.quoteMinor).toString(),
         currencyCode: row.currencyCode, terms: row.quoteTerms, quoteVersion: row.version, expiresAt: row.expiresAt.toISOString(),
       } };
     } else {

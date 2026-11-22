@@ -11,6 +11,7 @@ import { CustomerAuthForm, ProfileForm, RequestDecision, RequestForm, ResetPassw
 import { customerSignOut } from "./actions";
 import { customerContinuation } from "./continuation";
 import { formatUsdMinor } from "@/features/lib/money";
+import { depositDueMinor } from "@/features/lib/deposit";
 
 const STATUS: Record<string, { label: string; tone: DotTone }> = {
   requested: { label: "Awaiting quote", tone: "warn" },
@@ -41,6 +42,13 @@ function RequestStatus({ request }: { request: CustomerRequest }) {
 
 function quoteAmount(request: CustomerRequest) {
   return formatUsdMinor(request.acceptedSnapshot ? String(request.acceptedSnapshot.totalMinor) : request.quoteMinor);
+}
+
+/** What is paid online to book, when it is less than the whole quote. */
+function DepositLine({ request }: { request: CustomerRequest }) {
+  const { totalMinor, depositMinor } = depositDueMinor(request);
+  if (depositMinor >= totalMinor) return <p className="sf-small">Paid in full online to book the job.</p>;
+  return <p className="sf-small"><strong style={{ color: "var(--sf-ink)" }}>{formatUsdMinor(depositMinor.toString())}</strong> deposit to book. The remaining {formatUsdMinor((totalMinor - depositMinor).toString())} is invoiced as the work progresses.</p>;
 }
 
 function SignInChoices({ site, service, from }: { site: PublicConstructionSite | null; service?: string; from?: string }) {
@@ -185,6 +193,7 @@ export async function CustomerRequestPage({ params }: { params: Promise<{ id: st
               <h2 id="quote-title" className="sf-kicker">Quote</h2>
               {quoted ? <>
                 <p className="sf-amount sf-amount--xl">{quoteAmount(request)}</p>
+                <DepositLine request={request} />
                 {request.expiresAt && !snapshot && <p className="sf-small">{expired ? "Expired" : "Valid until"} <ViewerTime value={request.expiresAt} style="datetime" /></p>}
               </> : <p className="sf-small">{request.status === "cancelled" ? "Cancelled before a quote was issued" : "Not quoted yet"}</p>}
               {request.status === "quoted" && !expired && <RequestDecision request={request} operation="accept" label="Accept quote" />}
@@ -207,7 +216,7 @@ export async function CustomerRequestPage({ params }: { params: Promise<{ id: st
                   ? <><strong>Deposit refunded</strong><p className="sf-small">The contractor refunded your deposit. Refunds reach your card or bank in 5–10 business days. Contact the contractor with any questions.</p></>
                   : depositPaid
                   ? <><strong>Deposit received</strong><p className="sf-small">Thanks. Your payment is confirmed and the contractor will be in touch to schedule the work.</p></>
-                  : <><strong>Quote accepted</strong><p className="sf-small">Pay the deposit to confirm your booking.</p><Track><Pill href={`/account/requests/${encodeURIComponent(request.id)}/payment`} variant="primary" size="sm">Pay deposit</Pill></Track></>}
+                  : <><strong>Quote accepted</strong><p className="sf-small">{depositDueMinor(request).depositMinor < depositDueMinor(request).totalMinor ? "Pay the deposit to confirm your booking." : "Pay online to confirm your booking."}</p><Track><Pill href={`/account/requests/${encodeURIComponent(request.id)}/payment`} variant="primary" size="sm">{depositDueMinor(request).depositMinor < depositDueMinor(request).totalMinor ? "Pay deposit" : "Pay now"}</Pill></Track></>}
                 <ContractorContact site={site} />
               </div>
             </section>}

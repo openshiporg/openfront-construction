@@ -74,7 +74,10 @@ export async function createCustomerPayment(_root: unknown, { requestId }: { req
   const projectId = company?.projects?.[0]?.id; if (!projectId) throw new Error("A construction project is required before online receipt processing");
   const provider = await companyStripeProvider(context, companyId);
   const snapshot: any = request!.acceptedSnapshot || {};
-  const amount = Number(snapshot.totalMinor || request!.quoteMinor);
+  // The accepted deposit is what is collected online; quotes accepted before deposits existed collect the whole quote.
+  const total = Number(snapshot.totalMinor || request!.quoteMinor);
+  const deposit = Number(snapshot.depositMinor || 0);
+  const amount = Number.isSafeInteger(deposit) && deposit > 0 && deposit <= total ? deposit : total;
   if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Payment amount is invalid");
   const key = requestPaymentKey(requestId, actorId);
   const prisma = context.sudo().prisma;
@@ -93,7 +96,7 @@ export async function createCustomerPayment(_root: unknown, { requestId }: { req
     payment = await prisma.payment.findUnique({ where: { idempotencyKey: key } });
   }
   if (!payment) payment = await prisma.payment.create({ data: { paymentNumber: `RCPT-${requestId.slice(-10)}`, direction: "receipt", status: "pending", amountMinor: BigInt(amount), currencyCode: request!.currencyCode, paymentMethod: "card", idempotencyKey: key, companyId, projectId, paymentProviderId: provider.id, reference: "awaiting-provider" } });
-  return startProviderCheckout(context, { payment, provider, amount, currency: request!.currencyCode, key: providerKey, projectId, requestId, description: `Deposit for ${snapshot.serviceTitle || "accepted quote"}` });
+  return startProviderCheckout(context, { payment, provider, amount, currency: request!.currencyCode, key: providerKey, projectId, requestId, description: `${amount < total ? "Deposit for" : "Payment for"} ${snapshot.serviceTitle || "accepted quote"}` });
 }
 
 /** Return from Checkout: settle the customer's payment for this request, idempotently. */

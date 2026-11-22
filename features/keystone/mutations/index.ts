@@ -942,6 +942,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         version: Int!
         currencyCode: String!
         quoteMinor: String!
+        depositMinor: String!
         quoteTerms: String!
         expiresAt: String
         acceptedAt: String
@@ -964,6 +965,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         scope: String
         expectedVersion: Int
         amountMinor: String
+        depositMinor: String
         terms: String
         expiresAt: String
         idempotencyKey: String!

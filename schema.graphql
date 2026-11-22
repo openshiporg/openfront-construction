@@ -421,6 +421,7 @@ type ServiceRequest {
   version: Int
   currencyCode: String
   quoteMinor: BigInt
+  depositMinor: BigInt
   quoteTerms: String
   expiresAt: DateTime
   acceptedAt: DateTime
@@ -469,6 +470,7 @@ input ServiceRequestWhereInput {
   version: IntFilter
   currencyCode: StringFilter
   quoteMinor: BigIntFilter
+  depositMinor: BigIntFilter
   quoteTerms: StringFilter
   expiresAt: DateTimeNullableFilter
   acceptedAt: DateTimeNullableFilter
@@ -525,6 +527,7 @@ input ServiceRequestOrderByInput {
   version: OrderDirection
   currencyCode: OrderDirection
   quoteMinor: OrderDirection
+  depositMinor: OrderDirection
   quoteTerms: OrderDirection
   expiresAt: OrderDirection
   acceptedAt: OrderDirection
@@ -543,6 +546,7 @@ input ServiceRequestUpdateInput {
   version: Int
   currencyCode: String
   quoteMinor: BigInt
+  depositMinor: BigInt
   quoteTerms: String
   expiresAt: DateTime
   acceptedAt: DateTime
@@ -598,6 +602,7 @@ input ServiceRequestCreateInput {
   version: Int
   currencyCode: String
   quoteMinor: BigInt
+  depositMinor: BigInt
   quoteTerms: String
   expiresAt: DateTime
   acceptedAt: DateTime
@@ -14695,6 +14700,7 @@ type Mutation {
   createBudgetChangeWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   reversePostedDirectCost(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   createEstimateWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
+  addEstimateLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   reviseEstimate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   registerSpecificationSection(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   registerInspectionTemplate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
@@ -15075,8 +15081,8 @@ type Query {
   publicIntakeReceipt(reference: String!): PublicIntakeReceipt
   constructionStoreSettings(companyId: ID): JSON
   constructionCustomerRequests(operator: Boolean, skip: Int, take: Int): [ConstructionCustomerRequest!]!
-  constructionCustomerRequestCount(operator: Boolean): Int!
-  constructionOperatorRequests(skip: Int, take: Int): [ConstructionOperatorRequest!]!
+  constructionCustomerRequestCount(operator: Boolean, statuses: [String!]): Int!
+  constructionOperatorRequests(skip: Int, take: Int, statuses: [String!]): [ConstructionOperatorRequest!]!
   constructionCustomerRequest(id: ID!): ConstructionCustomerRequest
   constructionPayableClaims(projectId: ID!): [PayableClaim!]!
 }
@@ -16062,6 +16068,7 @@ type ConstructionCustomerRequest {
   version: Int!
   currencyCode: String!
   quoteMinor: String!
+  depositMinor: String!
   quoteTerms: String!
   expiresAt: String
   acceptedAt: String
@@ -16086,6 +16093,7 @@ input ServiceRequestInput {
   scope: String
   expectedVersion: Int
   amountMinor: String
+  depositMinor: String
   terms: String
   expiresAt: String
   idempotencyKey: String!

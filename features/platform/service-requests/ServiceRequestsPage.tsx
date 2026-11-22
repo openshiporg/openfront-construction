@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FileSignature, Mail, Phone } from "lucide-react";
 
 import { formatUsdMinor } from "@/features/lib/money";
+import { depositDueMinor } from "@/features/lib/deposit";
 import { ListPager, listHref, pageParam } from "@/features/platform/projects/components/ListPager";
 import { EmptyState, PageHeader, PlatformPage, SegmentTabs, TitleStatus, formatDate, type Tone } from "@/features/platform/components/kit";
 import { CancelRequestForm, QuoteForm } from "./QuoteForm";
@@ -73,7 +74,8 @@ export async function ServiceRequestsPage({ searchParams }: { searchParams: Prom
                     <div className="rounded-[6px] border p-3">
                       <p className="text-xs text-muted-foreground">Accepted quote</p>
                       <p className="mt-0.5 text-lg font-semibold tabular-nums">{formatUsdMinor(String(request.acceptedSnapshot.totalMinor))}</p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{String(request.acceptedSnapshot.terms)}</p>
+                      {(() => { const due = depositDueMinor(request); return due.depositMinor < due.totalMinor ? <p className="mt-0.5 text-sm tabular-nums">{formatUsdMinor(due.depositMinor.toString())} deposit to book</p> : null; })()}
+                      <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">{String(request.acceptedSnapshot.terms)}</p>
                     </div>
                   )}
                   {request.status === "booked" && request.projectId && (

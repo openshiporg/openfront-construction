@@ -2,12 +2,12 @@ import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 
 export type CustomerRequest = {
   id: string; reference: string; serviceTitle: string; serviceSlug: string; scope: string;
-  status: string; version: number; currencyCode: string; quoteMinor: string; quoteTerms: string;
+  status: string; version: number; currencyCode: string; quoteMinor: string; depositMinor?: string | null; quoteTerms: string;
   expiresAt: string | null; acceptedAt: string | null; acceptedSnapshot: Record<string, unknown> | null; createdAt: string;
   depositStatus?: string | null;
   projectId?: string | null;
 };
-export const REQUEST_SELECTION = "id reference serviceTitle serviceSlug scope status version currencyCode quoteMinor quoteTerms expiresAt acceptedAt acceptedSnapshot createdAt";
+export const REQUEST_SELECTION = "id reference serviceTitle serviceSlug scope status version currencyCode quoteMinor depositMinor quoteTerms expiresAt acceptedAt acceptedSnapshot createdAt";
 
 export const CUSTOMER_REQUEST_PAGE_SIZE = 25;
 

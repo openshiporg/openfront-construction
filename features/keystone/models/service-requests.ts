@@ -31,6 +31,8 @@ export const ServiceRequest = list({
     version: integer({ defaultValue: 0, validation: { isRequired: true } }),
     currencyCode: text({ defaultValue: "USD" }),
     quoteMinor: bigInt({ defaultValue: BigInt(0), validation: { isRequired: true } }),
+    // Due online to book the job. Zero means the whole quote is due.
+    depositMinor: bigInt({ defaultValue: BigInt(0), validation: { isRequired: true } }),
     quoteTerms: text({ ui: { displayMode: "textarea" } }),
     expiresAt: timestamp(),
     acceptedAt: timestamp(),

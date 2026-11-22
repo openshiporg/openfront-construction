@@ -15,11 +15,16 @@ export async function operatorRequestAction(_state: OperatorRequestState, data: 
   const input = {
     operation, id: value(data, "id"), serviceSlug: null, scope: null,
     expectedVersion: Number(value(data, "version")), idempotencyKey: value(data, "idempotencyKey"),
-    amountMinor: null as string | null, terms: value(data, "terms") || null, expiresAt: null as string | null,
+    amountMinor: null as string | null, depositMinor: null as string | null, terms: value(data, "terms") || null, expiresAt: null as string | null,
   };
   if (operation === "quote") {
     try {
-      input.amountMinor = amountToMinorUnits(value(data, "amount"));
+      const quote = amountToMinorUnits(value(data, "amount"));
+      // Blank means the whole quote is paid online to book.
+      const deposit = value(data, "deposit") ? amountToMinorUnits(value(data, "deposit")) : null;
+      input.amountMinor = quote; input.depositMinor = deposit;
+      if (!quote) throw new Error("amount");
+      if (deposit && (BigInt(deposit) <= BigInt(0) || BigInt(deposit) > BigInt(quote))) return { status: "error", message: "The deposit must be more than zero and no more than the quote." };
       const expiry = new Date(value(data, "expiresAt"));
       if (Number.isNaN(expiry.getTime())) throw new Error("expiry");
       input.expiresAt = expiry.toISOString();

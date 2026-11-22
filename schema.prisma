@@ -294,6 +294,7 @@ model ServiceRequest {
   version          Int                      @default(0)
   currencyCode     String                   @default("USD")
   quoteMinor       BigInt                   @default(0)
+  depositMinor     BigInt                   @default(0)
   quoteTerms       String                   @default("")
   expiresAt        DateTime?
   acceptedAt       DateTime?

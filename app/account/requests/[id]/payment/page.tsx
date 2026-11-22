@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { depositDueMinor } from "@/features/lib/deposit";
 import { ArrowLeft } from "lucide-react";
 import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 import { getCustomerRequest, getCustomerUser } from "@/features/storefront/account/data";
@@ -19,22 +20,22 @@ export default async function Page({ params, searchParams }: { params: Promise<{
       ? "Your payment is still processing. Bank payments can take a few days to clear; this page will show it once received."
       : "We could not confirm this payment. Reload to check again or contact the contractor.";
   }
-  const snapshot = request.acceptedSnapshot; const amount = Number(snapshot?.totalMinor || request.quoteMinor);
+  const snapshot = request.acceptedSnapshot; const { totalMinor, depositMinor } = depositDueMinor(request); const amount = Number(depositMinor); const partial = depositMinor < totalMinor;
   const payable = request.status === "payment_pending" && !["settled", "reversed"].includes(String(request.depositStatus ?? ""));
   const due = (amount / 100).toLocaleString("en-US", { style: "currency", currency: request.currencyCode });
   return <PublicShell site={site} account current="/account"><main>
     <header className="sf-pagehead"><div className="sf-wrap">
       <div className="sf-back"><Track><Pill href={`/account/requests/${encodeURIComponent(id)}`} variant="raised" size="sm"><ArrowLeft />Back to request</Pill></Track></div>
       <p className="sf-kicker">{request.reference}</p>
-      <h1 className="sf-display sf-h1">Pay deposit</h1>
+      <h1 className="sf-display sf-h1">{partial ? "Pay deposit" : "Pay quote"}</h1>
     </div></header>
     <section className="sf-section"><div className="sf-wrap">
       <section className="sf-panel sf-stack" aria-labelledby="deposit-title" style={{ maxWidth: "32rem" }}>
         <h2 id="deposit-title" className="sf-kicker">{snapshot?.serviceTitle ? String(snapshot.serviceTitle) : request.serviceTitle}</h2>
         <p className="sf-amount sf-amount--xl">{due}</p>
-        <p className="sf-small">Deposit due on the accepted quote</p>
+        <p className="sf-small">{partial ? `Deposit on your accepted quote of ${(Number(totalMinor) / 100).toLocaleString("en-US", { style: "currency", currency: request.currencyCode })}. The rest is invoiced as the work progresses.` : "The full amount of your accepted quote."}</p>
         {notice && <p role="status" className="sf-small">{notice}</p>}
-        {payable ? <PaymentStartForm requestId={id}/> : <p className="sf-small">This quote is not currently payable.</p>}
+        {payable ? <PaymentStartForm requestId={id} label={partial ? "Pay deposit" : `Pay ${due}`} /> : <p className="sf-small">This quote is not currently payable.</p>}
         <p className="sf-small">Pay by card or US bank account (ACH) through Stripe secure checkout.</p>
       </section>
     </div></section>

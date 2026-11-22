@@ -2,7 +2,7 @@ import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 
 export type OperatorRequest = {
   id: string; reference: string; serviceTitle: string; scope: string; status: string; version: number;
-  currencyCode: string; quoteMinor: string; quoteTerms: string; expiresAt: string | null;
+  currencyCode: string; quoteMinor: string; depositMinor?: string | null; quoteTerms: string; expiresAt: string | null;
   acceptedSnapshot: Record<string, unknown> | null; createdAt: string; depositStatus: string | null;
   projectId?: string | null; opportunityId?: string | null;
 };
@@ -24,7 +24,7 @@ export async function getOperatorRequests(view: RequestView, page: number): Prom
     query OperatorRequests($skip: Int, $take: Int, $statuses: [String!]) {
       constructionOperatorRequests(skip: $skip, take: $take, statuses: $statuses) {
         customerName customerEmail customerPhone
-        request { id reference serviceTitle scope status version currencyCode quoteMinor quoteTerms expiresAt acceptedSnapshot createdAt depositStatus projectId opportunityId }
+        request { id reference serviceTitle scope status version currencyCode quoteMinor depositMinor quoteTerms expiresAt acceptedSnapshot createdAt depositStatus projectId opportunityId }
       }
       ${REQUEST_VIEW_KEYS.map(key => `${key}: constructionCustomerRequestCount(operator: true, statuses: ${JSON.stringify(REQUEST_VIEWS[key].statuses)})`).join("\n      ")}
     }
