@@ -500,7 +500,7 @@ export async function getConstructionProjectWorkspace(projectId: string, tool: s
 
 /** A priced document shown line by line: an estimate, or a contract with its schedule of values. */
 export type LineSheet = {
-  id: string; kind: "Estimate" | "Prime contract" | "Subcontract" | "Purchase order"; detailKind: string;
+  id: string; kind: "Estimate" | "Prime contract" | "Subcontract" | "Purchase order" | "Owner change order" | "Subcontract change order"; detailKind: string;
   number: string; title: string; status: string; party: string; currencyCode: string;
   totalMinor: string; totalLabel: string;
   lines: Array<{ id: string; lineNumber: number; description: string; code: string; quantity: string; amountMinor: string }>;
@@ -537,13 +537,17 @@ export async function getConstructionEstimateSheets(projectId: string): Promise<
 /** Prime contracts, subcontracts and purchase orders of a project with their schedules of values. */
 export async function getConstructionContractSheets(projectId: string): Promise<LineSheet[]> {
   const lines = "lineItemsCount lineItems(orderBy: [{ lineNumber: asc }], take: $take) { id lineNumber description revisedValueMinor scheduledValueMinor budgetCode { code } }";
-  const response = await platformClient<{ primeContracts: SheetRow[]; commitments: SheetRow[] }>(`
+  const response = await platformClient<{ primeContracts: SheetRow[]; commitments: SheetRow[]; changeOrders: SheetRow[] }>(`
     query ContractSheets($projectId: ID!, $take: Int!) {
       primeContracts(where: { project: { id: { equals: $projectId } } }, orderBy: [{ createdAt: desc }], take: 10) {
         id number title status revisedContractMinor currencyCode client { name } ${lines}
       }
       commitments(where: { project: { id: { equals: $projectId } } }, orderBy: [{ createdAt: desc }], take: 20) {
         id number title status commitmentType revisedContractMinor currencyCode tradePartner { name } ${lines}
+      }
+      changeOrders(where: { project: { id: { equals: $projectId } } }, orderBy: [{ createdAt: desc }], take: 20) {
+        id number title status direction totalMinor currencyCode primeContract { number } commitment { number }
+        lineItemsCount lineItems(orderBy: [{ lineNumber: asc }], take: $take) { id lineNumber description amountMinor budgetCode { code } }
       }
     }
   `, { projectId, take: SHEET_LINES });
@@ -560,6 +564,17 @@ export async function getConstructionContractSheets(projectId: string): Promise<
   return [
     ...(response.data.primeContracts ?? []).map(row => sheet(row, "Prime contract", "prime-contract", row.client?.name ?? "")),
     ...(response.data.commitments ?? []).map(row => sheet(row, row.commitmentType === "purchase_order" ? "Purchase order" : "Subcontract", "commitment", row.tradePartner?.name ?? "")),
+    ...(response.data.changeOrders ?? []).map(row => {
+      const items: SheetRow[] = row.lineItems ?? [];
+      return {
+        id: row.id, kind: row.direction === "owner" ? "Owner change order" as const : "Subcontract change order" as const, detailKind: "change-order",
+        number: row.number ?? "", title: row.title ?? "", status: row.status ?? "draft",
+        party: `Against ${row.primeContract?.number || row.commitment?.number || "contract"}`,
+        currencyCode: row.currencyCode || "USD", totalMinor: String(row.totalMinor ?? "0"), totalLabel: "Change total",
+        lines: items.map(line => ({ id: line.id, lineNumber: line.lineNumber ?? 0, description: line.description ?? "", code: line.budgetCode?.code ?? "", quantity: "", amountMinor: String(line.amountMinor ?? "0") })),
+        moreLines: Math.max(0, Number(row.lineItemsCount ?? items.length) - items.length),
+      };
+    }),
   ];
 }
 

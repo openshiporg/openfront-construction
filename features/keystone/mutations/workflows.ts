@@ -663,6 +663,50 @@ export async function createChangeOrderWithLine(
   });
 }
 
+/** Add a priced line to a draft change order. The line ties to the contract's schedule-of-values line for
+ *  its budget code; the header total moves with it, so posting's line/header check keeps holding. */
+export async function addChangeOrderLine(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext): Promise<CommandResult> {
+  const id = projectId(input);
+  const orderId = requiredText(input.relatedId, "Change order id", 200);
+  const lineValue = signedAmount(input.amountMinor, "Line value");
+  const description = requiredText(input.title, "Change line description", 500);
+  const budgetCodeId = requiredText(input.secondaryId, "Budget code id", 200);
+  return executeProjectCommand({
+    context, operation: "addChangeOrderLine", permission: "canManageContracts", projectId: id,
+    idempotencyKey: input.idempotencyKey, request: input, listKey: "ChangeOrderLineItem",
+    data: {},
+    beforeCreate: async tx => {
+      if (!tx.prisma?.$queryRawUnsafe) throw new Error("Change order locking is unavailable");
+      const [order] = await tx.prisma.$queryRawUnsafe<Array<{ status: string; primeContractId: string | null; commitmentId: string | null }>>(
+        `SELECT status::text AS status, "primeContract" AS "primeContractId", commitment AS "commitmentId" FROM "ChangeOrder" WHERE id = $1 AND project = $2 FOR UPDATE`, orderId, id,
+      );
+      if (!order) throw new Error("Change order not found on this project");
+      if (order.status !== "draft") throw new Error("Lines can only be added while the change order is a draft");
+      const column = order.primeContractId ? "primeContract" : "commitment";
+      const [contractLine] = await tx.prisma.$queryRawUnsafe<Array<{ id: string }>>(
+        `SELECT id FROM "ContractLineItem" WHERE "${column}" = $1 AND "budgetCode" = $2 ORDER BY "lineNumber" ASC LIMIT 1`, order.primeContractId ?? order.commitmentId, budgetCodeId,
+      );
+      if (!contractLine) throw new Error("The contract has no schedule-of-values line for that budget code");
+      const [latest] = await tx.prisma.$queryRawUnsafe<Array<{ lineNumber: number | null; lines: number }>>(
+        'SELECT MAX("lineNumber")::int AS "lineNumber", COUNT(*)::int AS lines FROM "ChangeOrderLineItem" WHERE "changeOrder" = $1', orderId,
+      );
+      if (Number(latest?.lines ?? 0) >= 200) throw new Error("A change order holds at most 200 lines");
+      return {
+        lineNumber: Number(latest?.lineNumber ?? 0) + 1, description, amountMinor: lineValue,
+        changeOrder: { connect: { id: orderId } }, contractLineItem: { connect: { id: contractLine.id } },
+        budgetCode: { connect: { id: budgetCodeId } }, project: { connect: { id } },
+      };
+    },
+    afterCreate: async tx => {
+      if (!tx.prisma?.$executeRawUnsafe) throw new Error("Change order totals are unavailable");
+      const updated = await tx.prisma.$executeRawUnsafe(
+        `UPDATE "ChangeOrder" SET "totalMinor" = COALESCE("totalMinor", 0) + $2::bigint WHERE id = $1 AND status::text = 'draft'`, orderId, lineValue,
+      );
+      if (updated !== 1) throw new Error("Change order changed concurrently; reload before adding a line");
+    },
+  });
+}
+
 export async function routeRfi(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext) {
   const id = projectId(input);
   const rfiId = requiredText(input.relatedId, "RFI id", 200);

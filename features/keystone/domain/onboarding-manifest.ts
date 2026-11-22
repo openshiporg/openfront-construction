@@ -59,7 +59,7 @@ export const ONBOARDING_MANIFEST = {
   ChangeEvent: { coverage: "sample", livePath: "openChangeEvent" },
   ChangeEventLineItem: { coverage: "workflow", livePath: "addChangeEventLine" },
   ChangeQuote: { coverage: "workflow", livePath: "recordChangeQuote" },
-  ChangeOrder: { coverage: "workflow", livePath: "createChangeOrderWithLine" },
+  ChangeOrder: { coverage: "workflow", livePath: "createChangeOrderWithLine; addChangeOrderLine" },
   ChangeOrderLineItem: { coverage: "workflow", livePath: "createChangeOrderWithLine" },
   RFI: { coverage: "sample", livePath: "raiseRfi" },
   RFIResponse: { coverage: "workflow", livePath: "respondToRfi; respondPortalRfi" },

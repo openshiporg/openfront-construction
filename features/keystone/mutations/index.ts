@@ -79,6 +79,7 @@ import {
   addChangeEventLine,
   addEstimateLine,
   addContractLine,
+  addChangeOrderLine,
   registerInspectionTemplate,
   recordChangeQuote,
   withdrawChangeQuote,
@@ -1119,6 +1120,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         createEstimateWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         addEstimateLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         addContractLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
+        addChangeOrderLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         reviseEstimate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         registerSpecificationSection(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         registerInspectionTemplate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
@@ -1270,6 +1272,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         createEstimateWithLine,
         addEstimateLine,
         addContractLine,
+        addChangeOrderLine,
         reviseEstimate,
         registerSpecificationSection,
         registerInspectionTemplate,
