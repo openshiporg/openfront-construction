@@ -120,7 +120,7 @@
 @layer base {
   @media (max-width: 767px) {
     :where(.construction-touch) :where(
-      button, input:not([type="hidden"]), select, textarea,
+      button, input:not([type="hidden"], [type="checkbox"], [type="radio"]), select, textarea,
       [role="button"], [role="option"], [role="menuitem"], [role="tab"],
       [role="radio"], [role="checkbox"], [role="switch"], [role="combobox"],
       [role="menuitemcheckbox"], [role="menuitemradio"]

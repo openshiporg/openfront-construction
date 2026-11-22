@@ -6,7 +6,6 @@ import { BadgeCheck, Palette, Shapes } from "lucide-react";
 import { initialCommandState } from "@/features/platform/projects/action-state";
 import { EmptyState, FormFeedback, Panel, fieldLabelClass, inputClass, pillClass, trackClass } from "@/features/platform/components/kit";
 import { StoreLogoField } from "../components/StoreLogoField";
-import { StoreSettingsSaveBar } from "../components/StoreSettingsSaveBar";
 import { BrandColorPicker } from "../components/BrandColorPicker";
 import { updateStoreSettingsAction } from "../actions/store-settings";
 import { brandLogoSvg } from "../lib/brand-logo";
@@ -63,10 +62,10 @@ export function StoreSettingsPageClient({
         <BrandColorPicker value={brandColor} onChange={setBrandColor} initials={brandMark} />
       </Panel>
 
-      <div className="pb-24 md:pb-0">
-        <StoreSettingsSaveBar isSaving={pending} label="Save brand" status={state.status === "idle" ? null : state.message}
-          button={<span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : "Save brand"}</button></span>} />
-        <div className="md:hidden"><FormFeedback status={state.status} message={state.message} /></div>
+      {/* Saved in place like every other form on this page; a bar pinned over the page hid the fields under it on a phone. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className={trackClass}><button type="submit" disabled={pending} className={pillClass("primary")}>{pending ? "Saving…" : "Save brand"}</button></span>
+        <FormFeedback status={state.status} message={state.message} />
       </div>
     </form>
   );
