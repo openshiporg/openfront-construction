@@ -15,6 +15,9 @@ type SiteRecord = KeystoneQueryRecord & {
   capabilitySummary?: string;
   inquiryEmail?: string;
   inquiryPhone?: string | null;
+  licenseNumber?: string | null;
+  insurer?: string | null;
+  depositPercent?: number | null;
   privacyNotice?: string;
   acceptingInquiries?: boolean;
   company?: { id?: string; status?: string; name?: string; brandName?: string; brandMark?: string; brandTagline?: string; brandColor?: string; logoIcon?: string; logoColor?: string } | null;
@@ -37,7 +40,7 @@ async function publishedSite(context: PublicQueryContext): Promise<SiteRecord | 
     context,
     "PublicSiteProfile",
     { siteKey: getTrustedPublicSiteKey() },
-    "id siteKey status serviceArea capabilitySummary inquiryEmail inquiryPhone privacyNotice acceptingInquiries company { id status name brandName brandMark brandTagline brandColor logoIcon logoColor }",
+    "id siteKey status serviceArea capabilitySummary inquiryEmail inquiryPhone privacyNotice acceptingInquiries depositPercent licenseNumber insurer company { id status name brandName brandMark brandTagline brandColor logoIcon logoColor }",
   ) as SiteRecord | null;
   return site?.status === "published" && site.company?.id && site.company.status === "active" ? site : null;
 }
@@ -99,6 +102,8 @@ export async function publicConstructionSite(_root: unknown, _args: unknown, con
     inquiryPhone: text(site.inquiryPhone),
     privacyNotice: text(site.privacyNotice),
     acceptingInquiries: site.acceptingInquiries === true,
+    licenseNumber: text(site.licenseNumber),
+    insurer: text(site.insurer),
     services: services.map(serviceProjection),
     projects: projects.map(projectProjection),
   };

@@ -217,7 +217,8 @@ export async function handlePaymentProviderWebhook(context: KeystoneContext, pro
   const resource = verified.resource || {};
   const paymentId = String(resource.metadata?.paymentId || "");
   const payment = paymentId ? await sudo.prisma.payment.findUnique({ where: { id: paymentId }, select: { id: true, companyId: true, paymentProviderId: true, reference: true } }) : null;
-  if (!payment || payment.companyId !== provider.company.id || payment.paymentProviderId !== provider.id || (resource.id && payment.reference !== resource.id && payment.reference !== "awaiting-provider")) throw Object.assign(new Error("Payment not found"), { status: 400 });
+  // The Stripe test account is shared by several sites: an event for a payment that is not ours is acknowledged and ignored.
+  if (!payment || payment.companyId !== provider.company.id || payment.paymentProviderId !== provider.id || (resource.id && payment.reference !== resource.id && payment.reference !== "awaiting-provider")) return "ignored";
   const fingerprint = digest(`payment-webhook\u001f${provider.id}\u001f${eventId}`);
   const idem = sudo.prisma.idempotencyKey;
   const outcome = await processWebhookOnce({
@@ -293,4 +294,20 @@ export async function setPaymentProviderInstalled(_root: unknown, { providerId, 
   companyBillingAdmin(context, provider.companyId);
   const updated = await sudo.prisma.paymentProvider.update({ where: { id: providerId }, data: { isInstalled } });
   return { id: updated.id, isInstalled: updated.isInstalled, configured: isPaymentProviderConfigured(updated.code) };
+}
+
+/** Settle request deposits Stripe has already taken, without waiting for the customer to come back.
+ *  Called when anyone reads those requests (customer account, request page, staff queue), so a paid
+ *  deposit shows as paid even if the customer closed the tab on Stripe. Same idempotent path as the
+ *  return page; never throws into the read. */
+export async function reconcileOpenRequestPayments(context: KeystoneContext, requests: Array<{ id: string; customerId: string | null }>): Promise<void> {
+  const keys = requests.filter(request => request.customerId).map(request => requestPaymentKey(request.id, String(request.customerId)));
+  if (!keys.length) return;
+  const open = await context.sudo().prisma.payment.findMany({
+    where: { idempotencyKey: { in: keys }, status: { in: ["pending", "authorized"] }, reference: { startsWith: "cs_" } },
+    select: { id: true }, take: 10,
+  });
+  await Promise.all(open.map((payment: { id: string }) => settlePayment(context, payment.id).catch((error: Error) => {
+    console.warn(`[payments] open deposit ${payment.id} not reconciled: ${error.message}`);
+  })));
 }

@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { depositDueMinor } from "@/features/lib/deposit";
+import { depositDueMinor, depositPercentOf } from "@/features/lib/deposit";
 import { ArrowLeft } from "lucide-react";
 import { keystoneClient } from "@/features/dashboard/lib/keystoneClient";
 import { getCustomerRequest, getCustomerUser } from "@/features/storefront/account/data";
@@ -33,7 +33,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
       <section className="sf-panel sf-stack" aria-labelledby="deposit-title" style={{ maxWidth: "32rem" }}>
         <h2 id="deposit-title" className="sf-kicker">{snapshot?.serviceTitle ? String(snapshot.serviceTitle) : request.serviceTitle}</h2>
         <p className="sf-amount sf-amount--xl">{due}</p>
-        <p className="sf-small">{partial ? `Deposit on your accepted quote of ${(Number(totalMinor) / 100).toLocaleString("en-US", { style: "currency", currency: request.currencyCode })}. The rest is invoiced as the work progresses.` : "The full amount of your accepted quote."}</p>
+        <p className="sf-small">{partial ? `Deposit ${depositPercentOf(depositMinor, totalMinor)}% of your accepted quote of ${(Number(totalMinor) / 100).toLocaleString("en-US", { style: "currency", currency: request.currencyCode })}. The balance is billed on milestones as the work progresses.` : "The full amount of your accepted quote."}</p>
         {notice && <p role="status" className="sf-small">{notice}</p>}
         {payable ? <PaymentStartForm requestId={id} label={partial ? "Pay deposit" : `Pay ${due}`} /> : <p className="sf-small">This quote is not currently payable.</p>}
         <p className="sf-small">Pay by card or US bank account (ACH) through Stripe secure checkout.</p>

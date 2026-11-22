@@ -8,3 +8,9 @@ export function depositDueMinor(request: { quoteMinor: string; depositMinor?: st
   const stated = snapshot ? read(snapshot.depositMinor) : read(request.depositMinor);
   return { totalMinor, depositMinor: stated > BigInt(0) && stated <= totalMinor ? stated : totalMinor };
 }
+
+/** Whole-number percentage of the quote the deposit is, for "Deposit 30%" labels. */
+export function depositPercentOf(depositMinor: bigint, totalMinor: bigint): number {
+  if (totalMinor <= BigInt(0)) return 100;
+  return Math.round(Number((depositMinor * BigInt(10000)) / totalMinor) / 100);
+}

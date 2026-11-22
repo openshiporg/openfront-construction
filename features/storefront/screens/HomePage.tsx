@@ -71,6 +71,7 @@ export async function HomePage() {
                 <p className="sf-eyebrow" id="about-title" style={{ margin: 0 }}>About</p>
                 {site.capabilitySummary && <p className="sf-fabout__text">{site.capabilitySummary}</p>}
                 {area && <p className="sf-ftrust"><MapPin aria-hidden="true" />Serving {area}</p>}
+                {(site.licenseNumber || site.insurer) && <p className="sf-small">{[site.licenseNumber ? `Licence ${site.licenseNumber}` : "", site.insurer ? `Insured by ${site.insurer}` : ""].filter(Boolean).join(" · ")}</p>}
               </aside>
             )}
           </div>

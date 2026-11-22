@@ -11,7 +11,7 @@ const base = { companyId: z.string().min(1).max(200), idempotencyKey: z.string()
 const status = z.enum(["draft", "published", "archived"]);
 const content = z.discriminatedUnion("operation", [
   z.object({ ...base, operation: z.literal("branding"), legalName: z.string().trim().max(240), brandName: z.string().trim().min(2).max(120), brandMark: z.string().regex(/^[A-Z0-9]{1,4}$/), brandTagline: z.string().max(240), brandColor: z.string().regex(/^#[0-9a-f]{6}$/i), logoIcon: z.string().max(100000), logoColor: z.string().max(40) }).strict(),
-  z.object({ ...base, operation: z.literal("profile"), status, serviceArea: z.string().trim().min(2).max(240), capabilitySummary: z.string().trim().min(20).max(1200), inquiryEmail: z.string().email().max(320), inquiryPhone: z.string().max(50), privacyNotice: z.string().trim().min(20).max(1200), acceptingInquiries: z.boolean() }).strict(),
+  z.object({ ...base, operation: z.literal("profile"), status, serviceArea: z.string().trim().min(2).max(240), capabilitySummary: z.string().trim().min(20).max(1200), inquiryEmail: z.string().email().max(320), inquiryPhone: z.string().max(50), privacyNotice: z.string().trim().min(20).max(1200), acceptingInquiries: z.boolean(), depositPercent: z.number().int().min(1).max(100), licenseNumber: z.string().trim().max(120), insurer: z.string().trim().max(160) }).strict(),
   z.object({ ...base, operation: z.literal("service"), id: z.string().max(200).optional(), title: z.string().trim().min(2).max(160), summary: z.string().trim().min(20).max(500), details: z.string().max(4000), market: z.string().max(160), status }).strict(),
   z.object({ ...base, operation: z.literal("project"), id: z.string().max(200).optional(), sourceProjectId: z.string().max(200).optional(), title: z.string().trim().min(2).max(P.title.max), summary: z.string().trim().min(20).max(P.summary.max), description: z.string().max(P.description.max), market: z.string().max(P.market.max), locationLabel: z.string().max(P.locationLabel.max), deliveryMethod: z.string().max(P.deliveryMethod.max), completionLabel: z.string().max(P.completionLabel.max), approvedOutcome: z.string().max(P.approvedOutcome.max).optional(), photos: z.string().max(P.photos.max).optional().refine(value => !projectPhotosError(value), { message: "Each photo must be an https image URL or a site path, one per line" }), status }).strict(),
 ]);
@@ -31,7 +31,7 @@ export async function constructionStoreSettings(_root: unknown, { companyId }: {
   return context.transaction(async tx => {
     await lockCurrentAuthority(tx, selected, null, "canManageSettings");
     const company = await tx.prisma.company.findUnique({ where: { id: selected }, select: { id: true, name: true, legalName: true, brandName: true, brandMark: true, brandTagline: true, brandColor: true, logoIcon: true, logoColor: true } });
-    const profile = configured?.company?.id === selected ? await tx.prisma.publicSiteProfile.findUnique({ where: { id: configured.id }, select: { id: true, status: true, serviceArea: true, capabilitySummary: true, inquiryEmail: true, inquiryPhone: true, privacyNotice: true, acceptingInquiries: true } }) : null;
+    const profile = configured?.company?.id === selected ? await tx.prisma.publicSiteProfile.findUnique({ where: { id: configured.id }, select: { id: true, status: true, serviceArea: true, capabilitySummary: true, inquiryEmail: true, inquiryPhone: true, privacyNotice: true, acceptingInquiries: true, depositPercent: true, licenseNumber: true, insurer: true } }) : null;
     const [services, projects] = profile ? await Promise.all([
       tx.prisma.publicService.findMany({ where: { companyId: selected, siteId: profile.id }, take: 50, orderBy: [{ sortOrder: "asc" }, { title: "asc" }], select: { id: true, title: true, slug: true, summary: true, details: true, market: true, status: true } }),
       tx.prisma.publicProject.findMany({ where: { companyId: selected, siteId: profile.id }, take: 50, orderBy: [{ sortOrder: "asc" }, { title: "asc" }], select: { id: true, title: true, slug: true, summary: true, description: true, market: true, locationLabel: true, deliveryMethod: true, completionLabel: true, approvedOutcome: true, photos: true, status: true } }),
@@ -66,8 +66,8 @@ export async function updateConstructionStoreSettings(_root: unknown, { input: u
       const { legalName, brandName, brandMark, brandTagline, brandColor, logoIcon, logoColor } = input;
       await sudo.db.Company.updateOne({ where: { id: input.companyId }, data: { legalName: legalName || null, brandName, brandMark, brandTagline, brandColor, logoIcon, logoColor } });
     } else if (input.operation === "profile") {
-      const { status, serviceArea, capabilitySummary, inquiryEmail, inquiryPhone, privacyNotice, acceptingInquiries } = input;
-      const data = { status, serviceArea, capabilitySummary, inquiryEmail, inquiryPhone, privacyNotice, acceptingInquiries };
+      const { status, serviceArea, capabilitySummary, inquiryEmail, inquiryPhone, privacyNotice, acceptingInquiries, depositPercent, licenseNumber, insurer } = input;
+      const data = { status, serviceArea, capabilitySummary, inquiryEmail, inquiryPhone, privacyNotice, acceptingInquiries, depositPercent, licenseNumber, insurer };
       if (site) await sudo.db.PublicSiteProfile.updateOne({ where: { id: site.id }, data });
       else {
         const created = await sudo.db.PublicSiteProfile.createOne({ data: { ...data, siteKey: getTrustedPublicSiteKey(), company: { connect: { id: input.companyId } } } });

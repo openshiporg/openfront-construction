@@ -13,7 +13,7 @@ export async function getPublicConstructionSite(): Promise<PublicConstructionSit
     query PublicConstructionSite {
       publicConstructionSite {
         brandName brandMark brandTagline brandColor logoIcon logoColor serviceArea capabilitySummary
-        inquiryEmail inquiryPhone privacyNotice acceptingInquiries
+        inquiryEmail inquiryPhone privacyNotice acceptingInquiries licenseNumber insurer
         services { slug title summary details market }
         projects { slug title summary description market locationLabel deliveryMethod completionLabel approvedOutcome photos }
       }

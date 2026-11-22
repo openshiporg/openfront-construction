@@ -30,6 +30,11 @@ export function PublicProfileForm({ companyId, profile }: { companyId: string; p
       <label className={fieldLabelClass}>Contact email<input className={inputClass} name="inquiryEmail" type="email" required maxLength={320} defaultValue={profile?.inquiryEmail || ""} /></label>
       <label className={fieldLabelClass}>Contact phone<input className={inputClass} name="inquiryPhone" type="tel" maxLength={50} defaultValue={profile?.inquiryPhone || ""} /></label>
       <label className={`${fieldLabelClass} sm:col-span-2`}>Privacy notice<textarea className={textareaClass} name="privacyNotice" required minLength={20} maxLength={1200} defaultValue={profile?.privacyNotice || ""} /></label>
+      <label className={fieldLabelClass}>Deposit to book (% of quote)<input className={`${inputClass} tabular-nums`} name="depositPercent" type="number" inputMode="numeric" min={1} max={100} step={1} required defaultValue={profile?.depositPercent ?? 30} aria-describedby="deposit-percent-help" /><span id="deposit-percent-help" className="font-normal text-muted-foreground">What a customer pays online when they accept a quote. 100 collects the whole quote. You can type an exact deposit on any quote.</span></label>
+      <div className="hidden sm:block" />
+      <label className={fieldLabelClass}>Contractor licence number<input className={inputClass} name="licenseNumber" maxLength={120} defaultValue={profile?.licenseNumber || ""} placeholder="Leave blank to hide" /></label>
+      <label className={fieldLabelClass}>Insurer<input className={inputClass} name="insurer" maxLength={160} defaultValue={profile?.insurer || ""} placeholder="Leave blank to hide" /></label>
+      <p className="text-xs text-muted-foreground sm:col-span-2">Licence and insurer appear on your website only when filled in.</p>
       <label className="flex min-h-11 w-fit cursor-pointer items-center gap-3 rounded-full border px-4 text-sm font-medium has-[:checked]:border-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring sm:col-span-2"><input className="size-4 accent-foreground" name="acceptingInquiries" type="checkbox" defaultChecked={profile?.acceptingInquiries ?? false} />Accept inquiries</label>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2"><Save pending={pending} label="Save profile" /><Result state={state} /></div>
     </form>

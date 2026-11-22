@@ -1,3 +1,4 @@
+import { reconcileOpenRequestPayments } from "./payments";
 import { createHash, randomUUID } from "node:crypto";
 import type { KeystoneContext } from "@keystone-6/core/types";
 import { lockCustomerActor } from "../domain/customer-authority";
@@ -79,6 +80,8 @@ export async function constructionCustomerRequests(_root: unknown, { operator = 
     skip: offset, take: limit, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: { id: true },
   });
   if (!ids.length) return [];
+  const owners = await context.sudo().prisma.serviceRequest.findMany({ where: { id: { in: ids.map((row: { id: string }) => row.id) }, status: "payment_pending" }, select: { id: true, customerId: true } });
+  await reconcileOpenRequestPayments(context, owners);
   const rows = await context.query.ServiceRequest.findMany({ where: { id: { in: ids.map((row: { id: string }) => row.id) } }, query: selection });
   const byId = new Map<string, Record<string, any>>(rows.map((row: any) => [String(row.id), row] as [string, Record<string, any>]));
   return ids.map((row: { id: string }) => byId.get(String(row.id))).filter((row: Record<string, any> | undefined): row is Record<string, any> => Boolean(row));
@@ -92,6 +95,7 @@ export async function constructionCustomerRequest(_root: unknown, { id }: { id: 
   if (!context.session?.itemId || context.session.authType !== "session") throw new Error("Sign in to continue");
   const row = await context.query.ServiceRequest.findOne({ where: { id }, query: selection });
   if (!row || row.customer?.id !== context.session.itemId) throw new Error("Request not found");
+  await reconcileOpenRequestPayments(context, [{ id, customerId: context.session.itemId }]);
   const [payment, links] = await Promise.all([
     context.sudo().prisma.payment.findUnique({ where: { idempotencyKey: requestPaymentKey(id, context.session.itemId) }, select: { status: true } }),
     context.sudo().prisma.serviceRequest.findUnique({ where: { id }, select: { projectId: true } }),
@@ -174,7 +178,9 @@ export async function commandConstructionRequest(_root: unknown, { input }: { in
       const expiresAt = new Date(clean(input.expiresAt, "Quote expiry", 40));
       if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() <= Date.now() || expiresAt.getTime() > Date.now() + 90 * 86400000) throw new Error("Quote expiry must be within the next 90 days");
       // The deposit is what the customer pays online to book. Left out, the whole quote is due.
-      const deposit = input.depositMinor ? clean(input.depositMinor, "Deposit amount", 16) : amount;
+      // Left out, the store's deposit percentage applies (Store Settings, default 30%).
+      const percent = await depositPercentFor(tx, row.companyId ?? null);
+      const deposit = input.depositMinor ? clean(input.depositMinor, "Deposit amount", 16) : ((BigInt(amount) * BigInt(percent) + BigInt(99)) / BigInt(100)).toString();
       if (!/^[1-9]\d*$/.test(deposit) || BigInt(deposit) > BigInt(amount)) throw new Error("Deposit must be more than zero and no more than the quote");
       data = { quoteMinor: BigInt(amount), depositMinor: BigInt(deposit), quoteTerms: terms, expiresAt, status: "quoted", version };
     } else if (operation === "accept") {
@@ -245,4 +251,12 @@ export async function constructionOperatorRequests(_root: unknown, { skip = 0, t
       customerPhone: customer?.phone ? String(customer.phone) : null,
     };
   });
+}
+
+/** The store's deposit percentage for quotes. 30% when the store has not set one. */
+async function depositPercentFor(tx: KeystoneContext, companyId: string | null): Promise<number> {
+  if (!companyId) return 30;
+  const site = await tx.sudo().prisma.publicSiteProfile.findFirst({ where: { companyId }, select: { depositPercent: true } });
+  const percent = Number(site?.depositPercent ?? 30);
+  return Number.isInteger(percent) && percent >= 1 && percent <= 100 ? percent : 30;
 }

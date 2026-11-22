@@ -9,7 +9,7 @@ import { PUBLIC_PROFILE_LIMITS, PUBLIC_PROJECT_LIMITS, PUBLIC_SERVICE_LIMITS, pu
 import type { CommandState } from "@/features/platform/projects/action-state";
 
 export type StoreSettingsData = { id: string; name: string; legalName: string | null; brandName: string; brandMark: string; brandTagline: string; brandColor: string; logoIcon: string; logoColor: string };
-export type PublicProfileSettings = { id: string; status: string; serviceArea: string; capabilitySummary: string; inquiryEmail: string; inquiryPhone: string; privacyNotice: string; acceptingInquiries: boolean };
+export type PublicProfileSettings = { id: string; status: string; serviceArea: string; capabilitySummary: string; inquiryEmail: string; inquiryPhone: string; privacyNotice: string; acceptingInquiries: boolean; depositPercent: number; licenseNumber: string | null; insurer: string | null };
 export type PublicServiceSettings = { id: string; title: string; slug: string; summary: string; details: string; market: string; status: string };
 export type PublicProjectSettings = { id: string; title: string; slug: string; summary: string; description: string; market: string; locationLabel: string; deliveryMethod: string; completionLabel: string; approvedOutcome: string; photos: string; status: string };
 export type PublicSettings = { companies: Array<{ id: string; name: string }>; company: StoreSettingsData | null; profile: PublicProfileSettings | null; services: PublicServiceSettings[]; projects: PublicProjectSettings[] };
@@ -46,6 +46,10 @@ export async function savePublicContentAction(_previous: CommandState, data: For
   if (operation === "profile") {
     for (const key of ["status", "serviceArea", "capabilitySummary", "inquiryEmail", "inquiryPhone", "privacyNotice"]) input[key] = value(data, key);
     input.acceptingInquiries = data.get("acceptingInquiries") === "on";
+    for (const key of ["licenseNumber", "insurer"]) input[key] = value(data, key);
+    const percent = Number(value(data, "depositPercent") || "30");
+    if (!Number.isInteger(percent) || percent < 1 || percent > 100) return { status: "error", message: "Deposit must be a whole percentage from 1 to 100." };
+    input.depositPercent = percent;
     limits = PUBLIC_PROFILE_LIMITS;
   } else if (operation === "service" || operation === "project") {
     if (value(data, "id")) input.id = value(data, "id");

@@ -32,6 +32,8 @@ export type PublicConstructionSite = {
   inquiryPhone: string;
   privacyNotice: string;
   acceptingInquiries: boolean;
+  licenseNumber?: string;
+  insurer?: string;
   services: PublicServiceSummary[];
   projects: PublicProjectSummary[];
 };

@@ -11,7 +11,7 @@ import { CancelRequest, ProfileForm, RequestDecision, RequestForm, ResetPassword
 import { customerSignOut } from "./actions";
 import { customerContinuation } from "./continuation";
 import { formatUsdMinor } from "@/features/lib/money";
-import { depositDueMinor } from "@/features/lib/deposit";
+import { depositDueMinor, depositPercentOf } from "@/features/lib/deposit";
 import { AuthChoices } from "./AuthChoices";
 
 const STATUS: Record<string, { label: string; tone: DotTone }> = {
@@ -49,7 +49,7 @@ function quoteAmount(request: CustomerRequest) {
 function DepositLine({ request }: { request: CustomerRequest }) {
   const { totalMinor, depositMinor } = depositDueMinor(request);
   if (depositMinor >= totalMinor) return <p className="sf-small">Paid in full online to book the job.</p>;
-  return <p className="sf-small"><strong style={{ color: "var(--sf-ink)" }}>{formatUsdMinor(depositMinor.toString())}</strong> deposit to book. The remaining {formatUsdMinor((totalMinor - depositMinor).toString())} is invoiced as the work progresses.</p>;
+  return <p className="sf-small"><strong style={{ color: "var(--sf-ink)" }}>Deposit {depositPercentOf(depositMinor, totalMinor)}%: {formatUsdMinor(depositMinor.toString())}</strong>, balance of {formatUsdMinor((totalMinor - depositMinor).toString())} billed on milestones as the work progresses.</p>;
 }
 
 function SignInChoices({ site, service, from }: { site: PublicConstructionSite | null; service?: string; from?: string }) {

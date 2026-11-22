@@ -924,6 +924,8 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         inquiryPhone: String!
         privacyNotice: String!
         acceptingInquiries: Boolean!
+        licenseNumber: String!
+        insurer: String!
         services: [PublicConstructionService!]!
         projects: [PublicConstructionProject!]!
       }

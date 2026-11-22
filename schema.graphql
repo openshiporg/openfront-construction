@@ -4545,6 +4545,9 @@ type PublicSiteProfile {
   inquiryPhone: String
   privacyNotice: String
   acceptingInquiries: Boolean
+  depositPercent: Int
+  licenseNumber: String
+  insurer: String
   company: Company
   services(where: PublicServiceWhereInput! = {}, orderBy: [PublicServiceOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PublicServiceWhereUniqueInput): [PublicService!]
   servicesCount(where: PublicServiceWhereInput! = {}): Int
@@ -4583,6 +4586,9 @@ input PublicSiteProfileWhereInput {
   inquiryPhone: StringFilter
   privacyNotice: StringFilter
   acceptingInquiries: BooleanFilter
+  depositPercent: IntFilter
+  licenseNumber: StringFilter
+  insurer: StringFilter
   company: CompanyWhereInput
   services: PublicServiceManyRelationFilter
   projects: PublicProjectManyRelationFilter
@@ -4610,6 +4616,9 @@ input PublicSiteProfileOrderByInput {
   inquiryPhone: OrderDirection
   privacyNotice: OrderDirection
   acceptingInquiries: OrderDirection
+  depositPercent: OrderDirection
+  licenseNumber: OrderDirection
+  insurer: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
@@ -14701,6 +14710,7 @@ type Mutation {
   reversePostedDirectCost(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   createEstimateWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   addEstimateLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
+  addContractLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   reviseEstimate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   registerSpecificationSection(input: ConstructionWorkflowInput!): ConstructionCommandResult!
   registerInspectionTemplate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
@@ -16023,6 +16033,8 @@ type PublicConstructionSite {
   inquiryPhone: String!
   privacyNotice: String!
   acceptingInquiries: Boolean!
+  licenseNumber: String!
+  insurer: String!
   services: [PublicConstructionService!]!
   projects: [PublicConstructionProject!]!
 }

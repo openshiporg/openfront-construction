@@ -20,7 +20,7 @@ export async function operatorRequestAction(_state: OperatorRequestState, data: 
   if (operation === "quote") {
     try {
       const quote = amountToMinorUnits(value(data, "amount"));
-      // Blank means the whole quote is paid online to book.
+      // Blank means the store's deposit percentage applies.
       const deposit = value(data, "deposit") ? amountToMinorUnits(value(data, "deposit")) : null;
       input.amountMinor = quote; input.depositMinor = deposit;
       if (!quote) throw new Error("amount");

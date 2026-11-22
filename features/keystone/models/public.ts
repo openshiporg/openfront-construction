@@ -35,6 +35,11 @@ export const PublicSiteProfile = list({
     inquiryPhone: text({ validation: { length: { max: 50 } }, access: immutable }),
     privacyNotice: text({ validation: { isRequired: true, length: { min: 20, max: 1200 } }, ui: { displayMode: "textarea" }, access: immutable }),
     acceptingInquiries: checkbox({ defaultValue: true, access: immutable }),
+    // Share of an accepted quote paid online to book the job. Staff can type an exact deposit on a quote instead.
+    depositPercent: integer({ defaultValue: 30, validation: { isRequired: true, min: 1, max: 100 }, access: immutable }),
+    // Shown on the public site only when filled. Never invented.
+    licenseNumber: text({ validation: { length: { max: 120 } }, access: immutable }),
+    insurer: text({ validation: { length: { max: 160 } }, access: immutable }),
     company: companyTenantField("Company.publicSiteProfile"),
     services: readOnlyRelationshipMany("PublicService.site"),
     projects: readOnlyRelationshipMany("PublicProject.site"),
