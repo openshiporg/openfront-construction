@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, Mail, Menu, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 
 import type { PublicConstructionSite } from "../types";
+import { MobileMenu } from "./MobileMenu";
 import { StoreBrand } from "./StoreBrand";
 import { Empty, Pill, Status, Track } from "./ui";
 
@@ -68,22 +69,23 @@ export function PublicShell({
                   {site?.acceptingInquiries && current !== "/" && <Pill href="/start-a-project" variant="primary" size="sm">Request an estimate</Pill>}
                 </Track>
               </span>
-              <details className="sf-menu">
-                <summary className="sf-menu__btn" aria-label="Menu"><Menu aria-hidden="true" /></summary>
-                <nav aria-label="Mobile public website" className="sf-menu__panel">
-                  <div className="sf-menu__list">
-                    {site && publicLinks.map(link => <Link key={link.href} href={link.href} className="sf-menu__link" aria-current={current === link.href ? "page" : undefined}>{link.label}<ArrowRight aria-hidden="true" width={18} height={18} /></Link>)}
-                    {site?.acceptingInquiries && <Link href="/start-a-project" className="sf-menu__link" aria-current={current === "/start-a-project" ? "page" : undefined}>Request an estimate<ArrowRight aria-hidden="true" width={18} height={18} /></Link>}
-                    <Link href={CLIENT_SIGN_IN} className="sf-menu__link">Client portal<ArrowRight aria-hidden="true" width={18} height={18} /></Link>
-                  </div>
+              <MobileMenu>
+                <div className="sf-menu__list">
+                  <Link href="/" className="sf-menu__link" aria-current={current === "/" ? "page" : undefined}>Home</Link>
+                  {site && publicLinks.map(link => <Link key={link.href} href={link.href} className="sf-menu__link" aria-current={current === link.href ? "page" : undefined}>{link.label}</Link>)}
+                  <Link href={CLIENT_SIGN_IN} className="sf-menu__link">Client portal</Link>
+                  <Link href="/account" className="sf-menu__link" aria-current={current === "/account" ? "page" : undefined}>Account</Link>
+                </div>
+                <div className="sf-menu__foot">
+                  {site?.acceptingInquiries && <Link href="/start-a-project" className="sf-pill sf-pill--primary">Request an estimate</Link>}
                   {(phone || email) && (
-                    <div className="sf-menu__foot sf-contact">
+                    <div className="sf-contact">
                       {phone && <a href={telHref(phone)}><Phone />{phone}</a>}
                       {email && <a href={`mailto:${email}`}><Mail />{email}</a>}
                     </div>
                   )}
-                </nav>
-              </details>
+                </div>
+              </MobileMenu>
             </div>
           </div>
         </header>

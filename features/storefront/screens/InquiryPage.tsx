@@ -50,7 +50,7 @@ export async function InquiryPage({
         <section className="sf-section">
           <div className="sf-wrap">
             <nav aria-label="Inquiry type" className="sf-segments">
-              <Track scroll>
+              <Track>
                 {inquiryTypes.map(entry => <Pill key={entry.href} href={entry.href} variant="quiet" size="sm" current={(entry.match as readonly string[]).includes(sourcePath)}>{entry.label}</Pill>)}
               </Track>
             </nav>
@@ -81,7 +81,6 @@ export async function InquiryPage({
           <div className="sf-wrap">
             <div className="sf-fend__note">
               <p className="sf-fend__big">{site?.serviceArea ? `Serving ${site.serviceArea}.` : "Building better communities."}</p>
-              <p className="sf-small">Licensed, insured and bonded.</p>
             </div>
           </div>
         </section>

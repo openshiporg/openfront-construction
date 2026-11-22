@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ClipboardCheck, ClipboardList, HardHat, Hammer, Landmark, Ruler, ShieldCheck } from "lucide-react";
+import { ArrowRight, ClipboardCheck, ClipboardList, HardHat, Hammer, Landmark, MapPin, Ruler } from "lucide-react";
 
 import { PublicShell, publicPhone, telHref } from "../components/PublicShell";
 import { ProjectCard } from "../components/ProjectCard";
@@ -66,11 +66,13 @@ export async function HomePage() {
               <Link href="/projects" className="sf-flink">View all projects<ArrowRight aria-hidden="true" /></Link>
             </section>
 
-            <aside className="sf-fquote" aria-label="Client feedback">
-              <blockquote>“The process was smooth, communication was clear, and the result exceeded our expectations.”</blockquote>
-              <p style={{ margin: 0 }}><cite><strong>Marcus Hale</strong>Library Director, Columbus Branch Library</cite></p>
-              <p className="sf-ftrust"><ShieldCheck aria-hidden="true" />Licensed, insured and bonded{area ? `. Serving ${area}.` : ""}</p>
-            </aside>
+            {(site.capabilitySummary || area) && (
+              <aside className="sf-fabout" aria-labelledby="about-title">
+                <p className="sf-eyebrow" id="about-title" style={{ margin: 0 }}>About</p>
+                {site.capabilitySummary && <p className="sf-fabout__text">{site.capabilitySummary}</p>}
+                {area && <p className="sf-ftrust"><MapPin aria-hidden="true" />Serving {area}</p>}
+              </aside>
+            )}
           </div>
         </div>
 
@@ -86,16 +88,18 @@ export async function HomePage() {
           </section>
         </div>
 
-        <section className="sf-fband" aria-label="Client feedback">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="sf-fband__img" src="/photos/interior.jpg" alt="" width={1536} height={1024} loading="lazy" />
-          <div className="sf-wrap">
-            <figure className="sf-fquote" style={{ margin: 0 }}>
-              <blockquote>“{site.brandName} delivered on time, on budget, and with a level of care that made a real difference for our students and community.”</blockquote>
-              <figcaption><cite><strong>Dana Whitfield</strong>Facilities Director, Westerville City Schools</cite></figcaption>
-            </figure>
-          </div>
-        </section>
+        {site.acceptingInquiries && (
+          <section className="sf-fband" aria-labelledby="start-title">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="sf-fband__img" src="/photos/interior.jpg" alt="" width={1536} height={1024} loading="lazy" />
+            <div className="sf-wrap">
+              <div className="sf-fband__call">
+                <h2 id="start-title">{area ? `Planning a project in ${area}?` : "Planning a project?"}</h2>
+                <Track><Pill href="/start-a-project" variant="primary">Request an estimate</Pill></Track>
+              </div>
+            </div>
+          </section>
+        )}
       </main>
     </PublicShell>
   );
