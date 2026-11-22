@@ -304,6 +304,56 @@ export async function createEstimateWithLine(
   }).finally(() => { void versionId; });
 }
 
+/** Add a line to a draft estimate and roll the version's subtotal and total up from its lines. */
+export async function addEstimateLine(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext): Promise<CommandResult> {
+  const id = projectId(input);
+  const estimateId = requiredText(input.relatedId, "Estimate id", 200);
+  const lineTotal = amount(input.amountMinor, "Estimate line amount");
+  const description = requiredText(input.title, "Estimate line description", 500);
+  const budgetCodeId = requiredText(input.secondaryId, "Budget code id", 200);
+  const lineQuantity = decimalQuantity(input.quantity || "1");
+  let versionId = "";
+  return executeProjectCommand({
+    context, operation: "addEstimateLine", permission: "canManagePreconstruction", projectId: id,
+    idempotencyKey: input.idempotencyKey, request: input, listKey: "EstimateLineItem",
+    data: {},
+    beforeCreate: async tx => {
+      if (!tx.prisma?.$queryRawUnsafe) throw new Error("Estimate locking is unavailable");
+      const [row] = await tx.prisma.$queryRawUnsafe<Array<{ estimateStatus: string; versionId: string | null; versionStatus: string | null }>>(
+        `SELECT e.status::text AS "estimateStatus", v.id AS "versionId", v.status::text AS "versionStatus"
+         FROM "Estimate" e LEFT JOIN "EstimateVersion" v ON v.id = e."currentVersion"
+         WHERE e.id = $1 AND e.project = $2 FOR UPDATE OF e`,
+        estimateId, id,
+      );
+      if (!row) throw new Error("Estimate not found on this project");
+      if (row.estimateStatus !== "draft" || !row.versionId || row.versionStatus !== "draft") throw new Error("Lines can only be added while the estimate is a draft");
+      versionId = row.versionId;
+      const [latest] = await tx.prisma.$queryRawUnsafe<Array<{ lineNumber: number | null; lines: number }>>(
+        'SELECT MAX("lineNumber")::int AS "lineNumber", COUNT(*)::int AS lines FROM "EstimateLineItem" WHERE version = $1', versionId,
+      );
+      if (Number(latest?.lines ?? 0) >= 500) throw new Error("An estimate holds at most 500 lines");
+      return {
+        lineNumber: Number(latest?.lineNumber ?? 0) + 1, description, quantity: lineQuantity, unit: input.unit?.trim() || "LS",
+        subcontractCostMinor: lineTotal, totalCostMinor: lineTotal,
+        version: { connect: { id: versionId } }, budgetCode: { connect: { id: budgetCodeId } },
+        project: { connect: { id } },
+      };
+    },
+    afterCreate: async tx => {
+      if (!tx.prisma?.$executeRawUnsafe) throw new Error("Estimate totals are unavailable");
+      const updated = await tx.prisma.$executeRawUnsafe(
+        `UPDATE "EstimateVersion" v SET
+           "subtotalMinor" = lines.total,
+           "totalMinor" = lines.total + COALESCE(v."overheadMinor", 0) + COALESCE(v."profitMinor", 0) + COALESCE(v."contingencyMinor", 0)
+         FROM (SELECT COALESCE(SUM("totalCostMinor"), 0) AS total FROM "EstimateLineItem" WHERE version = $1) lines
+         WHERE v.id = $1 AND v.status::text = 'draft'`,
+        versionId,
+      );
+      if (updated !== 1) throw new Error("Estimate changed concurrently; reload before adding a line");
+    },
+  });
+}
+
 type EstimateVersionRow = {
   estimateStatus: string; versionId: string | null; versionNumber: number | null; versionStatus: string | null;
   subtotalMinor: bigint | null; overheadMinor: bigint | null; profitMinor: bigint | null; contingencyMinor: bigint | null; totalMinor: bigint | null;

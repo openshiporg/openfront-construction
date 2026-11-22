@@ -47,7 +47,7 @@ export const ONBOARDING_MANIFEST = {
   BidLineItem: { coverage: "workflow", livePath: "recordBidSubmission; submitPortalBid" },
   Estimate: { coverage: "sample", livePath: "createEstimateWithLine" },
   EstimateVersion: { coverage: "sample", livePath: "createEstimateWithLine; reviseEstimate" },
-  EstimateLineItem: { coverage: "sample", livePath: "createEstimateWithLine; reviseEstimate" },
+  EstimateLineItem: { coverage: "sample", livePath: "createEstimateWithLine; addEstimateLine; reviseEstimate" },
   Budget: { coverage: "setup", livePath: "onboardConstructionWorkspace; createConstructionProject" },
   BudgetLineItem: { coverage: "setup", livePath: "onboardConstructionWorkspace; addBudgetLine" },
   BudgetChange: { coverage: "workflow", livePath: "createBudgetChangeWithLine" },

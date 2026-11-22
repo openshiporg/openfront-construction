@@ -77,6 +77,7 @@ import { respondPortalRfi, reviewPortalSubmittal, submitPortalBid, submitPortalL
 import {
   addBudgetLine,
   addChangeEventLine,
+  addEstimateLine,
   registerInspectionTemplate,
   recordChangeQuote,
   withdrawChangeQuote,
@@ -1111,6 +1112,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         createBudgetChangeWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         reversePostedDirectCost(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         createEstimateWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
+        addEstimateLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         reviseEstimate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         registerSpecificationSection(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         registerInspectionTemplate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
@@ -1260,6 +1262,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         createBudgetChangeWithLine,
         reversePostedDirectCost,
         createEstimateWithLine,
+        addEstimateLine,
         reviseEstimate,
         registerSpecificationSection,
         registerInspectionTemplate,

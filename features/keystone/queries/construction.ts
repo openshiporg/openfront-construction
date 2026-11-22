@@ -563,6 +563,7 @@ const commandPermissions: Record<string, Permission> = {
   createBudgetChangeWithLine: "canManageFinancials",
   reversePostedDirectCost: "canManageFinancials",
   createEstimateWithLine: "canManagePreconstruction",
+  addEstimateLine: "canManagePreconstruction",
   reviseEstimate: "canManagePreconstruction",
   registerSpecificationSection: "canManageDocuments",
   registerInspectionTemplate: "canManageSafety",
@@ -608,7 +609,7 @@ const commandPermissions: Record<string, Permission> = {
 
 const toolCommands: Record<string, readonly string[]> = {
   overview: ["transitionProjectStatus"],
-  preconstruction: ["startBidPackage", "registerTradePartner", "createEstimateWithLine", "reviseEstimate", "inviteBidder", "recordBidSubmission"],
+  preconstruction: ["startBidPackage", "registerTradePartner", "createEstimateWithLine", "addEstimateLine", "reviseEstimate", "inviteBidder", "recordBidSubmission"],
   financials: ["recordDirectCost", "addBudgetLine", "createBudgetChangeWithLine", "reversePostedDirectCost", "configureConstructionApprovalPolicy"],
   contracts: ["openChangeEvent", "addChangeEventLine", "recordChangeQuote", "withdrawChangeQuote", "rejectChangeQuote", "createPrimeContractWithLine", "createCommitmentWithLine", "createChangeOrderWithLine", "configureConstructionApprovalPolicy"],
   procurement: ["awardBidSubmission", "createProcurementRequestWithLine", "placeProcurementOrder", "recordMaterialReceipt"],
