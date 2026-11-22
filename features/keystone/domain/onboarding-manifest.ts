@@ -55,7 +55,7 @@ export const ONBOARDING_MANIFEST = {
   DirectCost: { coverage: "evidence", livePath: "recordDirectCost (posted cost)" },
   PrimeContract: { coverage: "workflow", livePath: "createPrimeContractWithLine" },
   Commitment: { coverage: "workflow", livePath: "awardBidSubmission; createCommitmentWithLine" },
-  ContractLineItem: { coverage: "workflow", livePath: "createPrimeContractWithLine; createCommitmentWithLine" },
+  ContractLineItem: { coverage: "workflow", livePath: "createPrimeContractWithLine; createCommitmentWithLine; addContractLine" },
   ChangeEvent: { coverage: "sample", livePath: "openChangeEvent" },
   ChangeEventLineItem: { coverage: "workflow", livePath: "addChangeEventLine" },
   ChangeQuote: { coverage: "workflow", livePath: "recordChangeQuote" },

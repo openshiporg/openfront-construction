@@ -78,6 +78,7 @@ import {
   addBudgetLine,
   addChangeEventLine,
   addEstimateLine,
+  addContractLine,
   registerInspectionTemplate,
   recordChangeQuote,
   withdrawChangeQuote,
@@ -1115,6 +1116,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         reversePostedDirectCost(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         createEstimateWithLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         addEstimateLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
+        addContractLine(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         reviseEstimate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         registerSpecificationSection(input: ConstructionWorkflowInput!): ConstructionCommandResult!
         registerInspectionTemplate(input: ConstructionWorkflowInput!): ConstructionCommandResult!
@@ -1265,6 +1267,7 @@ export function extendGraphqlSchema(baseSchema: GraphQLSchema) {
         reversePostedDirectCost,
         createEstimateWithLine,
         addEstimateLine,
+        addContractLine,
         reviseEstimate,
         registerSpecificationSection,
         registerInspectionTemplate,

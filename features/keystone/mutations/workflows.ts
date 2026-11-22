@@ -559,6 +559,73 @@ export const createPrimeContractWithLine = (_root: unknown, { input }: { input: 
 export const createCommitmentWithLine = (_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext) =>
   createContractWithLine(input, context, "Commitment");
 
+/** Add a schedule-of-values line to a draft prime contract, subcontract or purchase order.
+ *  The contract value is the sum of its lines; a subcontract line also rolls into the
+ *  committed cost of its budget line, exactly as the first line does. */
+export async function addContractLine(_root: unknown, { input }: { input: ConstructionWorkflowInput }, context: CommandContext): Promise<CommandResult> {
+  const id = projectId(input);
+  const contractId = requiredText(input.relatedId, "Contract id", 200);
+  const lineValue = amount(input.amountMinor, "Line value", true);
+  const description = requiredText(input.title, "Schedule-of-values description", 500);
+  const budgetCodeId = requiredText(input.secondaryId, "Budget code id", 200);
+  let isPrime = true;
+  return executeProjectCommand({
+    context, operation: "addContractLine", permission: "canManageContracts", projectId: id,
+    idempotencyKey: input.idempotencyKey, request: input, listKey: "ContractLineItem",
+    data: {},
+    beforeCreate: async tx => {
+      if (!tx.prisma?.$queryRawUnsafe) throw new Error("Contract locking is unavailable");
+      let [row] = await tx.prisma.$queryRawUnsafe<Array<{ status: string }>>(
+        'SELECT status::text AS status FROM "PrimeContract" WHERE id = $1 AND project = $2 FOR UPDATE', contractId, id,
+      );
+      if (!row) {
+        isPrime = false;
+        [row] = await tx.prisma.$queryRawUnsafe<Array<{ status: string }>>(
+          'SELECT status::text AS status FROM "Commitment" WHERE id = $1 AND project = $2 FOR UPDATE', contractId, id,
+        );
+      }
+      if (!row) throw new Error("Contract not found on this project");
+      if (row.status !== "draft") throw new Error("Lines can only be added while the contract is a draft. Use a change order after that.");
+      const column = isPrime ? "primeContract" : "commitment";
+      const [latest] = await tx.prisma.$queryRawUnsafe<Array<{ lineNumber: number | null; lines: number }>>(
+        `SELECT MAX("lineNumber")::int AS "lineNumber", COUNT(*)::int AS lines FROM "ContractLineItem" WHERE "${column}" = $1`, contractId,
+      );
+      if (Number(latest?.lines ?? 0) >= 500) throw new Error("A contract holds at most 500 lines");
+      return {
+        lineNumber: Number(latest?.lineNumber ?? 0) + 1, description,
+        scheduledValueMinor: lineValue, revisedValueMinor: lineValue,
+        ...(isPrime ? { primeContract: { connect: { id: contractId } } } : { commitment: { connect: { id: contractId } } }),
+        budgetCode: { connect: { id: budgetCodeId } },
+        project: { connect: { id } },
+      };
+    },
+    afterCreate: async tx => {
+      if (!tx.prisma?.$executeRawUnsafe || !tx.prisma.$queryRawUnsafe) throw new Error("Contract totals are unavailable");
+      const table = isPrime ? "PrimeContract" : "Commitment";
+      const updated = await tx.prisma.$executeRawUnsafe(
+        `UPDATE "${table}" SET "originalContractMinor" = COALESCE("originalContractMinor", 0) + $2::bigint,
+           "revisedContractMinor" = COALESCE("revisedContractMinor", 0) + $2::bigint
+         WHERE id = $1 AND status::text = 'draft'`, contractId, lineValue,
+      );
+      if (updated !== 1) throw new Error("Contract changed concurrently; reload before adding a line");
+      if (isPrime) return;
+      if (!tx.prisma.budgetLineItem?.update || !tx.prisma.budget?.update) throw new Error("Budget rollup is unavailable");
+      const [line] = await tx.prisma.$queryRawUnsafe<Array<{ id: string; budgetId: string }>>(
+        `SELECT line.id, line.budget AS "budgetId" FROM "BudgetLineItem" line
+         JOIN "Budget" budget ON budget.id = line.budget
+         WHERE line.project = $1 AND line."budgetCode" = $2 AND budget.status = 'active'
+         ORDER BY line."createdAt" ASC LIMIT 1 FOR UPDATE OF line, budget`, id, budgetCodeId,
+      );
+      if (!line) throw new Error("A matching active budget line is required for commitment rollup");
+      await tx.prisma.budgetLineItem.update({ where: { id: line.id }, data: {
+        committedAmountMinor: { increment: BigInt(lineValue) }, projectedFinalCostMinor: { increment: BigInt(lineValue) },
+        projectedOverUnderMinor: { decrement: BigInt(lineValue) },
+      } });
+      await tx.prisma.budget.update({ where: { id: line.budgetId }, data: { totalCommittedMinor: { increment: BigInt(lineValue) } } });
+    },
+  });
+}
+
 export async function createChangeOrderWithLine(
   _root: unknown,
   { input }: { input: ConstructionWorkflowInput },
